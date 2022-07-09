@@ -4,13 +4,16 @@ uniform vec2 pos;
 uniform float time;
 uniform float outerRadius;
 
-const float spinSpeed = 0.3;
+const float outerRadiusFactor = 1.0;
 
-const vec2 rad = vec2(10.0, 50.0); // [min, max]
-const float numCircles = 6.0;
+// revolutions per second
+const float spinSpeed = 0.2;
 
-const vec4 colorA = vec4(0.0, 1.0, 0.0, 1.0);
-const vec4 colorB = vec4(0.0, 0.0, 1.0, 1.0);
+const vec2 rad = vec2(40.0, 100.0); // [min, max]
+const float numCircles = 8.0;
+
+const vec4 colorA = vec4(0.0, 0.9, 0.2, 1.0);
+const vec4 colorB = vec4(0.0, 0.2, 0.9, 1.0);
 
 float dist;
 
@@ -41,6 +44,7 @@ float smoothify(float x, float mod) {
 
 void main() {
     gl_FragColor = background;
+    float _outerRadius = outerRadius * outerRadiusFactor;
     
     for (float i = 0.0; i < MAX_CIRCLES; ++i) { // GLSL requires a constant max iterations
         if (i >= numCircles) break; // but we can break early
@@ -49,7 +53,7 @@ void main() {
         // factoring in time in addition to where it is along the circle 
         // means the places where blobs have high or low sizes are changing
         float r = mix(rad[0], rad[1], smoothify(percentCircle, 2.0*time));
-        if ((dist = distance(gl_FragCoord.xy, pos + aroundCircle(percentCircle, outerRadius))) < r) {
+        if ((dist = distance(gl_FragCoord.xy, pos + aroundCircle(percentCircle, _outerRadius))) < r) {
             gl_FragColor *= mix(mix(colorA, colorB, smoothify(percentCircle, -2.0*time)), background, dist / r);
             // overlapping colors stack multiplicatavely
         }

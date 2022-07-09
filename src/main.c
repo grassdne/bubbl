@@ -1,224 +1,259 @@
+#include <stddef.h>
+#define _CRT_SECURE_NO_WARNINGS
 #include <GL/glew.h>
 #define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <string.h>
+#include "common.h"
+#include "loader.h"
 
-#define ERROR() strerror(errno)
+typedef struct {
+	GLint vertexPosition;
+} Attribs;
 
-const char* VS_SOURCE_FILE = "src/vertex.glsl";
-const char* FS_SOURCE_FILE = "src/fragment.glsl";
+#define UNIFORMS(_) _(pos) _(time) _(spinSpeed) _(outerRadius)
+
+#define var(n) GLint n;
+typedef struct {
+    UNIFORMS(var)
+} Uniforms;
+#undef var
+
+// globals
+// make programInfo struct?
+Attribs attribs;
+Uniforms uniforms;
+GLuint program;
+bool playing = true;
+double time;
+
+void getProgramVars(void) {
+#define ATT(name) attribs.name = glGetAttribLocation(program, #name);
+#define UNI(name) uniforms.name = glGetUniformLocation(program, #name);
+	ATT(vertexPosition);
+
+    UNIFORMS(UNI)
+#undef ATT
+#undef UNI
+}
 
 static void error_callback(int error, const char* description) {
-    (void)error;
-    fputs(description, stderr);
-}
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    (void)scancode; (void)mods;
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-}
-
-static int min(int a, int b) {
-    return a < b ? a : b;
+	(void)error;
+	fputs(description, stderr);
 }
 
 static GLuint initBuffers(void) {
-    GLuint positionBuffer;
-    glCreateBuffers(1, &positionBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+	GLuint positionBuffer;
+	glCreateBuffers(1, &positionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
 
-    float positions[] = {
-         1.f,  1.f,
-        -1.f,  1.f,
-         1.f, -1.f,
-        -1.f, -1.f,
+	float positions[] = {
+		 1.0,  1.0,
+		-1.0,  1.0,
+		 1.0, -1.0,
+		-1.0, -1.0,
+	};
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+
+	return positionBuffer;
+}
+
+static const char* shaderTypeCStr(GLenum shaderType) {
+	switch (shaderType) {
+	case GL_VERTEX_SHADER: return "Vertex";
+	case GL_FRAGMENT_SHADER: return "Fragment";
+	default: return "??";
+	}
+}
+
+static GLuint loadShader(GLenum shaderType, const char* source) {
+	fflush(stdout);
+	GLuint shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &source, NULL);
+	glCompileShader(shader);
+
+	GLint compiled = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	if (!compiled) {
+		GLchar error_msg[GL_INFO_LOG_LENGTH];
+		glGetShaderInfoLog(shader, GL_INFO_LOG_LENGTH, NULL, error_msg);
+		fprintf(stderr, "Error compiling shader (%s Shader) %s\n", shaderTypeCStr(shaderType), error_msg);
+		glDeleteShader(shader);
+		return 0;
+	}
+	return shader;
+}
+
+static void linkProgram(void) {
+	glLinkProgram(program);
+
+	GLint linked = 0;
+	glGetProgramiv(program, GL_LINK_STATUS, &linked);
+	if (!linked) {
+		GLchar error_msg[GL_INFO_LOG_LENGTH];
+		glGetProgramInfoLog(program, GL_INFO_LOG_LENGTH, NULL, error_msg);
+		fprintf(stderr, "Error linking program: %s", error_msg);
+		glDeleteProgram(program);
+		exit(EXIT_FAILURE);
+	}
+
+	glUseProgram(program);
+
+	return;
+}
+
+static void buildShaders(void) {
+    struct { const char* file; const GLenum type; } shaderDatas[] = {
+        { .file = "vertex.glsl", .type = GL_VERTEX_SHADER },
+        { .file = "fragment.glsl", .type = GL_FRAGMENT_SHADER },
     };
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+    for (size_t i = 0; i < STATIC_LEN(shaderDatas); ++i) {
+        //printf("Loading shader (type %s)\n", shaderTypeCStr(shaderDatas[i].type));
+        const char* src = mallocShaderSource(shaderDatas[i].file); 
+        GLuint shader = loadShader(shaderDatas[i].type, src);
 
-    return positionBuffer;
-}
+        free((void*)src);
+        if (!shader) exit(EXIT_FAILURE);
 
-static const char *shaderTypeCStr(GLenum shaderType) {
-    switch (shaderType) {
-    case GL_VERTEX_SHADER: return "Vertex";
-    case GL_FRAGMENT_SHADER: return "Fragment";
-    default: return "??";
+        glAttachShader(program, shader);
     }
 }
 
-static GLuint loadShader(GLenum shaderType, const GLchar* source) {
-    fflush(stdout);
-    GLuint shader = glCreateShader(shaderType);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
-    GLint compiled = 0;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    if (!compiled) {
-        GLchar error_msg[GL_INFO_LOG_LENGTH];
-        glGetShaderInfoLog(shader, GL_INFO_LOG_LENGTH, NULL, error_msg);
-        fprintf(stderr, "Error compiling shader (%s Shader) %s\n", shaderTypeCStr(shaderType), error_msg);
-        glDeleteShader(shader);
-        return 0;
-    }
-    return shader;
+static void initShaderProgram(void) {
+	program = glCreateProgram();
+    buildShaders();
+    linkProgram();
+    getProgramVars();
 }
 
-static GLuint initShaderProgram(const GLchar* vsSource, const GLchar* fsSource) {
-    GLuint vertShader, fragShader;
-    if (!(vertShader = loadShader(GL_VERTEX_SHADER, vsSource))
-     || !(fragShader = loadShader(GL_FRAGMENT_SHADER, fsSource)))
-    {
-        return 0;
-    }
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertShader);
-    glAttachShader(shaderProgram, fragShader);
-    glLinkProgram(shaderProgram);
-
-    GLint linked = 0;
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linked);
-    if (!linked) {
-        GLchar error_msg[GL_INFO_LOG_LENGTH];
-        glGetProgramInfoLog(shaderProgram, GL_INFO_LOG_LENGTH, NULL, error_msg);
-        fprintf(stderr, "Error linking program: %s", error_msg);
-        glDeleteProgram(shaderProgram);
-        return 0;
-    }
-
-    return shaderProgram;
+static void onWindowResize(GLFWwindow* window, int width, int height) {
+    (void)window;
+	glUniform2f(uniforms.pos, width / 2.0, height / 2.0);
+	glUniform1f(uniforms.outerRadius, MIN(width, height) / 2.0 - 100.);
+	//glfwSwapBuffers(window);
 }
 
-static const char* mallocShaderSource(const char* fname) {
-    FILE* f;
-    if ((f = fopen(fname, "r")) == NULL) {
-        fprintf(stderr, "File (%s): %s", fname, ERROR());
-    }
-    fseek(f, 0, SEEK_END);
-    size_t size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+static void frame(GLFWwindow *window) {
+    glfwPollEvents();
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
 
-    char *s = malloc(size);
-    if ((fread(s, sizeof(char), size, f)) == 0) {
-        fprintf(stderr, "File (%s): %s", fname, ERROR());
-    }
+    GLuint positionBuffer = initBuffers();
 
-    return s;
-}
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClearDepth(1.0);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
-typedef struct {
-    GLint vertexPosition;
-} Attribs;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-typedef struct {
-    GLint pos;
-    GLint time;
-    GLint spinSpeed;
-    GLint outerRadius;
-} Uniforms;
+    glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+    glVertexAttribPointer(attribs.vertexPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(attribs.vertexPosition);
 
-Attribs attribs;
-Uniforms uniforms;
+    glUniform1f(uniforms.time, glfwGetTime());
 
-static void onWindowResize(GLFWwindow *window, int width, int height) {
-    glUniform2f(uniforms.pos, width / 2.f, height / 2.f);
-    glUniform1f(uniforms.outerRadius, min(width, height) / 2.f - 50.);
-    glfwSwapBuffers(window);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glEnd();
 }
 
 static void eventLoop(GLFWwindow* window) {
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        glViewport(0, 0, width, height);
+	while (!glfwWindowShouldClose(window)) {
+        frame(window);
+        if (playing) glfwSwapBuffers(window);
+	}
+}
 
-        GLuint positionBuffer = initBuffers();
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	(void)scancode; (void)mods;
+    if (action == GLFW_RELEASE) {
+        switch (key) {
+        case GLFW_KEY_ESCAPE:
+            glfwSetWindowShouldClose(window, GL_TRUE);
+            break;
+        }
+    } else {
+        switch (key) {
+        case GLFW_KEY_R: {
+            glDeleteProgram(program);
 
-        glClearColor(1.f, 1.f, 1.f, 1.f);
-        glClearDepth(1.f);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
+            initShaderProgram();
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-        glVertexAttribPointer(attribs.vertexPosition, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(attribs.vertexPosition);
-
-        glUniform1f(uniforms.time, glfwGetTime());
-
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-        glEnd();
-        glfwSwapBuffers(window);
+            int winW, winH;
+            glfwGetWindowSize(window, &winW, &winH);
+            onWindowResize(window, winW, winH);
+            break;
+        }
+        case GLFW_KEY_SPACE:
+            playing = !playing;
+            time = glfwGetTime();
+            break;
+        case GLFW_KEY_F:
+            if (!playing) {
+                glfwSetTime(time);
+                frame(window);
+                glfwSwapBuffers(window);
+                time += 0.1;
+            }
+            break;
+        case GLFW_KEY_B:
+            if (!playing) {
+                glfwSetTime(time);
+                frame(window);
+                glfwSwapBuffers(window);
+                time -= 0.1;
+                if (time < 0) time = 0;
+            }
+            break;
+        }
     }
 }
 
 int main(void)
 {
-    GLFWwindow* window;
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit())
-        exit(EXIT_FAILURE);
-    window = glfwCreateWindow(640, 480, "OpenGL Testing", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, key_callback);
+	GLFWwindow* window;
+	glfwSetErrorCallback(error_callback);
+	if (!glfwInit())
+		exit(EXIT_FAILURE);
+	window = glfwCreateWindow(640, 480, "Graphics Fun", NULL, NULL);
+	if (!window)
+	{
+		glfwTerminate();
+		exit(EXIT_FAILURE);
+	}
+	glfwMakeContextCurrent(window);
+	glfwSetKeyCallback(window, key_callback);
 
-    glClearColor(1.f, 1.f, 1.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-    if (glewInit() != GLEW_OK) {
-       printf("GLEW init failed\n");
-       abort();
-    } else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
-       printf("Shaders not available\n");
-       abort();
-    }
+	if (glewInit() != GLEW_OK) {
+		printf("GLEW init failed\n");
+		abort();
+	}
+	else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
+		printf("Shaders not available\n");
+		abort();
+	}
 
-    const char* vsSource = mallocShaderSource(VS_SOURCE_FILE);
-    const char* fsSource = mallocShaderSource(FS_SOURCE_FILE);
+    initShaderProgram();
 
-    GLuint program;
-    if (!(program = initShaderProgram(vsSource, fsSource))) {
-        fprintf(stderr, "Aborting.\n");
-        exit(EXIT_FAILURE);
-    }
-    glUseProgram(program);
+	int winW, winH;
+	glfwGetWindowSize(window, &winW, &winH);
+	onWindowResize(window, winW, winH);
+	glfwSetWindowSizeCallback(window, onWindowResize);
 
-#define ATT(name) attribs.name = glGetAttribLocation(program, #name);
-    ATT(vertexPosition);
-#undef ATT
+	glfwSwapInterval(1);
 
-#define UNI(name) uniforms.name = glGetUniformLocation(program, #name);
-    UNI(pos);
-    UNI(time);
-    UNI(spinSpeed);
-    UNI(outerRadius);
-#undef UNI
-    int winW, winH;
-    glfwGetWindowSize(window, &winW, &winH);
-    onWindowResize(window, winW, winH);
-    glfwSetWindowSizeCallback(window, onWindowResize);
+	eventLoop(window);
 
-    glfwSwapInterval(1);
-
-    eventLoop(window);
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    exit(EXIT_SUCCESS);
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	exit(EXIT_SUCCESS);
 }
 
