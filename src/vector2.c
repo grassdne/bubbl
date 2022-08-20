@@ -16,11 +16,16 @@ float vec_Distance(Vector2 a, Vector2 b)
     return vec_Length(vec_Sub(a, b));
 }
 
-void vec_Normalize(Vector2 vec)
+void vec_Normalize(Vector2 *vec)
 {
-    float length = vec_Length(vec);
-    vec.x /= length;
-    vec.y /= length;
+    float length = vec_Length(*vec);
+    vec->x /= length;
+    vec->y /= length;
+}
+
+Vector2 vec_Normalized(Vector2 vec)
+{
+    return vec_Div(vec, vec_Length(vec));
 }
 
 float vec_Dot(Vector2 a, Vector2 b)
@@ -30,32 +35,22 @@ float vec_Dot(Vector2 a, Vector2 b)
 
 Vector2 vec_Sub(Vector2 a, Vector2 b)
 {
-    Vector2 new;
-    new.x = a.x - b.x;
-    new.y = a.y - b.y;
-    return new;
+    return (Vector2) {a.x - b.x, a.y - b.y};
 }
 
-void vec_Scale(Vector2 vec, Vector2 scale)
+void vec_Scale(Vector2 *vec, Vector2 scale)
 {
-    vec.x *= scale.x;
-    vec.y *= scale.y;
+    vec->x *= scale.x;
+    vec->y *= scale.y;
 }
 
 Vector2 vec_Mult(Vector2 vec, float mult)
 {
-    Vector2 new;
-    new.x = vec.x * mult;
-    new.y = vec.y * mult;
-    return new;
+    return (Vector2){ vec.x * mult, vec.y * mult };
 }
 
 Vector2 vec_Div(Vector2 vec, float div)
 {
-    Vector2 new = {
-        .x = vec.x / div,
-        .y = vec.y / div,
-    };
-    return new;
+    return (Vector2){ vec.x / div, vec.y / div };
 }
 

@@ -5,11 +5,12 @@ typedef struct {
     float x, y;
 } Vector2;
 
-void vec_Scale(Vector2 vec, Vector2 scale);
+void vec_Scale(Vector2 *vec, Vector2 scale);
 float vec_LengthSq(Vector2 vec);
 float vec_Length(Vector2 vec);
 float vec_Distance(Vector2 a, Vector2 b);
-void vec_Normalize(Vector2 vec);
+void vec_Normalize(Vector2 *vec);
+Vector2 vec_Normalized(Vector2 vec);
 float vec_Dot(Vector2 a, Vector2 b);
 Vector2 vec_Sub(Vector2 a, Vector2 b);
 Vector2 vec_Mult(Vector2 vec, float mult);
