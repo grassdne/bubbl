@@ -1,4 +1,6 @@
-//precision highp float;
+#version 330
+
+layout(location = 0) out vec4 color;
 
 uniform vec2 pos;
 uniform float time;
@@ -43,7 +45,7 @@ float smoothify(float x, float mod) {
 }
 
 void main() {
-    gl_FragColor = background;
+    color = background;
     float _outerRadius = outerRadius * outerRadiusFactor;
     
     for (float i = 0.0; i < MAX_CIRCLES; ++i) { // GLSL requires a constant max iterations
@@ -54,7 +56,7 @@ void main() {
         // means the places where blobs have high or low sizes are changing
         float r = mix(rad[0], rad[1], smoothify(percentCircle, 2.0*time));
         if ((dist = distance(gl_FragCoord.xy, pos + aroundCircle(percentCircle, _outerRadius))) < r) {
-            gl_FragColor *= mix(mix(colorA, colorB, smoothify(percentCircle, -2.0*time)), background, dist / r);
+            color *= mix(mix(colorA, colorB, smoothify(percentCircle, -2.0*time)), background, dist / r);
             // overlapping colors stack multiplicatavely
         }
     }

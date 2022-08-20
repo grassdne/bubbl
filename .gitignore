@@ -1,3 +1,6 @@
 .vs/*
 main
 main.o
+/.ccls-cache/
+/main.exe
+/Session.vim
