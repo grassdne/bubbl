@@ -5,21 +5,30 @@ CLIBS=-lGL -lGLU -lglfw3 -lX11 -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor
 CMAIN=src/main.c
 CSRC=$(CMAIN) src/loader.c src/vector2.c
 SRC=$(CSRC) shaders/bubble_quad.vert shaders/bubble.frag
-COUT=main
+EXE=main
 
-all: main
+INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
+LIBRARY_DIRS_WIN = -LC:\mingw_dev\lib
+EXE_WIN = main.exe
+CC_WIN = gcc.exe
+CLIBS_WIN = -luser32 -lkernel32 -lopengl32 -lglu32 -lgdi32 -lglew32 -lmingw32 -lglfw3dll
+
+all: $(EXE)
 
 debug: CFLAGS += -g
-debug: main
+debug: $(EXE)
 
-run: main
+CFLAGS_WIN = $(CFLAGS)
+
+run: $(EXE)
 	./main
 
 clean:
-	rm -f $(COUT)
+	rm -f $(EXE) $(EXE_WIN)
 
 main: $(SRC)
-	$(CC) -o $(COUT) $(CSRC) $(CFLAGS) $(CLIBS)
-
-main.exe: $(SRC)
-	gcc.exe -o main.exe $(CSRC) $(CFLAGS) "-LC:\GL\GLFWx86\lib-mingw" -luser32 -lkernel32 "-LC:\GL\GLEWbin\lib\Release\Win32" "-IC:\GL\GLFWx86\include" "-IC:\GL\GLEWbin\include" -lopengl32 -lglu32 -lgdi32 -lglew32 -lmingw32 -lglfw3dll
+ifeq ($(OS),Unix)
+	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
+else
+	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
+endif
