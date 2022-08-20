@@ -276,6 +276,7 @@ int main()
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
+
 	glfwMakeContextCurrent(window);
 	glfwSetKeyCallback(window, key_callback);
 
@@ -287,6 +288,11 @@ int main()
 		printf("Shaders not available\n");
 		abort();
 	}
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+
 
     glEnable(GL_DEPTH_TEST);
 
@@ -342,8 +348,6 @@ int main()
     }
 
     initShaderProgram();
-
-    printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
     glfwSetMouseButtonCallback(window, onMouseDown);
 
