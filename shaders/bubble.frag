@@ -11,12 +11,6 @@ in vec3 bubble_color;
 const vec3 background = vec3(1.0, 1.0, 1.0);
 const float MIN_TRANSPARENCY = 0.2;
 
-float sqDistance(vec2 a, vec2 b) {
-    float x = a.x - b.x;
-    float y = a.y - b.y;
-    return x*x + y*y;
-}
-
 void main() {
     float dist = distance(gl_FragCoord.xy, bubble_pos);
     if (dist < rad) {
