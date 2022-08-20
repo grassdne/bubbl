@@ -11,6 +11,11 @@ float vec_Length(Vector2 vec)
     return sqrt(vec_LengthSq(vec));
 }
 
+float vec_Distance(Vector2 a, Vector2 b)
+{
+    return vec_Length(vec_Sub(a, b));
+}
+
 void vec_Normalize(Vector2 vec)
 {
     float length = vec_Length(vec);

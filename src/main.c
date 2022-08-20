@@ -3,7 +3,6 @@
 #define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -34,9 +33,10 @@ typedef struct {
 
 typedef struct  {
     Vector2 pos;
-    float rad,
-    r, g, b;
+    Color color;
+    float rad;
     Vector2 d;
+    GLbyte alive;
 } Bubble;
 
 Uniforms uniforms;
@@ -44,9 +44,19 @@ Uniforms uniforms;
 GLuint program;
 bool playing = true;
 
-Bubble bubbles[BUBBLE_CAPACITY];
+Bubble bubbles[BUBBLE_CAPACITY] = {0}; // Initialize to zero
 int num_bubbles = 0;
 GLuint bubble_vbo;
+
+/*
+ * Syntax:
+ *
+ * for ACTIVE_BUBBLES(i) {
+ *    Bubble *bubble = &bubbles[i];
+ *    ...
+ * }
+*/
+#define ACTIVE_BUBBLES(it) (int it = 0; it < num_bubbles; ++it) if (bubbles[it].alive)
 
 // Explicitly numbered because need to match vertex shader
 typedef enum {
@@ -54,6 +64,7 @@ typedef enum {
     ATTRIB_BUBBLE_POS = 1,
     ATTRIB_BUBBLE_COLOR = 2,
     ATTRIB_BUBBLE_RADIUS = 3,
+    ATTRIB_BUBBLE_ALIVE = 4,
 } VertAttribLocs;
 
 void getProgramVars(void) {
@@ -141,33 +152,57 @@ static double randreal() {
 }
 
 static void push_bubble(float x, float y) {
-    if (num_bubbles >= BUBBLE_CAPACITY) return;
-    Bubble *bubble = &bubbles[num_bubbles++];
-    bubble->pos.x  = x;
-    bubble->pos.y  = y;
-    bubble->r  = randreal();
-    bubble->g  = randreal();
-    bubble->b  = randreal();
-    // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
-    bubble->rad = BASE_RADIUS + randreal() * VARY_RADIUS;
-    // [-1, 1]
-    bubble->d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
-    // [-1, 1]
-    bubble->d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    // Recycle dead bubbles
+    for (int i = 0; i < BUBBLE_CAPACITY; ++i) {
+        if (!bubbles[i].alive) {
+            Bubble *bubble = &bubbles[num_bubbles++];
+            bubble->pos.x  = x;
+            bubble->pos.y  = y;
+            bubble->color.r  = randreal();
+            bubble->color.g  = randreal();
+            bubble->color.b  = randreal();
+            // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
+            bubble->rad = BASE_RADIUS + randreal() * VARY_RADIUS;
+            // [-1, 1]
+            bubble->d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+            // [-1, 1]
+            bubble->d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+            bubble->alive = true;
 
-    glBindBuffer(GL_ARRAY_BUFFER, bubble_vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(bubbles), bubbles);
+            // Adjust array length
+            if (i >= num_bubbles) {
+                num_bubbles = i + 1;
+            }
+            break;
+        }
+    }
 }
 
-static void onMouseDown(GLFWwindow* window, int button, int action, int mods) {
+static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) {
     (void)mods;
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         double xpos, ypos;
         int window_height;
         glfwGetCursorPos(window, &xpos, &ypos);	
         glfwGetWindowSize(window, NULL, &window_height);
-        push_bubble(xpos, window_height - ypos);
+        Vector2 mouse = {xpos, window_height - ypos};
+
+        bool popped_bubble = false;
+        // Destroy any bubbles under cursor
+        for ACTIVE_BUBBLES(i) {
+            if (bubbles[i].alive && vec_Distance(bubbles[i].pos, mouse) < bubbles[i].rad) {
+                printf("popping bubble!\n");
+                bubbles[i].alive = false;
+                popped_bubble = true;
+            }
+        }
+        // Otherwise we create a new bubble
+        if (!popped_bubble) push_bubble(mouse.x, mouse.y);
     }
+}
+
+static void on_window_resize(GLFWwindow *window, int width, int height) {
+    
 }
 
 static bool is_collision(int a, int b) {
@@ -205,8 +240,8 @@ static void update_position(double dt, int i) {
 }
 
 static void check_collisions() {
-    for (int i = 0; i < num_bubbles; ++i) {
-        for (int j = 0; j < num_bubbles; ++j) {
+    for ACTIVE_BUBBLES(i) {
+        for ACTIVE_BUBBLES(j) {
             if (j == i) continue; // Can't collide with yourself!
             if (is_collision(i, j)) {
 
@@ -240,7 +275,7 @@ static void frame(GLFWwindow *window, double dt) {
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (int i = 0; i < num_bubbles; ++i) {
+    for ACTIVE_BUBBLES(i) {
         update_position(dt, i);
     }
 
@@ -264,21 +299,47 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
+#define BUBBLE_ATTRIIB(loc, count, type, field) do{ \
+    glEnableVertexAttribArray(loc); \
+    glVertexAttribPointer(loc, count, type, GL_FALSE, sizeof(Bubble), (void*)offsetof(Bubble, field)); \
+    glVertexAttribDivisor(loc, 1); }while(0)
+
+static void create_bubble_buffer() {
+    glGenBuffers(2, &bubble_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, bubble_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(bubbles), bubbles, GL_DYNAMIC_DRAW);
+
+    BUBBLE_ATTRIIB(ATTRIB_BUBBLE_POS,    2, GL_FLOAT, pos);
+    BUBBLE_ATTRIIB(ATTRIB_BUBBLE_COLOR,  3, GL_FLOAT, color);
+    BUBBLE_ATTRIIB(ATTRIB_BUBBLE_RADIUS, 4, GL_FLOAT, rad);
+    BUBBLE_ATTRIIB(ATTRIB_BUBBLE_ALIVE,  1, GL_BYTE, alive);
+}
+#undef BUBBLE_ATTRIIB
+
+void create_starting_bubbles() {
+    const int W = SCREEN_WIDTH;
+    const int H = SCREEN_HEIGHT;
+    push_bubble(W * 0.25, H * 0.25);
+    push_bubble(W * 0.75, H * 0.25);
+    push_bubble(W * 0.25, H * 0.75);
+    push_bubble(W * 0.75, H * 0.75);
+    push_bubble(W * 0.50, H * 0.50);
+}
+
 int main()
 {
-	GLFWwindow* window;
 	glfwSetErrorCallback(error_callback);
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
-	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bubbles", NULL, NULL);
-	if (!window)
-	{
+	if( !glfwInit()) exit(1);
+
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bubbles", NULL, NULL);
+	if (!window) {
 		glfwTerminate();
-		exit(EXIT_FAILURE);
+		exit(1);
 	}
 
 	glfwMakeContextCurrent(window);
 	glfwSetKeyCallback(window, key_callback);
+    glfwSetWindowSizeCallback(window, on_window_resize);
 
 	if (glewInit() != GLEW_OK) {
 		printf("GLEW init failed\n");
@@ -293,15 +354,9 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-
     glEnable(GL_DEPTH_TEST);
 
-	float vertices[] = {
-		 1.0,  1.0,
-		-1.0,  1.0,
-		 1.0, -1.0,
-		-1.0, -1.0,
-	};
+	float quad[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
 
 	GLuint vertex_positions;
 	glGenVertexArrays(1, &vertex_positions);
@@ -309,47 +364,17 @@ int main()
 
     glGenBuffers(1, &vertex_positions);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_positions);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(ATTRIB_VERT_POS);
     glVertexAttribPointer(ATTRIB_VERT_POS, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    glGenBuffers(1, &bubble_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, bubble_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(bubbles), bubbles, GL_DYNAMIC_DRAW);
+    create_bubble_buffer();
 
-    // Bubble positions
-    glEnableVertexAttribArray(ATTRIB_BUBBLE_POS);
-    glVertexAttribPointer(ATTRIB_BUBBLE_POS, 2, GL_FLOAT, GL_FALSE, sizeof(Bubble), (void*)offsetof(Bubble, pos));
-    glVertexAttribDivisor(ATTRIB_BUBBLE_POS, 1);
-
-    // Bubble colors
-    glEnableVertexAttribArray(ATTRIB_BUBBLE_COLOR);
-    glVertexAttribPointer(ATTRIB_BUBBLE_COLOR, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(Bubble), (void*) offsetof(Bubble, r));
-    glVertexAttribDivisor(ATTRIB_BUBBLE_COLOR, 1);
-
-    // Bubble radi
-    glEnableVertexAttribArray(ATTRIB_BUBBLE_RADIUS);
-    glVertexAttribPointer(ATTRIB_BUBBLE_RADIUS, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(Bubble), (void*) offsetof(Bubble, rad));
-    glVertexAttribDivisor(ATTRIB_BUBBLE_RADIUS, 1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    {
-        const int W = SCREEN_WIDTH;
-        const int H = SCREEN_HEIGHT;
-        push_bubble(W * 0.25, H * 0.25);
-        push_bubble(W * 0.75, H * 0.25);
-        push_bubble(W * 0.25, H * 0.75);
-        push_bubble(W * 0.75, H * 0.75);
-        push_bubble(W * 0.50, H * 0.50);
-    }
-
+    create_starting_bubbles();
     initShaderProgram();
 
-    glfwSetMouseButtonCallback(window, onMouseDown);
+    glfwSetMouseButtonCallback(window, on_mouse_down);
 
 	//glfwSwapInterval(100);
 
@@ -365,6 +390,6 @@ int main()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-	exit(EXIT_SUCCESS);
+	exit(0);
 }
 
