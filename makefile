@@ -27,8 +27,8 @@ clean:
 	rm -f $(EXE) $(EXE_WIN)
 
 main: $(SRC)
-ifeq ($(OS),Unix)
-	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
-else
+ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
+else
+	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
 endif
