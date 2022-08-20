@@ -1,29 +1,29 @@
 #include "vector2.h"
 #include <math.h>
 
-float vec2decl( LengthSq )(Vector2 vec)
+float vec_LengthSq(Vector2 vec)
 {
     return (vec.x * vec.x) + (vec.y * vec.y);
 }
 
-float vec2decl(Length) (Vector2 vec)
+float vec_Length(Vector2 vec)
 {
-    return sqrt(vec2decl(LengthSq) (vec));
+    return sqrt(vec_LengthSq(vec));
 }
 
-void vec2decl(Normalize) (Vector2 vec)
+void vec_Normalize(Vector2 vec)
 {
-    float length = vec2decl(Length) (vec);
+    float length = vec_Length(vec);
     vec.x /= length;
     vec.y /= length;
 }
 
-float vec2decl(Dot) (Vector2 a, Vector2 b)
+float vec_Dot(Vector2 a, Vector2 b)
 {
     return (a.x * b.x) + (a.y * b.y);
 }
 
-Vector2 vec2decl(Sub) (Vector2 a, Vector2 b)
+Vector2 vec_Sub(Vector2 a, Vector2 b)
 {
     Vector2 new;
     new.x = a.x - b.x;
@@ -31,13 +31,13 @@ Vector2 vec2decl(Sub) (Vector2 a, Vector2 b)
     return new;
 }
 
-void vec2decl(Scale) (Vector2 vec, Vector2 scale)
+void vec_Scale(Vector2 vec, Vector2 scale)
 {
     vec.x *= scale.x;
     vec.y *= scale.y;
 }
 
-Vector2 vec2decl(Mult) (Vector2 vec, float mult)
+Vector2 vec_Mult(Vector2 vec, float mult)
 {
     Vector2 new;
     new.x = vec.x * mult;
@@ -45,7 +45,7 @@ Vector2 vec2decl(Mult) (Vector2 vec, float mult)
     return new;
 }
 
-Vector2 vec2decl(Div) (Vector2 vec, float div)
+Vector2 vec_Div(Vector2 vec, float div)
 {
     Vector2 new = {
         .x = vec.x / div,
