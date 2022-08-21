@@ -4,7 +4,6 @@ CLIBS=-lGL -lGLU -lglfw3 -lX11 -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor
 
 CMAIN=src/main.c
 CSRC=$(CMAIN) src/loader.c src/vector2.c
-SRC=$(CSRC) shaders/bubble_quad.vert shaders/bubble.frag
 EXE=main
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
@@ -26,7 +25,7 @@ run: $(EXE)
 clean:
 	rm -f $(EXE) $(EXE_WIN)
 
-main: $(SRC)
+main: $(CSRC)
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
 else
