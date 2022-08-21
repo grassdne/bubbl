@@ -19,7 +19,7 @@
 #define BASE_RADIUS 30.0
 #define VARY_RADIUS 30.0
 
-#define UNIFORMS(_) _(time)
+#define UNIFORMS(_) _(time) _(resolution)
 
 #define var(n) GLint n;
 typedef struct {
@@ -47,6 +47,9 @@ bool playing = true;
 Bubble bubbles[BUBBLE_CAPACITY] = {0}; // Initialize to zero
 int num_bubbles = 0;
 GLuint bubble_vbo;
+
+int window_width = SCREEN_WIDTH;
+int window_height = SCREEN_HEIGHT;
 
 /*
  * Syntax:
@@ -86,7 +89,7 @@ static const char* shaderTypeCStr(GLenum shaderType) {
 	}
 }
 
-static GLuint loadShader(GLenum shaderType, const char* source) {
+static GLuint loadShader(GLenum shaderType, const char* source, const char *from) {
 	fflush(stdout);
 	GLuint shader = glCreateShader(shaderType);
 	glShaderSource(shader, 1, &source, NULL);
@@ -97,7 +100,7 @@ static GLuint loadShader(GLenum shaderType, const char* source) {
 	if (!compiled) {
 		GLchar error_msg[GL_INFO_LOG_LENGTH];
 		glGetShaderInfoLog(shader, GL_INFO_LOG_LENGTH, NULL, error_msg);
-		fprintf(stderr, "Error compiling shader (%s Shader) %s\n", shaderTypeCStr(shaderType), error_msg);
+		fprintf(stderr, "Error compiling shader (%s Shader) (in %s) %s\n", shaderTypeCStr(shaderType), from, error_msg);
 		glDeleteShader(shader);
 		return 0;
 	}
@@ -131,7 +134,7 @@ static void buildShaders(void) {
     for (size_t i = 0; i < STATIC_LEN(shaderDatas); ++i) {
         //printf("Loading shader (type %s)\n", shaderTypeCStr(shaderDatas[i].type));
         const char* src = mallocShaderSource(shaderDatas[i].file); 
-        GLuint shader = loadShader(shaderDatas[i].type, src);
+        GLuint shader = loadShader(shaderDatas[i].type, src, shaderDatas[i].file);
 
         free((void*)src);
         if (!shader) exit(1);
@@ -151,31 +154,37 @@ static double randreal() {
     return rand() / (double)RAND_MAX;
 }
 
-static void push_bubble(float x, float y) {
-    // Recycle dead bubbles
-    for (int i = 0; i < BUBBLE_CAPACITY; ++i) {
-        if (!bubbles[i].alive) {
-            Bubble *bubble = &bubbles[num_bubbles++];
-            bubble->pos.x  = x;
-            bubble->pos.y  = y;
-            bubble->color.r  = randreal();
-            bubble->color.g  = randreal();
-            bubble->color.b  = randreal();
-            // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
-            bubble->rad = BASE_RADIUS + randreal() * VARY_RADIUS;
-            // [-1, 1]
-            bubble->d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
-            // [-1, 1]
-            bubble->d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
-            bubble->alive = true;
+static void pop_bubble(int i) {
+    //TODO: animation!
+    bubbles[i].alive = false;
+}
 
-            // Adjust array length
-            if (i >= num_bubbles) {
-                num_bubbles = i + 1;
-            }
-            break;
+static void push_bubble(float x, float y) {
+    int new;
+
+    // Any dead bubbles to recycle?
+    for (int i = 0; i < num_bubbles; ++i) {
+        if (!bubbles[i].alive) {
+            new = i;
+            goto found;
         }
     }
+    // No dead bubbles, add a new one if there's room
+    new = num_bubbles++;
+    if (new >= BUBBLE_CAPACITY) return;
+found:
+    bubbles[new].pos.x  = x;
+    bubbles[new].pos.y  = y;
+    bubbles[new].color.r  = randreal();
+    bubbles[new].color.g  = randreal();
+    bubbles[new].color.b  = randreal();
+    // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
+    bubbles[new].rad = BASE_RADIUS + randreal() * VARY_RADIUS;
+    // [-1, 1]
+    bubbles[new].d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    // [-1, 1]
+    bubbles[new].d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    bubbles[new].alive = true;
 }
 
 static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) {
@@ -191,8 +200,7 @@ static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) 
         // Destroy any bubbles under cursor
         for ACTIVE_BUBBLES(i) {
             if (bubbles[i].alive && vec_Distance(bubbles[i].pos, mouse) < bubbles[i].rad) {
-                printf("popping bubble!\n");
-                bubbles[i].alive = false;
+                pop_bubble(i);
                 popped_bubble = true;
             }
         }
@@ -202,7 +210,10 @@ static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) 
 }
 
 static void on_window_resize(GLFWwindow *window, int width, int height) {
-    
+    (void)window;
+    window_width = width;
+    window_height = height;
+    glViewport(0, 0, width, height);
 }
 
 static bool is_collision(int a, int b) {
@@ -222,15 +233,14 @@ static float clamp(float v, float min, float max) {
 static void update_position(double dt, int i) {
     double nextx = bubbles[i].pos.x + bubbles[i].d.x * dt;
     const float rad = bubbles[i].rad;
-    const float max_y = SCREEN_HEIGHT - rad;
-    const float max_x = SCREEN_WIDTH - rad;
+    const float max_y = window_height - rad;
+    const float max_x = window_width - rad;
 
     if (nextx < rad || nextx > max_x) {
         bubbles[i].d.x *= -1;
         nextx = clamp(bubbles[i].pos.x, rad, max_x);
     }
     bubbles[i].pos.x = nextx;
-    //printf("dx: %f\n", bubbles[i].dx);
     double nexty = bubbles[i].pos.y + bubbles[i].d.y * dt;
     if (nexty < rad || nexty > max_y) {
         bubbles[i].d.y *= -1;
@@ -238,6 +248,9 @@ static void update_position(double dt, int i) {
     }
     bubbles[i].pos.y = nexty;
 }
+
+#define MAX_COLLISION_FIX_TRIES 100
+#define COLLISION_FIXUP_TIME 0.01
 
 static void check_collisions() {
     for ACTIVE_BUBBLES(i) {
@@ -260,9 +273,14 @@ static void check_collisions() {
                 bubbles[i].d = newV1;
                 bubbles[j].d = newV2;
 
+                int try = 0;
                 do {
-                    update_position(0.01, i);
-                    update_position(0.01, j);
+                    update_position(COLLISION_FIXUP_TIME, i);
+                    update_position(COLLISION_FIXUP_TIME, j);
+                    if (try++ > MAX_COLLISION_FIX_TRIES) {
+                        pop_bubble(j);
+                        break;
+                    }
                 } while (is_collision(i, j));
             }
         }
@@ -284,6 +302,7 @@ static void frame(GLFWwindow *window, double dt) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(bubbles), bubbles);
 
     glUniform1f(uniforms.time, glfwGetTime());
+    glUniform2f(uniforms.resolution, window_width, window_height);
 
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, num_bubbles);
 }
