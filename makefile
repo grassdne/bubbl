@@ -3,7 +3,7 @@ CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
 CLIBS=-lGL -lGLU -lglfw3 -lX11 -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor -lm -lGLEW
 
 CMAIN=src/main.c
-CSRC=$(CMAIN) src/loader.c src/vector2.c
+CSRC=$(CMAIN) src/loader.c src/vector2.c src/bubbleshader.c
 EXE=main
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
