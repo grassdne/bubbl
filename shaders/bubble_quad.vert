@@ -22,6 +22,7 @@ void main() {
         vec2 bubblepos_normalized = in_bubble / resolution * 2.0 - 1;
         // pass in a square around the bubble position
         gl_Position = vec4(vertpos * radius_normalized + bubblepos_normalized, 0.0, 1.0);
+        //gl_Position = vec4(vertpos, 0.0, 1.0);
 
         bubble_pos = in_bubble;
         bubble_color = in_color;

@@ -11,4 +11,8 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define STATIC_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
+extern int window_width;
+extern int window_height;
+extern const float QUAD[8];
+
 #endif

@@ -8,16 +8,14 @@ in float rad;
 in vec2 bubble_pos;
 in vec3 bubble_color;
 
-const vec3 background = vec3(1.0, 1.0, 1.0);
-const float MIN_TRANSPARENCY = 0.2;
+const float MIN_TRANSPARENCY = 0.1;
 
 void main() {
     float dist = distance(gl_FragCoord.xy, bubble_pos);
     if (dist < rad) {
-        outcolor = vec4(mix(bubble_color, background, max(MIN_TRANSPARENCY, dist / rad)), 1.0);
-        gl_FragDepth = dist / rad;
+        outcolor = vec4(bubble_color, mix(1, MIN_TRANSPARENCY, dist / rad));
     } else {
-        gl_FragDepth = 1;
+        outcolor.a = 0.0;
     }
 }
 

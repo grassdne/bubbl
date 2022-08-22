@@ -1,5 +1,5 @@
-CC=cc
-CFLAGS=-pedantic -Wall -Wextra
+CC=clang
+CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
 CLIBS=-lGL -lGLU -lglfw3 -lX11 -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor -lm -lGLEW
 
 CMAIN=src/main.c

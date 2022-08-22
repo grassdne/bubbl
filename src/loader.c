@@ -1,3 +1,4 @@
+#include "loader.h"
 #include "common.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,4 +28,31 @@ const char* mallocShaderSource(const char* fpath) {
 	s[size] = '\0';
 
 	return s;
+}
+
+static const char* shaderTypeCStr(GLenum shaderType) {
+	switch (shaderType) {
+	case GL_VERTEX_SHADER: return "Vertex";
+	case GL_FRAGMENT_SHADER: return "Fragment";
+	default: return "??";
+	}
+}
+
+
+GLuint loadShader(GLenum shaderType, const char* source, const char *from) {
+	fflush(stdout);
+	GLuint shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &source, NULL);
+	glCompileShader(shader);
+
+	GLint compiled = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	if (!compiled) {
+		GLchar error_msg[GL_INFO_LOG_LENGTH];
+		glGetShaderInfoLog(shader, GL_INFO_LOG_LENGTH, NULL, error_msg);
+		fprintf(stderr, "Error compiling shader (%s Shader) (in %s) %s\n", shaderTypeCStr(shaderType), from, error_msg);
+		glDeleteShader(shader);
+		return 0;
+	}
+	return shader;
 }
