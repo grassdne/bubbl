@@ -12,15 +12,19 @@
 #include "loader.h"
 #include "vector2.h"
 #include "bubbleshader.h"
+#include "poppingshader.h"
+
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
 
 typedef struct {
     BubbleShader bubble;
+    PoppingShader pop;
 } Shaders;
 
-static Shaders shaders;
+// Zero initialize everything!
+static Shaders shaders = {0};
 
 int window_width = SCREEN_WIDTH;
 int window_height = SCREEN_HEIGHT;
@@ -33,13 +37,28 @@ static void error_callback(int error, const char* description) {
 
 static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) {
     (void)mods;
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);	
         Vector2 mouse = {xpos, window_height - ypos};
 
-        bubbleOnMouseDown(&shaders.bubble, mouse);
+        if (action == GLFW_PRESS) {
+            bubbleOnMouseDown(&shaders.bubble, mouse);
+        }
+        else if (action == GLFW_RELEASE) {
+            bubbleOnMouseUp(&shaders.bubble, mouse);
+        }
     }
+}
+
+static void on_mouse_move(GLFWwindow* window, double xpos, double ypos) {
+    (void)window;
+    bubbleOnMouseMove(&shaders.bubble, (Vector2){xpos, window_height - ypos});
+}
+
+// Communicate bubble shader -> popping shader
+void onRemoveBubble(Bubble *bubble) {
+    poppingPop(&shaders.pop, bubble->pos, bubble->color, bubble->rad);
 }
 
 static void on_window_resize(GLFWwindow *window, int width, int height) {
@@ -55,6 +74,7 @@ static void frame(GLFWwindow *window, double dt) {
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    poppingOnDraw(&shaders.pop, dt);
     bubbleOnDraw(&shaders.bubble, dt);
 }
 
@@ -102,8 +122,10 @@ int main(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     bubbleInit(&shaders.bubble);
+    poppingInit(&shaders.pop);
 
     glfwSetMouseButtonCallback(window, on_mouse_down);
+    glfwSetCursorPosCallback(window, on_mouse_move);
 
 	//glfwSwapInterval(100);
 

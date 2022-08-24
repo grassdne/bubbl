@@ -1,0 +1,28 @@
+#version 330
+
+precision highp float;
+
+layout(location = 0) out vec4 outcolor;
+
+in vec2 pos;
+
+uniform float age;
+uniform vec3 color;
+uniform float size;
+uniform float particle_radius;
+
+//const float PARTICLE_RADIUS = 5.0;
+const float LIFETIME = 1.0;
+const float MIN_TRANSPARENCY = 0.0;
+//const float PI = 3.14159265358979323846264;
+
+
+void main() {
+    outcolor.a = 0.0;
+
+    float dist = distance(gl_FragCoord.xy, pos);
+    if (dist < particle_radius) {
+        float percent = age / LIFETIME;
+        outcolor = vec4(color, mix(mix(1.0, MIN_TRANSPARENCY, dist / particle_radius), MIN_TRANSPARENCY, percent));
+    }
+}

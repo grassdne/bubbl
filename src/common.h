@@ -15,4 +15,8 @@ extern int window_width;
 extern int window_height;
 extern const float QUAD[8];
 
+typedef struct {
+    float r, g, b;
+} Color;
+
 #endif

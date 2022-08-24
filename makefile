@@ -3,7 +3,7 @@ CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
 CLIBS=-lGL -lGLU -lglfw3 -lX11 -lXrandr -lpthread -lXi -ldl -lXinerama -lXcursor -lm -lGLEW
 
 CMAIN=src/main.c
-CSRC=$(CMAIN) src/loader.c src/vector2.c src/bubbleshader.c
+CSRC=src/*.c
 EXE=main
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
@@ -17,6 +17,9 @@ all: $(EXE)
 debug: CFLAGS += -g
 debug: $(EXE)
 
+release: CFLAGS += -O3
+release: $(EXE)
+
 CFLAGS_WIN = $(CFLAGS)
 
 run: $(EXE)
@@ -25,7 +28,8 @@ run: $(EXE)
 clean:
 	rm -f $(EXE) $(EXE_WIN)
 
-main: $(CSRC)
+main: $(CSRC) src/*.h
+
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
 else
