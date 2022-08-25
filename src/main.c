@@ -105,9 +105,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         switch (key) {
         case GLFW_KEY_SPACE:
             paused = !paused;
-            if (!paused) {
-                printf("resuming!\n");
-            }
             break;
         }
         
