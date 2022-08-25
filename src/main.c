@@ -14,7 +14,6 @@
 #include "bubbleshader.h"
 #include "poppingshader.h"
 
-
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
 
@@ -28,6 +27,8 @@ static Shaders shaders = {0};
 
 static double lasttime;
 static bool paused = false;
+
+static int windowed_xpos, windowed_ypos;
 
 int window_width = SCREEN_WIDTH;
 int window_height = SCREEN_HEIGHT;
@@ -103,13 +104,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         case GLFW_KEY_F11: {
             if (glfwGetWindowMonitor(window)) {
                 // Fullscreen -> Windowed
+                glfwGetWindowPos(window, &windowed_xpos, &windowed_ypos);
                 glfwSetWindowMonitor(window, NULL, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GLFW_DONT_CARE);
             }
             else {
                 // Windowed -> Fullscreen
                 // Get resolution
                 const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-                glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
+                glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), windowed_xpos, windowed_ypos, mode->width, mode->height, mode->refreshRate);
             }
 
             break;
