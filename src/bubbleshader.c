@@ -168,11 +168,13 @@ static void check_collisions(BubbleShader *sh) {
 static void make_starting_bubbles(BubbleShader *sh) {
     const int W = window_width;
     const int H = window_height;
-    bubbleCreate(sh, false, W * 0.25, H * 0.25);
-    bubbleCreate(sh, false, W * 0.75, H * 0.25);
-    bubbleCreate(sh, false, W * 0.25, H * 0.75);
-    bubbleCreate(sh, false, W * 0.75, H * 0.75);
-    bubbleCreate(sh, false, W * 0.50, H * 0.50);
+    for (int i = 0; i < 2; ++i) {
+        bubbleCreate(sh, false, W * 0.25, H * 0.25);
+        bubbleCreate(sh, false, W * 0.75, H * 0.25);
+        bubbleCreate(sh, false, W * 0.25, H * 0.75);
+        bubbleCreate(sh, false, W * 0.75, H * 0.75);
+        bubbleCreate(sh, false, W * 0.50, H * 0.50);
+    }
 }
 
 #define BUBBLE_ATTRIB(loc, count, type, field) do{ \
