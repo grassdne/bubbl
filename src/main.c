@@ -99,6 +99,21 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(window, GL_TRUE);
             break;
+
+        case GLFW_KEY_F11: {
+            if (glfwGetWindowMonitor(window)) {
+                // Fullscreen -> Windowed
+                glfwSetWindowMonitor(window, NULL, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GLFW_DONT_CARE);
+            }
+            else {
+                // Windowed -> Fullscreen
+                // Get resolution
+                const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+                glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
+            }
+
+            break;
+        }
         }
     }
     else if (action == GLFW_PRESS) {
