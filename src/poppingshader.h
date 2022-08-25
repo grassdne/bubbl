@@ -9,7 +9,7 @@
 
 #define MAX_PARTICLES 512
 
-#define POP_UNIFORMS($) $(age) $(position) $(color) $(particle_radius)
+#define POP_UNIFORMS($) $(age) $(position) $(color) $(particle_radius) $(resolution)
 
 typedef struct {
     // Relative position

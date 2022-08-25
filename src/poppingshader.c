@@ -210,6 +210,7 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
         glUniform2f(sh->uniforms.position, p->pos.x, p->pos.y);
         glUniform3f(sh->uniforms.color, p->color.r, p->color.g, p->color.b);
         glUniform1f(sh->uniforms.particle_radius, p->pt_radius);
+        glUniform2f(sh->uniforms.resolution, window_width, window_height);
 
         // Draw
         glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, p->numparticles);
