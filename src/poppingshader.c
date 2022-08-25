@@ -19,8 +19,8 @@ typedef enum {
 #define POP_LIFETIME 1.0
 #define EXPAND_MULT 2.0
 
-#define LAYER_WIDTH 8.0
-#define PARTICLE_LAYOUT 6
+#define LAYER_WIDTH 10.0
+#define PARTICLE_LAYOUT 5
 #define PT_RADIUS 5.0;
 #define PT_DELTA_RADIUS (EXPAND_MULT / POP_LIFETIME)
 
@@ -146,7 +146,7 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
         .pos = vec_zero,
         .d = vec_zero,
     };
-    for (float r = LAYER_WIDTH; r < size; r += LAYER_WIDTH) {
+    for (float r = LAYER_WIDTH; r < size - LAYER_WIDTH; r += LAYER_WIDTH) {
         int numps = PARTICLE_LAYOUT * r / LAYER_WIDTH;
         for (int j = 0; j < numps; ++j) {
             float theta = 2.0*M_PI * ((float)j / numps);
