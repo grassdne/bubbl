@@ -20,12 +20,17 @@ const char* mallocShaderSource(const char* fpath) {
     if (s == NULL) {
         exit(1);
     }
-	if ((fread(s, sizeof(char), size, f)) == 0) {
-		fprintf(stderr, "Unable to read file (%s): %s", fpath, ERROR());
+    /* len != size with dos line endings
+     * ftell counts \r\n as the correct 2 bytes,
+     * but fread reads it in as just \n
+     */
+    size_t len = fread(s, 1, size, f);
+	if (len == 0) {
+		fprintf(stderr, "Unable to read file (%s): %s", fpath, strerror(errno));
+        free(s);
 		exit(1);
 	}
-    fclose(f);
-	s[size] = '\0';
+	s[len] = '\0';
 
 	return s;
 }
