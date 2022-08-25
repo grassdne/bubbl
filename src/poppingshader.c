@@ -20,7 +20,7 @@ typedef enum {
 #define EXPAND_MULT 2.0
 
 #define LAYER_WIDTH 8.0
-#define PARTICLE_LAYOUT 4
+#define PARTICLE_LAYOUT 6
 #define PT_RADIUS 5.0;
 #define PT_DELTA_RADIUS (EXPAND_MULT / POP_LIFETIME)
 
@@ -215,7 +215,6 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
 
         // Draw
         glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, p->numparticles);
-        //printf("Drawing %d particles in pop %d\n", p->numparticles, i);
     }
 
     // Unbind
