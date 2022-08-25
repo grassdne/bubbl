@@ -65,17 +65,9 @@ void onRemoveBubble(Bubble *bubble) {
     poppingPop(&shaders.pop, bubble->pos, bubble->color, bubble->rad);
 }
 
-static void on_window_resize(GLFWwindow *window, int width, int height) {
-    (void)window;
-    window_width = width;
-    window_height = height;
-    glViewport(0, 0, width, height);
-}
-
 static void frame(GLFWwindow *window) {
     (void)window;
 
-    glfwPollEvents();
     if (paused) {
         glfwSetTime(lasttime);
     }
@@ -91,6 +83,14 @@ static void frame(GLFWwindow *window) {
         bubbleOnDraw(&shaders.bubble, dt);
         glfwSwapBuffers(window);
     }
+}
+
+static void on_window_resize(GLFWwindow *window, int width, int height) {
+    (void)window;
+    window_width = width;
+    window_height = height;
+    glViewport(0, 0, width, height);
+    frame(window);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -173,8 +173,8 @@ int main(void)
 
     lasttime = glfwGetTime();
 	while (!glfwWindowShouldClose(window)) {
-
         frame(window);
+        glfwPollEvents();
 	}
 
 	glfwDestroyWindow(window);
