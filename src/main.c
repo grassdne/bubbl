@@ -26,6 +26,9 @@ typedef struct {
 // Zero initialize everything!
 static Shaders shaders = {0};
 
+static double lasttime;
+static bool paused = false;
+
 int window_width = SCREEN_WIDTH;
 int window_height = SCREEN_HEIGHT;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
@@ -68,14 +71,25 @@ static void on_window_resize(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-static void frame(GLFWwindow *window, double dt) {
+static void frame(GLFWwindow *window) {
     (void)window;
-    glfwPollEvents();
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    poppingOnDraw(&shaders.pop, dt);
-    bubbleOnDraw(&shaders.bubble, dt);
+    glfwPollEvents();
+    if (paused) {
+        glfwSetTime(lasttime);
+    }
+    else {
+        double now = glfwGetTime();
+        double dt = now - lasttime;
+        lasttime = now;
+
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        poppingOnDraw(&shaders.pop, dt);
+        bubbleOnDraw(&shaders.bubble, dt);
+        glfwSwapBuffers(window);
+    }
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -86,6 +100,17 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             glfwSetWindowShouldClose(window, GL_TRUE);
             break;
         }
+    }
+    else if (action == GLFW_PRESS) {
+        switch (key) {
+        case GLFW_KEY_SPACE:
+            paused = !paused;
+            if (!paused) {
+                printf("resuming!\n");
+            }
+            break;
+        }
+        
     }
 }
 
@@ -129,14 +154,10 @@ int main(void)
 
 	//glfwSwapInterval(100);
 
-    double seconds = glfwGetTime();
+    lasttime = glfwGetTime();
 	while (!glfwWindowShouldClose(window)) {
-        double now = glfwGetTime();
-        double dt = now - seconds;
-        seconds = now;
 
-        frame(window, dt);
-        glfwSwapBuffers(window);
+        frame(window);
 	}
 
 	glfwDestroyWindow(window);
