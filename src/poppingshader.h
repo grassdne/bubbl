@@ -7,7 +7,7 @@
 // This should be enough for everyone
 #define POPPING_MEMORY_USAGE 640000
 
-#define MAX_PARTICLES 256
+#define MAX_PARTICLES 512
 
 #define POP_UNIFORMS($) $(age) $(position) $(color) $(particle_radius)
 
