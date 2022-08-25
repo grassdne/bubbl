@@ -1,6 +1,8 @@
 #include "vector2.h"
 #include <math.h>
 
+Vector2 vec_zero = {0, 0};
+
 float vec_LengthSq(Vector2 vec)
 {
     return (vec.x * vec.x) + (vec.y * vec.y);
@@ -33,3 +35,4 @@ Vector2 vec_Mult(Vector2 v, float f)     { return vec_OP_f(v, *, f); }
 Vector2 vec_Div(Vector2 v, float f)      { return vec_OP_f(v, /, f); }
 Vector2 vec_Add(Vector2 v, float f)      { return vec_OP_f(v, +, f); }
 Vector2 vec_Sub(Vector2 v, float f)      { return vec_OP_f(v, -, f); }
+

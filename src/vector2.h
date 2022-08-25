@@ -21,6 +21,6 @@ Vector2 vec_Sub(Vector2 v, float f);
 #define vec_OP_f(vec, oper, opand) (Vector2){(vec).x oper (opand), (vec).y oper (opand)}
 #define vec_OP_v(vec, oper, opand) (Vector2){(vec).x oper (opand).x, (vec).y oper (opand).y}
 
-static Vector2 vec_zero = {0, 0};
+extern Vector2 vec_zero;
 
 #endif

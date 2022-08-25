@@ -111,8 +111,6 @@ void poppingInit(PoppingShader *sh) {
     // Unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    printf("%lu :: %lu :: %lu\n", sizeof(Popping), MAX_POPPING, sizeof(*sh));
 }
 
 void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
