@@ -109,7 +109,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
                 // Windowed -> Fullscreen
                 // Get resolution
                 const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-                glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
+                glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
             }
 
             break;
@@ -132,6 +132,8 @@ int main(void)
 	glfwSetErrorCallback(error_callback);
 	if( !glfwInit()) exit(1);
 
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bubbles", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
@@ -142,6 +144,9 @@ int main(void)
 	glfwSetKeyCallback(window, key_callback);
     glfwSetWindowSizeCallback(window, on_window_resize);
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
 	if (glewInit() != GLEW_OK) {
 		printf("GLEW init failed\n");
 		abort();
@@ -151,8 +156,6 @@ int main(void)
 		abort();
 	}
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
     glEnable(GL_BLEND);
