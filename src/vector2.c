@@ -28,11 +28,11 @@ float vec_Dot(Vector2 a, Vector2 b)
     return (a.x * b.x) + (a.y * b.y);
 }
 
-Vector2 vec_Diff(Vector2 a, Vector2 b)   { return vec_OP_v(a, -, b); }
-Vector2 vec_Sum(Vector2 a, Vector2 b)    { return vec_OP_v(a, +, b); }
-Vector2 vec_Scale(Vector2 v, Vector2 f)  { return vec_OP_v(v, *, f); }
-Vector2 vec_Mult(Vector2 v, float f)     { return vec_OP_f(v, *, f); }
-Vector2 vec_Div(Vector2 v, float f)      { return vec_OP_f(v, /, f); }
-Vector2 vec_Add(Vector2 v, float f)      { return vec_OP_f(v, +, f); }
-Vector2 vec_Sub(Vector2 v, float f)      { return vec_OP_f(v, -, f); }
+Vector2 vec_Diff(Vector2 a, Vector2 b)   { return VECOP(a, -, b); }
+Vector2 vec_Sum(Vector2 a, Vector2 b)    { return VECOP(a, +, b); }
+Vector2 vec_Scale(Vector2 v, Vector2 f)  { return VECOP(v, *, f); }
+Vector2 vec_Mult(Vector2 v, float f)     { return VECOP(v, *, f); }
+Vector2 vec_Div(Vector2 v, float f)      { return VECOP(v, /, f); }
+Vector2 vec_Add(Vector2 v, float f)      { return VECOP(v, +, f); }
+Vector2 vec_Sub(Vector2 v, float f)      { return VECOP(v, -, f); }
 
