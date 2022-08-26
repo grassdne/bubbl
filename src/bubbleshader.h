@@ -7,7 +7,7 @@
 
 #define BUBBLE_CAPACITY 128
 
-#define BUBBLE_UNIFORMS($) $(time) $(resolution)
+#define BUBBLE_UNIFORMS($) $(time) $(resolution) $(is_foreground)
 
 typedef struct  {
     Vector2 pos;

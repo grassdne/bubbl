@@ -142,10 +142,6 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
 
     PopParticle *ps = sh->pops[n].particles;
     int i = 0;
-    ps[i++] = (PopParticle) {
-        .pos = vec_zero,
-        .d = vec_zero,
-    };
     for (float r = LAYER_WIDTH; r < size - LAYER_WIDTH; r += LAYER_WIDTH) {
         int numps = PARTICLE_LAYOUT * r / LAYER_WIDTH;
         for (int j = 0; j < numps; ++j) {
