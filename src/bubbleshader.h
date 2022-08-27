@@ -31,13 +31,11 @@ typedef struct {
     int num_bubbles;
     GLuint bubble_vbo;
     BubbleUniforms uniforms;
-    int growing;
 } BubbleShader;
 
 void bubbleOnDraw(BubbleShader *sh, double dt);
 void bubbleInit(BubbleShader *sh);
-int bubbleIsAtPoint(BubbleShader *sh, Vector2 mouse);
-int bubbleCreate(BubbleShader *sh, bool togrow, float x, float y);
+void bubbleCreate(BubbleShader *sh, Vector2 pos);
 void bubbleOnMouseDown(BubbleShader *sh, Vector2 mouse);
 void bubbleOnMouseUp(BubbleShader *sh, Vector2 mouse);
 void bubbleOnMouseMove(BubbleShader *sh, Vector2 mouse);

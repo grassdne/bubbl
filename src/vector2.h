@@ -17,6 +17,7 @@ Vector2 vec_Mult(Vector2 v, float f);
 Vector2 vec_Div(Vector2 v, float f);
 Vector2 vec_Add(Vector2 v, float f);
 Vector2 vec_Sub(Vector2 v, float f);
+Vector2 vec_Neg(Vector2 a);
 
 #define vec_OP_f(vec, oper, opand) (Vector2){(vec).x oper (opand), (vec).y oper (opand)}
 #define vec_OP_v(vec, oper, opand) (Vector2){(vec).x oper (opand).x, (vec).y oper (opand).y}

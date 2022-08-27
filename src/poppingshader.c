@@ -162,7 +162,7 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
 
     glGenBuffers(1, &sh->pops[n].vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, sh->pops[n].vbo);
-	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * sizeof(PopParticle), sh->pops[n].particles, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * sizeof(PopParticle), ps, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(ATTRIB_PARTICLE_OFFSET);
     // glVertexAttribPointer needs to be called on draw

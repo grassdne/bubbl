@@ -151,11 +151,11 @@ int main(void)
 
 	if (glewInit() != GLEW_OK) {
 		printf("GLEW init failed\n");
-		abort();
+		exit(1);
 	}
 	else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
 		printf("Shaders not available\n");
-		abort();
+		exit(1);
 	}
 
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));

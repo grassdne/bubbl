@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
+#define SETS_OF_BUBBLES 4
 #define MAX_BUBBLE_SPEED 500.0
 #define BASE_RADIUS 30.0
 #define VARY_RADIUS 30.0
@@ -15,6 +16,10 @@
 #define MAX_COLLISION_FIX_TRIES 100
 #define COLLISION_FIXUP_TIME 0.01
 
+// Bubble growing under mouse is at index 0
+#define GROWING_INDEX 0
+#define GROWING() (sh->bubbles[GROWING_INDEX])
+
 // main.c
 void onRemoveBubble(Bubble*);
 
@@ -22,12 +27,12 @@ void onRemoveBubble(Bubble*);
 /*
  * Syntax:
  *
- * for ACTIVE_BUBBLES(i) {
+ * FOR_ACTIVE_BUBBLES(i) {
  *    Bubble *bubble = &bubbles[i];
  *    ...
  * }
 */
-#define ACTIVE_BUBBLES($) (int $ = 0; $ < sh->num_bubbles; ++$) if (sh->bubbles[$].alive)
+#define FOR_ACTIVE_BUBBLES($) for (int $ = GROWING_INDEX+1; $ <= sh->num_bubbles; ++$) if (sh->bubbles[$].alive)
 
 #define UNI($name) sh->uniforms.$name = glGetUniformLocation(sh->program, #$name);
 static void get_program_vars(BubbleShader *sh)
@@ -50,9 +55,9 @@ static struct { const char* file; const GLenum type; } shaderDatas[] = {
     { .file = "shaders/bubble.frag", .type = GL_FRAGMENT_SHADER },
 };
 
-static void pop_bubble(BubbleShader *sh, int i) {
-    sh->bubbles[i].alive = false;
-    onRemoveBubble(&sh->bubbles[i]);
+static void pop_bubble(Bubble *bubble) {
+    bubble->alive = false;
+    onRemoveBubble(bubble);
 }
 
 static float clamp(float v, float min, float max) {
@@ -65,10 +70,15 @@ static double randreal(void) {
     return rand() / (double)RAND_MAX;
 }
 
-static void new_bubble(BubbleShader *sh, bool togrow, int i, float x, float y) {
-    Bubble* bubble = &sh->bubbles[i];
-    bubble->pos.x  = x;
-    bubble->pos.y  = y;
+static void gen_random_speed(Bubble *bubble) {
+    // [-1, 1]
+    bubble->d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    // [-1, 1]
+    bubble->d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+}
+
+static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
+    bubble->pos = pos;
     bubble->color.r  = randreal();
     bubble->color.g  = randreal();
     bubble->color.b  = randreal();
@@ -77,33 +87,33 @@ static void new_bubble(BubbleShader *sh, bool togrow, int i, float x, float y) {
     } else {
         // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
         bubble->rad = BASE_RADIUS + randreal() * VARY_RADIUS;
-        
     }
-    // [-1, 1]
-    bubble->d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
-    // [-1, 1]
-    bubble->d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    gen_random_speed(bubble);
     bubble->alive = true;
 }
 
-int bubbleCreate(BubbleShader *sh, bool togrow, float x, float y) {
-    // Any dead bubbles to recycle?
-    for (int i = 0; i < sh->num_bubbles; ++i) {
+int create_open_bubble_slot(BubbleShader *sh) {
+    for (int i = 1; i < sh->num_bubbles; ++i) {
         if (!sh->bubbles[i].alive) {
-            new_bubble(sh, togrow, i, x, y);
             return i;
         }
     }
 
     // No dead bubbles, add a new one if there's room
     if (sh->num_bubbles + 1 < BUBBLE_CAPACITY) {
-        new_bubble(sh, togrow, sh->num_bubbles++, x, y);
-        return sh->num_bubbles - 1;
+        return ++sh->num_bubbles;
     }
 
     return -1;
-}
+} 
 
+void bubbleCreate(BubbleShader *sh, Vector2 pos) {
+    // Any dead bubbles to recycle?
+    int slot = create_open_bubble_slot(sh);
+    if (slot != -1) {
+        new_bubble(&sh->bubbles[slot], pos, /*togrow = */false);
+    }
+}
 
 static void update_position(BubbleShader *sh, double dt, int i) {
     double nextx = sh->bubbles[i].pos.x + sh->bubbles[i].d.x * dt;
@@ -124,11 +134,11 @@ static void update_position(BubbleShader *sh, double dt, int i) {
     sh->bubbles[i].pos.y = nexty;
 }
 
-static bool is_collision(BubbleShader *sh, int a, int b) {
-    const float x = sh->bubbles[a].pos.x - sh->bubbles[b].pos.x;
-    const float y = sh->bubbles[a].pos.y - sh->bubbles[b].pos.y;
+static bool is_collision(Bubble *a, Bubble *b) {
+    const float x = a->pos.x - b->pos.x;
+    const float y = a->pos.y - b->pos.y;
     const float distSq = x*x + y*y;
-    const float collisionDist = sh->bubbles[a].rad + sh->bubbles[b].rad;
+    const float collisionDist = a->rad + b->rad;
     return distSq < collisionDist * collisionDist;
 }
 
@@ -137,23 +147,14 @@ static Vector2 elastic_collision_velocity(Vector2 dir, Vector2 other, Vector2 v)
 }
 
 static void check_collisions(BubbleShader *sh) {
-    for ACTIVE_BUBBLES(i) {
-        for ACTIVE_BUBBLES(j) {
+    FOR_ACTIVE_BUBBLES(i) {
+        FOR_ACTIVE_BUBBLES(j) {
             if (j == i) continue; // Can't collide with yourself!
-            if (is_collision(sh, i, j)) {
+            if (is_collision(sh->bubbles+i, sh->bubbles+j)) {
                 Vector2 dir = vec_Normalized(vec_Diff(sh->bubbles[i].pos, sh->bubbles[j].pos));
-                Vector2 newV1, newV2;
 
-                if (sh->growing == i) {
-                    newV1 = sh->bubbles[i].d;
-                } else {
-                    newV1 = elastic_collision_velocity(dir, sh->bubbles[j].d, sh->bubbles[i].d);
-                }
-                if (sh->growing == j) {
-                    newV2 = sh->bubbles[j].d;
-                } else {
-                    newV2 = elastic_collision_velocity(dir, sh->bubbles[i].d, sh->bubbles[j].d);
-                }
+                Vector2 newV1 = elastic_collision_velocity(dir, sh->bubbles[j].d, sh->bubbles[i].d);
+                Vector2 newV2 = elastic_collision_velocity(dir, sh->bubbles[i].d, sh->bubbles[j].d);
 
                 sh->bubbles[i].d = newV1;
                 sh->bubbles[j].d = newV2;
@@ -163,17 +164,28 @@ static void check_collisions(BubbleShader *sh) {
             }
         }
     }
+
+    // Special handling for bubble growing under cursor
+    if (GROWING().alive) {
+        FOR_ACTIVE_BUBBLES(i) if (is_collision(&GROWING(), &sh->bubbles[i])) {
+            Vector2 dir = vec_Normalized(vec_Diff(sh->bubbles[i].pos, GROWING().pos));
+            sh->bubbles[i].d = elastic_collision_velocity(dir, vec_Mult(vec_Neg(dir), 100), sh->bubbles[i].d);
+
+            float mindist = GROWING().rad + sh->bubbles[i].rad + 1.0;
+            sh->bubbles[i].pos = vec_Sum(GROWING().pos, vec_Mult(dir, mindist));
+        }
+    }
 }
 
 static void make_starting_bubbles(BubbleShader *sh) {
     const int W = window_width;
     const int H = window_height;
-    for (int i = 0; i < 2; ++i) {
-        bubbleCreate(sh, false, W * 0.25, H * 0.25);
-        bubbleCreate(sh, false, W * 0.75, H * 0.25);
-        bubbleCreate(sh, false, W * 0.25, H * 0.75);
-        bubbleCreate(sh, false, W * 0.75, H * 0.75);
-        bubbleCreate(sh, false, W * 0.50, H * 0.50);
+    for (int i = 0; i < SETS_OF_BUBBLES; ++i) {
+        bubbleCreate(sh, (Vector2){ W * 0.25, H * 0.25 });
+        bubbleCreate(sh, (Vector2){ W * 0.75, H * 0.25 });
+        bubbleCreate(sh, (Vector2){ W * 0.25, H * 0.75 });
+        bubbleCreate(sh, (Vector2){ W * 0.75, H * 0.75 });
+        bubbleCreate(sh, (Vector2){ W * 0.50, H * 0.50 });
     }
 }
 
@@ -234,9 +246,9 @@ static void init_shader_program(BubbleShader *sh) {
     get_program_vars(sh);
 }
 
-int bubbleIsAtPoint(BubbleShader *sh, Vector2 mouse)
+int bubble_at_point(BubbleShader *sh, Vector2 mouse)
 {
-    for ACTIVE_BUBBLES(i) {
+    FOR_ACTIVE_BUBBLES(i) {
         if (vec_Distance(sh->bubbles[i].pos, mouse) < sh->bubbles[i].rad) {
             return i;
         }
@@ -246,35 +258,39 @@ int bubbleIsAtPoint(BubbleShader *sh, Vector2 mouse)
 
 void bubbleOnMouseDown(BubbleShader *sh, Vector2 mouse)
 {
-    int bubble = bubbleIsAtPoint(sh, mouse);
+    int bubble = bubble_at_point(sh, mouse);
     // Pop the bubble the user clicked
     if (bubble != -1) {
-        pop_bubble(sh, bubble);
+        pop_bubble(sh->bubbles+bubble);
     }
     else {
         // Otherwise we create a new bubble
-        int created = bubbleCreate(sh, true, mouse.x, mouse.y);
-        if (created != -1) {
-            sh->growing = created;
-        }
+        new_bubble(&GROWING(), mouse, /*togrow = */true);
+        GROWING().alive = true;
     }
 }
 
 void bubbleOnMouseUp(BubbleShader *sh, Vector2 mouse)
 {
     (void)mouse;
-    sh->growing = -1;
+    if (GROWING().alive) {
+        int slot = create_open_bubble_slot(sh);
+        if (slot >= 0) {
+            sh->bubbles[slot] = GROWING();
+        }
+        GROWING().alive = false;
+    }
 }
 
 void bubbleOnMouseMove(BubbleShader *sh, Vector2 mouse)
 {
-    if (sh->growing != -1) {
-        sh->bubbles[sh->growing].pos = mouse;
+    if (GROWING().alive) {
+        GROWING().pos = mouse;
     }
 }
 
 void bubbleInit(BubbleShader *sh) {
-    sh->growing = -1;
+    GROWING().alive = false;
 
     // TODO: encapsulate vertex array
 	glGenVertexArrays(1, &sh->vertex_array);
@@ -304,31 +320,31 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
     glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
 
     // Update state
-    for ACTIVE_BUBBLES(i) {
-        if (i != sh->growing) update_position(sh, dt, i);
+    FOR_ACTIVE_BUBBLES(i) {
+        update_position(sh, dt, i);
     }
 
-    if (sh->growing != -1) {
-        sh->bubbles[sh->growing].rad += GROWING_RDELTA * dt;
-        if (sh->bubbles[sh->growing].rad >= MAX_RADIUS) {
-            pop_bubble(sh, sh->growing);
-            sh->growing = -1;
+    if (GROWING().alive) {
+        GROWING().rad += GROWING_RDELTA * dt;
+        if (GROWING().rad >= MAX_RADIUS) {
+            pop_bubble(&GROWING());
+            GROWING().alive = false;
         }
     }
     check_collisions(sh);
     
+    // Update buffer
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
+
     /* Background */
     {
-        // Update buffer
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
-
         // Set uniforms
         //glUniform1f(sh->uniforms.time, glfwGetTime());
         //glUniform2f(sh->uniforms.resolution, window_width, window_height);
         glUniform1i(sh->uniforms.is_foreground, GL_FALSE);
 
         // Draw
-        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles);
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles + 1);
     }
 
     /* Foreground */
@@ -339,7 +355,7 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
         glUniform1i(sh->uniforms.is_foreground, GL_TRUE);
 
         // Draw
-        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles);
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles + 1);
     }
 
     // Unbind
