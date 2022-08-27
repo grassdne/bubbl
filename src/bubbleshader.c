@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
-#define SETS_OF_BUBBLES 4
+#define SETS_OF_BUBBLES 2
 #define MAX_BUBBLE_SPEED 500.0
-#define BASE_RADIUS 30.0
-#define VARY_RADIUS 30.0
-#define MAX_RADIUS 75.0
+#define BASE_RADIUS 35.0
+#define VARY_RADIUS 40.0
+#define MAX_RADIUS (BASE_RADIUS + VARY_RADIUS)
 
 #define GROWING_RDELTA 50.0
 #define MAX_COLLISION_FIX_TRIES 100
