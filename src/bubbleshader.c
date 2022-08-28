@@ -1,7 +1,7 @@
 #include "bubbleshader.h"
 #include "common.h"
-#include "loader.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
@@ -17,12 +17,18 @@
 #define COLLISION_FIXUP_TIME 0.01
 
 // Bubble growing under mouse is at index 0
+// I need everything in one big buffer for instanced rendering
 #define GROWING_INDEX 0
 #define GROWING() (sh->bubbles[GROWING_INDEX])
 
+const ShaderDatas BUBBLE_SHADER_DATAS = {
+    .vert = "shaders/bubble_quad.vert",
+    .frag = "shaders/bubble.frag",
+};
+
+
 // main.c
 void onRemoveBubble(Bubble*);
-
 
 /*
  * Syntax:
@@ -34,13 +40,6 @@ void onRemoveBubble(Bubble*);
 */
 #define FOR_ACTIVE_BUBBLES($) for (int $ = GROWING_INDEX+1; $ <= sh->num_bubbles; ++$) if (sh->bubbles[$].alive)
 
-#define UNI($name) sh->uniforms.$name = glGetUniformLocation(sh->program, #$name);
-static void get_program_vars(BubbleShader *sh)
-{
-    BUBBLE_UNIFORMS(UNI)
-}
-#undef UNI
-
 // Explicitly numbered because need to match vertex shader
 typedef enum {
     ATTRIB_VERT_POS = 0,
@@ -49,11 +48,6 @@ typedef enum {
     ATTRIB_BUBBLE_RADIUS = 3,
     ATTRIB_BUBBLE_ALIVE = 4,
 } VertAttribLocs;
-
-static struct { const char* file; const GLenum type; } shaderDatas[] = {
-    { .file = "shaders/bubble_quad.vert", .type = GL_VERTEX_SHADER },
-    { .file = "shaders/bubble.frag", .type = GL_FRAGMENT_SHADER },
-};
 
 static void pop_bubble(Bubble *bubble) {
     bubble->alive = false;
@@ -202,49 +196,12 @@ static void init_bubble_vbo(BubbleShader *sh) {
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_POS,    2, GL_FLOAT, pos);
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_COLOR,  3, GL_FLOAT, color);
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_RADIUS, 4, GL_FLOAT, rad);
-    BUBBLE_ATTRIB(ATTRIB_BUBBLE_ALIVE,  1, GL_BYTE, alive);
+    BUBBLE_ATTRIB(ATTRIB_BUBBLE_ALIVE,  1, GL_BYTE,  alive);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 #undef BUBBLE_ATTRIIB
 
-//TODO: encapsulate
-static void build_shaders(BubbleShader *sh) {
-    for (size_t i = 0; i < STATIC_LEN(shaderDatas); ++i) {
-        //printf("Loading shader (type %s)\n", shaderTypeCStr(shaderDatas[i].type));
-        const char* src = mallocShaderSource(shaderDatas[i].file); 
-        GLuint shader = loadShader(shaderDatas[i].type, src, shaderDatas[i].file);
-
-        free((void*)src);
-        if (!shader) exit(1);
-
-        glAttachShader(sh->program, shader);
-    }
-}
-
-//@encapsulate
-static void link_program(BubbleShader *sh) {
-	glLinkProgram(sh->program);
-
-	GLint linked = 0;
-	glGetProgramiv(sh->program, GL_LINK_STATUS, &linked);
-	if (!linked) {
-		GLchar error_msg[GL_INFO_LOG_LENGTH];
-		glGetProgramInfoLog(sh->program, GL_INFO_LOG_LENGTH, NULL, error_msg);
-		fprintf(stderr, "Error linking program: %s\n", error_msg);
-		glDeleteProgram(sh->program);
-		exit(1);
-	}
-
-
-	return;
-}
-
-
-static void init_shader_program(BubbleShader *sh) {
-	sh->program = glCreateProgram();
-    build_shaders(sh);
-    link_program(sh);
-    get_program_vars(sh);
-}
 
 int bubble_at_point(BubbleShader *sh, Vector2 mouse)
 {
@@ -292,25 +249,10 @@ void bubbleOnMouseMove(BubbleShader *sh, Vector2 mouse)
 void bubbleInit(BubbleShader *sh) {
     GROWING().alive = false;
 
-    // TODO: encapsulate vertex array
-	glGenVertexArrays(1, &sh->vertex_array);
-    glBindVertexArray(sh->vertex_array);
-
-    glGenBuffers(1, &sh->vertex_array);
-	glBindBuffer(GL_ARRAY_BUFFER, sh->vertex_array);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD), QUAD, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(ATTRIB_VERT_POS);
-    glVertexAttribPointer(ATTRIB_VERT_POS, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    init_shader_program(sh);
+    shaderBuildProgram((Shader*)sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
 
     make_starting_bubbles(sh);
     init_bubble_vbo(sh);
-
-    // Unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 }
 
 void bubbleOnDraw(BubbleShader *sh, double dt) {
@@ -330,9 +272,8 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
 
     // Bind
 	glUseProgram(sh->program);
-    glBindVertexArray(sh->vertex_array);
+    glBindVertexArray(sh->vao);
     glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
-
     
     // Update buffer
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);

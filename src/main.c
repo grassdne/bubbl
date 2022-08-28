@@ -9,7 +9,6 @@
 #include <time.h>
 
 #include "common.h"
-#include "loader.h"
 #include "vector2.h"
 #include "bubbleshader.h"
 #include "poppingshader.h"
@@ -150,7 +149,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
 	if (glewInit() != GLEW_OK) {
-		printf("GLEW init failed\n");
+		fprintf(stderr, "GLEW init failed\n");
 		exit(1);
 	}
 	else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
@@ -166,7 +165,7 @@ int main(void)
     //glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LESS);
     //glEnable(GL_CULL_FACE);
-
+    
     bubbleInit(&shaders.bubble);
     poppingInit(&shaders.pop);
 

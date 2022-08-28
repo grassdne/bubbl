@@ -1,4 +1,4 @@
-CC ?= clang
+CC = clang
 CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
 CLIBS = `pkg-config --libs glfw3 glew gl` -lm
 
@@ -22,8 +22,9 @@ release: $(EXE)
 
 CFLAGS_WIN = $(CFLAGS)
 
+run: CFLAGS += -Werror
 run: $(EXE)
-	./main
+	./$(EXE)
 
 clean:
 	rm -f $(EXE) $(EXE_WIN)
@@ -33,6 +34,5 @@ main: $(CSRC) src/*.h
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
 else
-	@echo $(CLIBS)
 	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
 endif

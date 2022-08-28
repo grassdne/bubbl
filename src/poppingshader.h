@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include "vector2.h"
 #include "common.h"
+#include "shaderutil.h"
 
 // This should be enough for everyone
 #define POPPING_MEMORY_USAGE 640000
@@ -31,15 +32,10 @@ typedef struct {
 
 #define MAX_POPPING (POPPING_MEMORY_USAGE / sizeof(Popping))
 
-#define uniform_decl($n) GLint $n;
-typedef struct {
-    POP_UNIFORMS(uniform_decl)
-} PopUniforms;
-#undef uniform_decl
+typedef struct { POP_UNIFORMS(UNI_DECL) } PopUniforms;
 
 typedef struct {
-    GLuint program;
-    GLuint vertex_array;
+    SHADER_PROGRAM_INHERIT();
     Popping pops[MAX_POPPING];
     int num_popping;
     PopUniforms uniforms;

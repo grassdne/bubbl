@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include "vector2.h"
 #include "common.h"
+#include "shaderutil.h"
 
 #define BUBBLE_CAPACITY 128
 
@@ -17,20 +18,14 @@ typedef struct  {
     GLbyte alive;
 } Bubble;
 
-#define uniform_decl($n) GLint $n;
 typedef struct {
-    BUBBLE_UNIFORMS(uniform_decl)
-} BubbleUniforms;
-#undef uniform_decl
+    SHADER_PROGRAM_INHERIT(); 
 
-typedef struct {
-    GLuint program;
-    GLuint vertex_array;
+    struct {BUBBLE_UNIFORMS(UNI_DECL)} uniforms;
 
     Bubble bubbles[BUBBLE_CAPACITY];
     int num_bubbles;
     GLuint bubble_vbo;
-    BubbleUniforms uniforms;
 } BubbleShader;
 
 void bubbleOnDraw(BubbleShader *sh, double dt);
