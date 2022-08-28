@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
-#define SETS_OF_BUBBLES 4
+#define SETS_OF_BUBBLES 2
 #define MAX_BUBBLE_SPEED 500.0
-#define BASE_RADIUS 30.0
-#define VARY_RADIUS 30.0
-#define MAX_RADIUS 75.0
+#define BASE_RADIUS 35.0
+#define VARY_RADIUS 40.0
+#define MAX_RADIUS (BASE_RADIUS + VARY_RADIUS)
 
 #define GROWING_RDELTA 50.0
 #define MAX_COLLISION_FIX_TRIES 100
@@ -314,16 +314,6 @@ void bubbleInit(BubbleShader *sh) {
 }
 
 void bubbleOnDraw(BubbleShader *sh, double dt) {
-    // Bind
-	glUseProgram(sh->program);
-    glBindVertexArray(sh->vertex_array);
-    glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
-
-    // Update state
-    FOR_ACTIVE_BUBBLES(i) {
-        update_position(sh, dt, i);
-    }
-
     if (GROWING().alive) {
         GROWING().rad += GROWING_RDELTA * dt;
         if (GROWING().rad >= MAX_RADIUS) {
@@ -331,7 +321,18 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
             GROWING().alive = false;
         }
     }
+    // Update state
+    FOR_ACTIVE_BUBBLES(i) {
+        update_position(sh, dt, i);
+    }
+
     check_collisions(sh);
+
+    // Bind
+	glUseProgram(sh->program);
+    glBindVertexArray(sh->vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
+
     
     // Update buffer
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
