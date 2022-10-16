@@ -279,7 +279,7 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
 
     /* Background */
-    {
+    if (false) {
         // Set uniforms
         //glUniform1f(sh->uniforms.time, glfwGetTime());
         //glUniform2f(sh->uniforms.resolution, window_width, window_height);

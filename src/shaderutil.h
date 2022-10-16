@@ -19,7 +19,7 @@ typedef struct {
 
 void build_shaders(GLuint program, ShaderDatas shader_datas);
 void bind_quad_vertex_array(void);
-GLint get_bound_array_buffer();
+GLint get_bound_array_buffer(void);
 
 void shaderInit(Shader *sh);
 void shaderLinkProgram(Shader *sh);

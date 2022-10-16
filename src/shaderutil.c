@@ -63,7 +63,7 @@ GLuint load_shader(GLenum shaderType, const char* source, const char *from) {
 	return shader;
 }
 
-GLint get_bound_array_buffer() {
+GLint get_bound_array_buffer(void) {
     GLint id;
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &id);
     return id;

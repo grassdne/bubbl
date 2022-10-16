@@ -12,6 +12,8 @@
 #include "vector2.h"
 #include "bubbleshader.h"
 #include "poppingshader.h"
+#include "bgshader.h"
+
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
@@ -19,6 +21,7 @@
 typedef struct {
     BubbleShader bubble;
     PoppingShader pop;
+    BgShader bg;
 } Shaders;
 
 // Zero initialize everything!
@@ -78,6 +81,7 @@ static void frame(GLFWwindow *window) {
         glClearColor(1.0, 1.0, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        bgOnDraw(&shaders.bg, dt);
         bubbleOnDraw(&shaders.bubble, dt);
         poppingOnDraw(&shaders.pop, dt);
         glfwSwapBuffers(window);
@@ -168,6 +172,7 @@ int main(void)
     
     bubbleInit(&shaders.bubble);
     poppingInit(&shaders.pop);
+    bgInit(&shaders.bg, shaders.bubble.bubbles, &shaders.bubble.num_bubbles);
 
     glfwSetMouseButtonCallback(window, on_mouse_down);
     glfwSetCursorPosCallback(window, on_mouse_move);
