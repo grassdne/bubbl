@@ -52,7 +52,6 @@ static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) 
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);	
         Vector2 mouse = window_to_opengl_pos(xpos, ypos);
-        printf("%f, %f\n", xpos, ypos);
 
         if (action == GLFW_PRESS) {
             bubbleOnMouseDown(&shaders.bubble, mouse);
@@ -102,7 +101,6 @@ static void on_content_rescale(GLFWwindow *window, float xs, float ys) {
 
 static void on_framebuffer_resize(GLFWwindow *window, int width, int height) {
     (void)window;
-    printf("on_framebuffer_resize\n");
     glViewport(0, 0, width, height);
     window_width = width;
     window_height = height;
@@ -168,7 +166,6 @@ int main(void)
 
     glfwGetFramebufferSize(window, &window_width, &window_height);
     glViewport(0, 0, window_width, window_height);
-    printf("glfwGetFramebufferSize: (%d, %d)\n", window_width, window_height);
 
     glfwGetWindowContentScale(window, &xscale, &yscale);
     glfwSetWindowContentScaleCallback(window, on_content_rescale);

@@ -75,7 +75,6 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
             assert(i < count);
 
             Vector2 rect = {cos(theta), sin(theta)};
-            //printf("\t(%f, %f)\n", rect.x*r, rect.y*r);
             pop->particles[i++] = (PopParticle) {
                 .pos = vec_Mult(rect, r),
                 .v   = vec_Mult(rect, EXPAND_MULT * r / POP_LIFETIME),
@@ -122,7 +121,6 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
 
         p->pt_radius += PT_DELTA_RADIUS * dt;
         for (int j = 0; j < p->numparticles; ++j) {
-            //printf("%f:%f\n", p->particles[i].pos.x, p->particles[i].pos.y);
             p->particles[j].pos.x += p->particles[j].v.x * dt;
             p->particles[j].pos.y += p->particles[j].v.y * dt;
         }
