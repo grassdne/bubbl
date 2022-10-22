@@ -1,6 +1,6 @@
 CC = clang
 CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
-CLIBS = `pkg-config --libs glfw3 glew` -lm -framework OpenGL -framework IOKit
+CLIBS = `pkg-config --libs glfw3 glew` -lm
 
 CMAIN=src/main.c
 CSRC=src/*.c
@@ -11,6 +11,8 @@ LIBRARY_DIRS_WIN = -LC:\mingw_dev\lib
 EXE_WIN = main.exe
 CC_WIN = gcc.exe
 CLIBS_WIN = -luser32 -lkernel32 -lopengl32 -lglu32 -lgdi32 -lglew32 -lmingw32 -lglfw3dll
+
+CLIBS_MACOS = -framework OpenGL -framework IOKit
 
 all: $(EXE)
 
@@ -33,6 +35,8 @@ main: $(CSRC) src/*.h
 
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
+else ifeq ($(OS), Darwin)
+	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CFLAGS_MACOS) $(CLIBS)
 else
 	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
 endif
