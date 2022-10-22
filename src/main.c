@@ -15,8 +15,8 @@
 #include "bgshader.h"
 
 
-#define SCREEN_WIDTH 1600
-#define SCREEN_HEIGHT 900
+#define SCREEN_WIDTH 900
+#define SCREEN_HEIGHT 600
 
 typedef struct {
     BubbleShader bubble;
@@ -34,6 +34,7 @@ static int windowed_xpos, windowed_ypos;
 
 int window_width = SCREEN_WIDTH;
 int window_height = SCREEN_HEIGHT;
+float xscale, yscale;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
 
 static void error_callback(int error, const char* description) {
@@ -41,12 +42,17 @@ static void error_callback(int error, const char* description) {
 	fputs(description, stderr);
 }
 
+static Vector2 window_to_opengl_pos(double xpos, double ypos) {
+    return (Vector2){xpos*xscale, window_height - ypos*yscale};
+}
+
 static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) {
     (void)mods;
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);	
-        Vector2 mouse = {xpos, window_height - ypos};
+        Vector2 mouse = window_to_opengl_pos(xpos, ypos);
+        printf("%f, %f\n", xpos, ypos);
 
         if (action == GLFW_PRESS) {
             bubbleOnMouseDown(&shaders.bubble, mouse);
@@ -59,7 +65,7 @@ static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) 
 
 static void on_mouse_move(GLFWwindow* window, double xpos, double ypos) {
     (void)window;
-    bubbleOnMouseMove(&shaders.bubble, (Vector2){xpos, window_height - ypos});
+    bubbleOnMouseMove(&shaders.bubble, window_to_opengl_pos(xpos, ypos));
 }
 
 // Communicate bubble shader -> popping shader
@@ -88,11 +94,18 @@ static void frame(GLFWwindow *window) {
     }
 }
 
-static void on_window_resize(GLFWwindow *window, int width, int height) {
+static void on_content_rescale(GLFWwindow *window, float xs, float ys) {
     (void)window;
+    xscale = xs;
+    yscale = ys;
+}
+
+static void on_framebuffer_resize(GLFWwindow *window, int width, int height) {
+    (void)window;
+    printf("on_framebuffer_resize\n");
+    glViewport(0, 0, width, height);
     window_width = width;
     window_height = height;
-    glViewport(0, 0, width, height);
     frame(window);
 }
 
@@ -138,6 +151,10 @@ int main(void)
 	if( !glfwInit()) exit(1);
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bubbles", NULL, NULL);
 	if (!window) {
@@ -147,16 +164,21 @@ int main(void)
 
 	glfwMakeContextCurrent(window);
 	glfwSetKeyCallback(window, key_callback);
-    glfwSetWindowSizeCallback(window, on_window_resize);
+    glfwSetFramebufferSizeCallback(window, &on_framebuffer_resize);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwGetFramebufferSize(window, &window_width, &window_height);
+    glViewport(0, 0, window_width, window_height);
+    printf("glfwGetFramebufferSize: (%d, %d)\n", window_width, window_height);
 
+    glfwGetWindowContentScale(window, &xscale, &yscale);
+    glfwSetWindowContentScaleCallback(window, on_content_rescale);
+
+    glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
 		fprintf(stderr, "GLEW init failed\n");
 		exit(1);
 	}
-	else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
+	else if (false && (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects)) {
 		printf("Shaders not available\n");
 		exit(1);
 	}

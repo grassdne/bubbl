@@ -106,11 +106,11 @@ void kill_popping(PoppingShader *sh, int i) {
 }
 
 void poppingOnDraw(PoppingShader *sh, double dt) {
-    double time = glfwGetTime();
-
     // Bind
     glUseProgram(sh->program);
     glBindVertexArray(sh->vao);
+
+    double time = glfwGetTime();
 
     for (int i = 0; i < sh->num_popping; ++i) {
         Popping *p = &sh->pops[i];

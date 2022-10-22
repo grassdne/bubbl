@@ -1,6 +1,6 @@
 CC = clang
 CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
-CLIBS = `pkg-config --libs glfw3 glew gl` -lm
+CLIBS = `pkg-config --libs glfw3 glew` -lm -framework OpenGL -framework IOKit
 
 CMAIN=src/main.c
 CSRC=src/*.c

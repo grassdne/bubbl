@@ -16,10 +16,9 @@ void main() {
     pos = position + offset;
 
     // radius in [0, 2] scale
-    //vec2 radius_normalized = (particle_radius * 4) / resolution * 2;
+    vec2 radius_normalized = (particle_radius * 4) / resolution * 2;
     // position [-1, 1] scale
-    //vec2 pos_normalized = pos / resolution * 2.0 - 1;
+    vec2 pos_normalized = pos / resolution * 2.0 - 1;
     // pass in a square around the position
-    //gl_Position = vec4(vertpos * radius_normalized + pos_normalized, 0.0, 1.0);
-    gl_Position = vec4(vertpos, 0.0, 1.0);
+    gl_Position = vec4(vertpos * radius_normalized + pos_normalized, 0.0, 1.0);
 }
