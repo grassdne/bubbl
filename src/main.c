@@ -182,10 +182,10 @@ int main(void)
 
     printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
     printf("MEMORY USAGE\n");
-    printf("Bubbles:    %zu b\n", sizeof(shaders.bubble));
-    printf("Pop effect: %zu b\n", sizeof(shaders.pop));
-    printf("Background: %zu b\n", sizeof(shaders.bg));
-    printf("TOTAL: %zu b\n", sizeof(shaders));
+    printf("Bubbles:    %u b\n", sizeof(shaders.bubble));
+    printf("Pop effect: %u b\n", sizeof(shaders.pop));
+    printf("Background: %u b\n", sizeof(shaders.bg));
+    printf("TOTAL: %u b\n", sizeof(shaders));
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
