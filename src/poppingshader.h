@@ -7,7 +7,7 @@
 
 // only 64 popping effects at once
 #define MAX_POPPING 64
-#define MAX_PARTICLES 512
+//#define MAX_PARTICLES 512
 
 #define POP_UNIFORMS($) $(age) $(position) $(color) $(particle_radius) $(resolution) $(size)
 
@@ -26,7 +26,8 @@ typedef struct {
     GLuint vbo;
     int numparticles;
     bool alive;
-    PopParticle particles[MAX_PARTICLES];
+    //PopParticle particles[MAX_PARTICLES];
+    PopParticle *particles;
 } Popping;
 
 

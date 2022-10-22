@@ -9,10 +9,11 @@
 #define SETS_OF_BUBBLES 1
 #define MAX_BUBBLE_SPEED 500.0
 #define BASE_RADIUS 35.0
-#define VARY_RADIUS 40.0
-#define MAX_RADIUS (BASE_RADIUS + VARY_RADIUS)
+#define VARY_RADIUS 50.0
 
-#define GROWING_RDELTA 50.0
+#define MAX_GROWTH 150.0
+#define GROWTH_TIME 2.0
+#define GROWING_RDELTA (MAX_GROWTH / GROWTH_TIME)
 #define MAX_COLLISION_FIX_TRIES 100
 #define COLLISION_FIXUP_TIME 0.01
 
@@ -255,7 +256,7 @@ void bubbleInit(BubbleShader *sh) {
 void bubbleOnDraw(BubbleShader *sh, double dt) {
     if (GROWING().alive) {
         GROWING().rad += GROWING_RDELTA * dt;
-        if (GROWING().rad >= MAX_RADIUS) {
+        if (GROWING().rad >= MAX_GROWTH) {
             pop_bubble(&GROWING());
             GROWING().alive = false;
         }

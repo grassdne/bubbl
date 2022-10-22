@@ -51,37 +51,44 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
         // We reached the limit!!
         return;
     }
+    Popping* pop = &sh->pops[n];
+    pop->starttime = glfwGetTime();
+    pop->pos = pos;
+    pop->color = color;
+    pop->size = size;
+    pop->alive = true;
+    pop->pt_radius = PT_RADIUS;
 
-    sh->pops[n].starttime = glfwGetTime();
-    sh->pops[n].pos = pos;
-    sh->pops[n].color = color;
-    sh->pops[n].size = size;
-    sh->pops[n].alive = true;
-    sh->pops[n].pt_radius = PT_RADIUS;
+    int count = 0;
+    for (int i = 0; i < size/LAYER_WIDTH-1; i++) {
+        count += PARTICLE_LAYOUT * i;
+    }
 
-    PopParticle *ps = sh->pops[n].particles;
+    pop->particles = malloc(count * sizeof(PopParticle));
+    if (pop->particles == NULL) exit(1);
+
     int i = 0;
     for (float r = LAYER_WIDTH; r < size - LAYER_WIDTH; r += LAYER_WIDTH) {
         int numps = PARTICLE_LAYOUT * r / LAYER_WIDTH;
         for (int j = 0; j < numps; ++j) {
             float theta = 2.0*M_PI * ((float)j / numps);
-            assert(i < MAX_PARTICLES);
+            assert(i < count);
 
             Vector2 rect = {cos(theta), sin(theta)};
             //printf("\t(%f, %f)\n", rect.x*r, rect.y*r);
-            ps[i++] = (PopParticle) {
+            pop->particles[i++] = (PopParticle) {
                 .pos = vec_Mult(rect, r),
                 .v   = vec_Mult(rect, EXPAND_MULT * r / POP_LIFETIME),
             };
         }
     }
-    sh->pops[n].numparticles = i;
+    pop->numparticles = count;
 
     glBindVertexArray(sh->vao);
 
     glGenBuffers(1, &sh->pops[n].vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, sh->pops[n].vbo);
-	glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES * sizeof(PopParticle), ps, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, count * sizeof(PopParticle), pop->particles, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(ATTRIB_PARTICLE_OFFSET);
     // glVertexAttribPointer needs to be called on draw
@@ -93,6 +100,8 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
 
 void kill_popping(PoppingShader *sh, int i) {
     sh->pops[i].alive = false;
+    free(sh->pops[i].particles);
+    sh->pops[i].particles = NULL;
     glDeleteBuffers(1, &sh->pops[i].vbo);
 }
 
@@ -113,11 +122,12 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
 
         p->pt_radius += PT_DELTA_RADIUS * dt;
         for (int j = 0; j < p->numparticles; ++j) {
+            //printf("%f:%f\n", p->particles[i].pos.x, p->particles[i].pos.y);
             p->particles[j].pos.x += p->particles[j].v.x * dt;
             p->particles[j].pos.y += p->particles[j].v.y * dt;
         }
         glBindBuffer(GL_ARRAY_BUFFER, p->vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(p->particles), p->particles);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, p->numparticles*sizeof(PopParticle), p->particles);
 
         glVertexAttribPointer(ATTRIB_PARTICLE_OFFSET, 2, GL_FLOAT, GL_FALSE, sizeof(PopParticle), (void*)0);
 
