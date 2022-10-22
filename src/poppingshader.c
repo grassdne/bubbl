@@ -20,7 +20,7 @@ typedef enum {
 
 #define LAYER_WIDTH 10.0
 #define PARTICLE_LAYOUT 5
-#define PT_RADIUS 5.0;
+#define PT_RADIUS 12.0;
 #define PT_DELTA_RADIUS (EXPAND_MULT / POP_LIFETIME)
 
 void poppingInit(PoppingShader *sh) {
@@ -127,6 +127,7 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
         glUniform3f(sh->uniforms.color, p->color.r, p->color.g, p->color.b);
         glUniform1f(sh->uniforms.particle_radius, p->pt_radius);
         glUniform2f(sh->uniforms.resolution, window_width, window_height);
+        glUniform1f(sh->uniforms.size, p->size);
 
         // Draw
         glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, p->numparticles);
