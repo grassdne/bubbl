@@ -3,19 +3,16 @@
 
 layout(location = 0) out vec4 outcolor;
 
-uniform vec2 resolution;
 uniform vec2 positions[MAX_ELEMENTS];
 uniform vec3 colors[MAX_ELEMENTS];
 uniform int num_elements;
-
-const float radius = 500;
+const float TRANSPARENCY = 0.33;
+in float LENGTH;
 
 void main() {
-    float max_dist = length(resolution);
     float count = 0;
-
     int closest = 0;
-    float closest_dist = max_dist;
+    float closest_dist = LENGTH;
 
     vec3 color = vec3(0);
 
@@ -27,14 +24,13 @@ void main() {
             closest = i;
             closest_dist = dist;
         }
-        if (true || dist < radius) {
-            color += colors[i] * (1 - dist / max_dist);
-            ++count;
-        }
+
+        color += colors[i] * (1 - dist / LENGTH);
+        ++count;
 
     }
     if (count == 0) discard;
 
     color /= count;
-    outcolor = vec4(colors[closest] * (1 - closest_dist / (max_dist/4)) + color, 0.4);
+    outcolor = vec4(colors[closest] * (1 - closest_dist / (LENGTH/4)) + color, TRANSPARENCY);
 }

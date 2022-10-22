@@ -5,9 +5,8 @@
 #include "common.h"
 #include "shaderutil.h"
 
-// This should be enough for everyone
-#define POPPING_MEMORY_USAGE 640000
-
+// only 64 popping effects at once
+#define MAX_POPPING 64
 #define MAX_PARTICLES 512
 
 #define POP_UNIFORMS($) $(age) $(position) $(color) $(particle_radius) $(resolution)
@@ -15,7 +14,7 @@
 typedef struct {
     // Relative position
     Vector2 pos;
-    Vector2 d;
+    Vector2 v;
 } PopParticle;
 
 typedef struct {
@@ -30,7 +29,6 @@ typedef struct {
     PopParticle particles[MAX_PARTICLES];
 } Popping;
 
-#define MAX_POPPING (POPPING_MEMORY_USAGE / sizeof(Popping))
 
 typedef struct { POP_UNIFORMS(UNI_DECL) } PopUniforms;
 

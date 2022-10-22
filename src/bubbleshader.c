@@ -66,9 +66,9 @@ static double randreal(void) {
 
 static void gen_random_speed(Bubble *bubble) {
     // [-1, 1]
-    bubble->d.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    bubble->v.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
     // [-1, 1]
-    bubble->d.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    bubble->v.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
 }
 
 static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
@@ -110,19 +110,19 @@ void bubbleCreate(BubbleShader *sh, Vector2 pos) {
 }
 
 static void update_position(BubbleShader *sh, double dt, int i) {
-    double nextx = sh->bubbles[i].pos.x + sh->bubbles[i].d.x * dt;
+    double nextx = sh->bubbles[i].pos.x + sh->bubbles[i].v.x * dt;
     const float rad = sh->bubbles[i].rad;
     const float max_y = window_height - rad;
     const float max_x = window_width - rad;
 
     if (nextx < rad || nextx > max_x) {
-        sh->bubbles[i].d.x *= -1;
+        sh->bubbles[i].v.x *= -1;
         nextx = clamp(sh->bubbles[i].pos.x, rad, max_x);
     }
     sh->bubbles[i].pos.x = nextx;
-    double nexty = sh->bubbles[i].pos.y + sh->bubbles[i].d.y * dt;
+    double nexty = sh->bubbles[i].pos.y + sh->bubbles[i].v.y * dt;
     if (nexty < rad || nexty > max_y) {
-        sh->bubbles[i].d.y *= -1;
+        sh->bubbles[i].v.y *= -1;
         nexty = clamp(sh->bubbles[i].pos.y, rad, max_y);
     }
     sh->bubbles[i].pos.y = nexty;
@@ -136,8 +136,12 @@ static bool is_collision(Bubble *a, Bubble *b) {
     return distSq < collisionDist * collisionDist;
 }
 
-static Vector2 elastic_collision_velocity(Vector2 dir, Vector2 other, Vector2 v) {
-    return vec_Diff(v, vec_Mult(dir, vec_Dot(dir, vec_Diff(v, other))));
+#define POST_COLLIDE_SPACING 1.0
+static void separate_bubbles(Bubble *a, Bubble *b) {
+    // Push back bubble a so it is no longer colliding with b
+    Vector2 dir = vec_Normalized(vec_Diff(a->pos, b->pos));
+    float mindist = b->rad + a->rad + POST_COLLIDE_SPACING;
+    a->pos = vec_Sum(b->pos, vec_Mult(dir, mindist));
 }
 
 static void check_collisions(BubbleShader *sh) {
@@ -145,28 +149,21 @@ static void check_collisions(BubbleShader *sh) {
         FOR_ACTIVE_BUBBLES(j) {
             if (j == i) continue; // Can't collide with yourself!
             if (is_collision(sh->bubbles+i, sh->bubbles+j)) {
-                Vector2 dir = vec_Normalized(vec_Diff(sh->bubbles[i].pos, sh->bubbles[j].pos));
+                Vector2 Vi = sh->bubbles[i].v;
+                Vector2 Vj = sh->bubbles[j].v;
+                sh->bubbles[i].v = Vj;
+                sh->bubbles[j].v = Vi;
 
-                Vector2 newV1 = elastic_collision_velocity(dir, sh->bubbles[j].d, sh->bubbles[i].d);
-                Vector2 newV2 = elastic_collision_velocity(dir, sh->bubbles[i].d, sh->bubbles[j].d);
-
-                sh->bubbles[i].d = newV1;
-                sh->bubbles[j].d = newV2;
-
-                float mindist = sh->bubbles[j].rad + sh->bubbles[i].rad + 1.0;
-                sh->bubbles[i].pos = vec_Sum(sh->bubbles[j].pos, vec_Mult(dir, mindist));
+                separate_bubbles(&sh->bubbles[i], &sh->bubbles[j]);
             }
         }
     }
 
-    // Special handling for bubble growing under cursor
+    // Special physics for bubble growing under cursor
     if (GROWING().alive) {
         FOR_ACTIVE_BUBBLES(i) if (is_collision(&GROWING(), &sh->bubbles[i])) {
-            Vector2 dir = vec_Normalized(vec_Diff(sh->bubbles[i].pos, GROWING().pos));
-            sh->bubbles[i].d = elastic_collision_velocity(dir, vec_Mult(vec_Neg(dir), 100), sh->bubbles[i].d);
-
-            float mindist = GROWING().rad + sh->bubbles[i].rad + 1.0;
-            sh->bubbles[i].pos = vec_Sum(GROWING().pos, vec_Mult(dir, mindist));
+            sh->bubbles[i].v = vec_Neg(sh->bubbles[i].v);
+            separate_bubbles(&sh->bubbles[i], &GROWING());
         }
     }
 }

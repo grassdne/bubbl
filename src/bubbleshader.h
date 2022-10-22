@@ -14,7 +14,7 @@ typedef struct  {
     Vector2 pos;
     Color color;
     float rad;
-    Vector2 d;
+    Vector2 v;
     GLbyte alive;
 } Bubble;
 

@@ -71,7 +71,7 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
             //printf("\t(%f, %f)\n", rect.x*r, rect.y*r);
             ps[i++] = (PopParticle) {
                 .pos = vec_Mult(rect, r),
-                .d   = vec_Mult(rect, EXPAND_MULT * r / POP_LIFETIME),
+                .v   = vec_Mult(rect, EXPAND_MULT * r / POP_LIFETIME),
             };
         }
     }
@@ -113,8 +113,8 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
 
         p->pt_radius += PT_DELTA_RADIUS * dt;
         for (int j = 0; j < p->numparticles; ++j) {
-            p->particles[j].pos.x += p->particles[j].d.x * dt;
-            p->particles[j].pos.y += p->particles[j].d.y * dt;
+            p->particles[j].pos.x += p->particles[j].v.x * dt;
+            p->particles[j].pos.y += p->particles[j].v.y * dt;
         }
         glBindBuffer(GL_ARRAY_BUFFER, p->vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(p->particles), p->particles);
@@ -123,7 +123,6 @@ void poppingOnDraw(PoppingShader *sh, double dt) {
 
         // Set uniforms
         glUniform1f(sh->uniforms.age, time - p->starttime);
-        //printf("%d :: time: %f\n", i, time - p->starttime);
         glUniform2f(sh->uniforms.position, p->pos.x, p->pos.y);
         glUniform3f(sh->uniforms.color, p->color.r, p->color.g, p->color.b);
         glUniform1f(sh->uniforms.particle_radius, p->pt_radius);

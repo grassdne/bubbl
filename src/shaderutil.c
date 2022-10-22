@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <assert.h>
 
-const char* malloc_shader_source(const char* fpath) {
+const char* malloc_file_source(const char* fpath) {
 	FILE* f;
 	if ((f = fopen(fpath, "r")) == NULL) {
-		fprintf(stderr, "Unable to open file (%s): %s", fpath, ERROR());
+		fprintf(stderr, "Unable to open file (%s): %s\n", fpath, ERROR());
 		exit(1);
 	}
 	if (fseek(f, 0, SEEK_END)) {
-        fprintf(stderr, "Unable to seek file (%s): %s", fpath, ERROR());
+        fprintf(stderr, "Unable to seek file (%s): %s\n", fpath, ERROR());
         exit(1);
     }
 	size_t size = ftell(f);
@@ -27,7 +27,7 @@ const char* malloc_shader_source(const char* fpath) {
      */
     size_t len = fread(s, 1, size, f);
 	if (len == 0) {
-		fprintf(stderr, "Unable to read file (%s): %s", fpath, ERROR());
+		fprintf(stderr, "Unable to read file (%s): %s\n", fpath, ERROR());
         free(s);
 		exit(1);
 	}
@@ -70,7 +70,7 @@ GLint get_bound_array_buffer(void) {
 }
 
 void build_shader(GLuint program, const char *file, GLenum type) {
-    const char* src = malloc_shader_source(file); 
+    const char* src = malloc_file_source(file); 
     GLuint shader = load_shader(type, src, file);
     free((void*)src);
     if (!shader) exit(1);
