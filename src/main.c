@@ -15,8 +15,8 @@
 #include "bgshader.h"
 
 
-#define SCREEN_WIDTH 900
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1600
+#define SCREEN_HEIGHT 900
 
 typedef struct {
     BubbleShader bubble;
