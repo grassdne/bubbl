@@ -35,8 +35,8 @@ main: $(CSRC) src/*.h
 
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
-else ifeq ($(OS), Darwin)
-	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CFLAGS_MACOS) $(CLIBS)
+else ifeq ($(shell uname),Darwin)
+	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS) $(CLIBS_MACOS)
 else
 	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
 endif
