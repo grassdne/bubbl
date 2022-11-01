@@ -98,6 +98,8 @@ void shaderInit(Shader *sh) {
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void shaderLinkProgram(Shader *sh) {

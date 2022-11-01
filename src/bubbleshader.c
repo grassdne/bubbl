@@ -276,27 +276,12 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
     // Update buffer
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
 
-    /* Background */
-    if (false) {
-        // Set uniforms
-        //glUniform1f(sh->uniforms.time, glfwGetTime());
-        //glUniform2f(sh->uniforms.resolution, window_width, window_height);
-        glUniform1i(sh->uniforms.is_foreground, GL_FALSE);
+    // Set uniforms
+    glUniform1f(sh->uniforms.time, glfwGetTime());
+    glUniform2f(sh->uniforms.resolution, window_width, window_height);
 
-        // Draw
-        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles + 1);
-    }
-
-    /* Foreground */
-    {
-        // Set uniforms
-        glUniform1f(sh->uniforms.time, glfwGetTime());
-        glUniform2f(sh->uniforms.resolution, window_width, window_height);
-        glUniform1i(sh->uniforms.is_foreground, GL_TRUE);
-
-        // Draw
-        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles + 1);
-    }
+    // Draw
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles + 1);
 
     // Unbind
     glUseProgram(0);
