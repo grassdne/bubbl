@@ -34,7 +34,7 @@ static int windowed_xpos, windowed_ypos;
 
 int window_width = SCREEN_WIDTH;
 int window_height = SCREEN_HEIGHT;
-float xscale, yscale;
+float scale;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
 
 static void error_callback(int error, const char* description) {
@@ -43,7 +43,7 @@ static void error_callback(int error, const char* description) {
 }
 
 static Vector2 window_to_opengl_pos(double xpos, double ypos) {
-    return (Vector2){xpos*xscale, window_height - ypos*yscale};
+    return (Vector2){xpos*scale, window_height - ypos*scale};
 }
 
 static void on_mouse_down(GLFWwindow* window, int button, int action, int mods) {
@@ -93,10 +93,15 @@ static void frame(GLFWwindow *window) {
     }
 }
 
+int scalecontent(int p) { return (int) (p * scale); }
+
 static void on_content_rescale(GLFWwindow *window, float xs, float ys) {
     (void)window;
-    xscale = xs;
-    yscale = ys;
+    printf("xscale=%f :: yscale=%f\n", xs, ys);
+    if (xs != ys) {
+        printf("Error: display s is x%f on the x-axis but x%f on the y axis\n", xs, ys);
+    }
+    scale = xs;
 }
 
 static void on_framebuffer_resize(GLFWwindow *window, int width, int height) {
@@ -167,7 +172,10 @@ int main(void)
     glfwGetFramebufferSize(window, &window_width, &window_height);
     glViewport(0, 0, window_width, window_height);
 
+    float xscale, yscale;
     glfwGetWindowContentScale(window, &xscale, &yscale);
+    // initial scale
+    on_content_rescale(window, xscale, yscale);
     glfwSetWindowContentScaleCallback(window, on_content_rescale);
 
     glewExperimental = GL_TRUE;
