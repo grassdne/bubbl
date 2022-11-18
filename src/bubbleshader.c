@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
-#define SETS_OF_BUBBLES 1
+#define SETS_OF_BUBBLES 2
 #define MAX_BUBBLE_SPEED scalecontent(500.0)
 #define BASE_RADIUS scalecontent(35.0)
 #define VARY_RADIUS scalecontent(50.0)
