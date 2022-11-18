@@ -153,6 +153,13 @@ static void check_collisions(BubbleShader *sh) {
                 sh->bubbles[j].v = Vi;
 
                 separate_bubbles(&sh->bubbles[i], &sh->bubbles[j]);
+
+                if (sh->enable_color_swap_fun) {
+                    Color Ci = sh->bubbles[i].color;
+                    Color Cj = sh->bubbles[j].color;
+                    sh->bubbles[i].color = Cj;
+                    sh->bubbles[j].color = Ci;
+                }
             }
         }
     }
@@ -194,6 +201,8 @@ static void init_bubble_vbo(BubbleShader *sh) {
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_ALIVE,  1, GL_BYTE,  alive);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    sh->enable_color_swap_fun = false;
 }
 #undef BUBBLE_ATTRIIB
 

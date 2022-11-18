@@ -23,6 +23,7 @@ typedef struct { DERIVES_Shader();
     Bubble bubbles[BUBBLE_CAPACITY];
     int num_bubbles;
     GLuint bubble_vbo;
+    bool enable_color_swap_fun;
 } BubbleShader;
 
 void bubbleOnDraw(BubbleShader *sh, double dt);
