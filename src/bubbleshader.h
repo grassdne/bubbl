@@ -18,11 +18,8 @@ typedef struct  {
     GLbyte alive;
 } Bubble;
 
-typedef struct {
-    SHADER_PROGRAM_INHERIT(); 
-
+typedef struct { DERIVES_Shader(); 
     struct {BUBBLE_UNIFORMS(UNI_DECL)} uniforms;
-
     Bubble bubbles[BUBBLE_CAPACITY];
     int num_bubbles;
     GLuint bubble_vbo;

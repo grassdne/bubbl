@@ -8,8 +8,7 @@
 
 #define BG_UNIFORMS(_) _(positions) _(colors) _(num_elements) _(resolution)
 
-typedef struct {
-    SHADER_PROGRAM_INHERIT();
+typedef struct { DERIVES_Shader();
     struct {BG_UNIFORMS(UNI_DECL)} uniforms;
     Bubble *bubbles;
     int    *numbbls;

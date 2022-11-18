@@ -83,12 +83,13 @@ static void frame(GLFWwindow *window) {
         lasttime = now;
 
         glClearColor(1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        glClear(GL_COLOR_BUFFER_BIT);
         bgOnDraw(&shaders.bg, dt);
         bubbleOnDraw(&shaders.bubble, dt);
         poppingOnDraw(&shaders.pop, dt);
+
         glfwSwapBuffers(window);
+        //printf("FPS: %f\n", 1.0 / (glfwGetTime() - now));
     }
 }
 

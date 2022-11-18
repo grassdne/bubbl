@@ -245,7 +245,7 @@ void bubbleOnMouseMove(BubbleShader *sh, Vector2 mouse)
 void bubbleInit(BubbleShader *sh) {
     GROWING().alive = false;
 
-    shaderBuildProgram((Shader*)sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
+    shaderBuildProgram(sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
 
     make_starting_bubbles(sh);
     init_bubble_vbo(sh);

@@ -8,9 +8,9 @@
 #define UNI_DECL($n) GLint $n;
 #define UNI_GETS($name) sh->uniforms.$name = glGetUniformLocation(sh->program, #$name);
 
-#define SHADER_PROGRAM_INHERIT() GLuint program; GLuint vao
+#define DERIVES_Shader() GLuint program; GLuint vao
 
-typedef struct { SHADER_PROGRAM_INHERIT(); } Shader;
+typedef struct { DERIVES_Shader(); } Shader;
 
 typedef struct {
     const char* vert;
