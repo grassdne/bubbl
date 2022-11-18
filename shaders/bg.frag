@@ -7,7 +7,8 @@ uniform vec2 positions[MAX_ELEMENTS];
 uniform vec3 colors[MAX_ELEMENTS];
 uniform int num_elements;
 const float TRANSPARENCY = 0.33;
-in float LENGTH;
+in float LENGTH;     // Length of resolution (distance botoom left -> top right)
+const float EFFECTIVENESS_FACTOR = 0.25;
 
 void main() {
     float count = 0;
@@ -32,5 +33,5 @@ void main() {
     if (count == 0) discard;
 
     color /= count;
-    outcolor = vec4(colors[closest] * (1 - closest_dist / (LENGTH/4)) + color, TRANSPARENCY);
+    outcolor = vec4(colors[closest] * (1 - closest_dist / (LENGTH * EFFECTIVENESS_FACTOR)) + color, TRANSPARENCY);
 }
