@@ -132,10 +132,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             }
 
             break;
+        }
 
         case GLFW_KEY_S:
             shaders.bubble.enable_color_swap_fun = !shaders.bubble.enable_color_swap_fun;
-        }
         }
     }
     else if (action == GLFW_PRESS) {
