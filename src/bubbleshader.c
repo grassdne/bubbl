@@ -7,11 +7,11 @@
 #include <GLFW/glfw3.h>
 
 #define SETS_OF_BUBBLES 2
-#define MAX_BUBBLE_SPEED scalecontent(500.0)
-#define BASE_RADIUS scalecontent(35.0)
-#define VARY_RADIUS scalecontent(50.0)
+#define MAX_BUBBLE_SPEED SCALECONTENT(500.0)
+#define BASE_RADIUS SCALECONTENT(35.0)
+#define VARY_RADIUS SCALECONTENT(50.0)
 
-#define MAX_GROWTH scalecontent(150.0)
+#define MAX_GROWTH SCALECONTENT(150.0)
 #define GROWTH_TIME 2.0
 #define GROWING_RDELTA (MAX_GROWTH / GROWTH_TIME)
 
@@ -24,7 +24,6 @@ const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
     .frag = "shaders/bubble.frag",
 };
-
 
 // main.c
 void onRemoveBubble(Bubble*);

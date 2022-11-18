@@ -16,7 +16,7 @@ extern int window_height;
 extern float scale;
 extern const float QUAD[8];
 
-int scalecontent(int p);
+#define SCALECONTENT(p) (p * scale)
 
 typedef struct {
     float r, g, b;

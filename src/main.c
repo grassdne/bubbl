@@ -93,8 +93,6 @@ static void frame(GLFWwindow *window) {
     }
 }
 
-int scalecontent(int p) { return (int) (p * scale); }
-
 static void on_content_rescale(GLFWwindow *window, float xs, float ys) {
     (void)window;
     printf("xscale=%f :: yscale=%f\n", xs, ys);
