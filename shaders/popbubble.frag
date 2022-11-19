@@ -11,10 +11,8 @@ uniform vec3 color;
 uniform float size;
 uniform float particle_radius;
 
-//const float PARTICLE_RADIUS = 5.0;
 const float LIFETIME = 1.0;
 const float MIN_TRANSPARENCY = 0.2;
-//const float PI = 3.14159265358979323846264;
 
 
 void main() {
