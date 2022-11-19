@@ -123,3 +123,7 @@ void _shaderBuildProgram(Shader *sh, ShaderDatas shd) {
     shaderLinkProgram(sh);
 }
 
+double randreal(void) {
+    return rand() / (double)RAND_MAX;
+}
+

@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
-#define SETS_OF_BUBBLES 2
+#define SETS_OF_BUBBLES 1
 #define MAX_BUBBLE_SPEED SCALECONTENT(500.0)
 #define BASE_RADIUS SCALECONTENT(35.0)
 #define VARY_RADIUS SCALECONTENT(50.0)
 
-#define MAX_GROWTH SCALECONTENT(150.0)
+#define MAX_GROWTH SCALECONTENT(175.0)
 #define GROWTH_TIME 2.0
 #define GROWING_RDELTA (MAX_GROWTH / GROWTH_TIME)
 
@@ -58,10 +58,6 @@ static float clamp(float v, float min, float max) {
     return v;
 }
 
-static double randreal(void) {
-    return rand() / (double)RAND_MAX;
-}
-
 static void gen_random_speed(Bubble *bubble) {
     // [-1, 1]
     bubble->v.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
@@ -75,7 +71,7 @@ static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
     bubble->color.g  = randreal();
     bubble->color.b  = randreal();
     if (togrow) {
-        bubble->rad = BASE_RADIUS;// + randreal() * VARY_RADIUS;
+        bubble->rad = BASE_RADIUS;
     } else {
         // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
         bubble->rad = BASE_RADIUS + randreal() * VARY_RADIUS;

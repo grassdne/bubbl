@@ -24,6 +24,8 @@ GLint get_bound_array_buffer(void);
 void shaderInit(Shader *sh);
 void shaderLinkProgram(Shader *sh);
 
+double randreal(void);
+
 #define shaderBuildProgram(sh, d, UNIFORMS) do{ \
     _shaderBuildProgram((Shader*)(sh), (d)); \
     UNIFORMS(UNI_GETS); \
