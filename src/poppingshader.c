@@ -18,9 +18,9 @@ typedef enum {
 #define POP_LIFETIME 1.0
 #define EXPAND_MULT 2.0
 
-#define LAYER_WIDTH 10.0
+#define LAYER_WIDTH SCALECONTENT(10.0)
 #define PARTICLE_LAYOUT 5
-#define PT_RADIUS 8.0;
+#define PT_RADIUS SCALECONTENT(8.0);
 #define PT_DELTA_RADIUS (EXPAND_MULT / POP_LIFETIME)
 
 void poppingInit(PoppingShader *sh) {
