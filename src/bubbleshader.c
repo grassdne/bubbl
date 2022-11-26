@@ -21,6 +21,9 @@
 #define GROWING_INDEX 0
 #define GROWING() (sh->bubbles[GROWING_INDEX])
 
+#define TRANS_STARTTIME_SENTINAL -1.0
+#define TRANS_TIME 1.0
+
 const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
     .frag = "shaders/bubble.frag",
@@ -46,6 +49,9 @@ typedef enum {
     ATTRIB_BUBBLE_COLOR = 2,
     ATTRIB_BUBBLE_RADIUS = 3,
     ATTRIB_BUBBLE_ALIVE = 4,
+    ATTRIB_TRANS_ANGLE = 5,
+    ATTRIB_TRANS_COLOR = 6,
+    ATTRIB_TRANS_STARTTIME = 7,
 } VertAttribLocs;
 
 static void pop_bubble(Bubble *bubble) {
@@ -77,6 +83,7 @@ static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
     bubble->color.r  = randreal();
     bubble->color.g  = randreal();
     bubble->color.b  = randreal();
+    bubble->trans_color = bubble->color;
     if (togrow) {
         bubble->rad = BASE_RADIUS;
     } else {
@@ -85,6 +92,7 @@ static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
     }
     gen_random_speed(bubble);
     bubble->alive = true;
+    bubble->trans_starttime = TRANS_STARTTIME_SENTINAL;
 }
 
 int create_open_bubble_slot(BubbleShader *sh) {
@@ -129,7 +137,16 @@ static void update_position(BubbleShader *sh, double dt, int i) {
     sh->bubbles[i].pos.y = nexty;
 }
 
-static bool is_collision(Bubble *a, Bubble *b) {
+static void update_trans(Bubble *b, double time) {
+    if (b->trans_starttime != TRANS_STARTTIME_SENTINAL
+            && time - b->trans_starttime > TRANS_TIME)
+    {
+        b->color = b->trans_color;
+        b->trans_starttime = TRANS_STARTTIME_SENTINAL;
+    }
+}
+
+static bool is_collision(Bubble *restrict a, Bubble *restrict b) {
     const float x = a->pos.x - b->pos.x;
     const float y = a->pos.y - b->pos.y;
     const float distSq = x*x + y*y;
@@ -138,11 +155,19 @@ static bool is_collision(Bubble *a, Bubble *b) {
 }
 
 #define POST_COLLIDE_SPACING 1.0
-static void separate_bubbles(Bubble *a, Bubble *b) {
+static void separate_bubbles(Bubble *restrict a, Bubble *restrict b) {
     // Push back bubble a so it is no longer colliding with b
     Vector2 dir = vec_Normalized(vec_Diff(a->pos, b->pos));
     float mindist = b->rad + a->rad + POST_COLLIDE_SPACING;
     a->pos = vec_Sum(b->pos, vec_Mult(dir, mindist));
+}
+
+static void start_transition(Bubble *restrict bubble, Bubble *restrict other) {
+    if (bubble->trans_starttime == TRANS_STARTTIME_SENTINAL) return;
+    bubble->trans_color = other->color;
+    bubble->trans_starttime = glfwGetTime();
+    bubble->trans_angle = vec_Diff(bubble->v, other->v);
+
 }
 
 static void check_collisions(BubbleShader *sh) {
@@ -158,10 +183,8 @@ static void check_collisions(BubbleShader *sh) {
                 separate_bubbles(&sh->bubbles[i], &sh->bubbles[j]);
 
                 if (sh->enable_color_swap_fun) {
-                    Color Ci = sh->bubbles[i].color;
-                    Color Cj = sh->bubbles[j].color;
-                    sh->bubbles[i].color = Cj;
-                    sh->bubbles[j].color = Ci;
+                    start_transition(&sh->bubbles[i], &sh->bubbles[j]);
+                    start_transition(&sh->bubbles[j], &sh->bubbles[i]);
                 }
             }
         }
@@ -190,7 +213,8 @@ static void make_starting_bubbles(BubbleShader *sh) {
 
 #define BUBBLE_ATTRIB(loc, count, type, field) do{ \
     glEnableVertexAttribArray(loc); \
-    glVertexAttribPointer(loc, count, type, GL_FALSE, sizeof(Bubble), (void*)offsetof(Bubble, field)); \
+    glVertexAttribPointer(loc, count, type, GL_FALSE, sizeof(Bubble), \
+                          (void*)offsetof(Bubble, field)); \
     glVertexAttribDivisor(loc, 1); }while(0)
 
 static void init_bubble_vbo(BubbleShader *sh) {
@@ -198,10 +222,13 @@ static void init_bubble_vbo(BubbleShader *sh) {
 	glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(sh->bubbles), sh->bubbles, GL_DYNAMIC_DRAW);
 
-    BUBBLE_ATTRIB(ATTRIB_BUBBLE_POS,    2, GL_FLOAT, pos);
-    BUBBLE_ATTRIB(ATTRIB_BUBBLE_COLOR,  3, GL_FLOAT, color);
+    BUBBLE_ATTRIB(ATTRIB_BUBBLE_POS, 2, GL_FLOAT, pos);
+    BUBBLE_ATTRIB(ATTRIB_BUBBLE_COLOR, 3, GL_FLOAT, color);
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_RADIUS, 4, GL_FLOAT, rad);
-    BUBBLE_ATTRIB(ATTRIB_BUBBLE_ALIVE,  1, GL_BYTE,  alive);
+    BUBBLE_ATTRIB(ATTRIB_BUBBLE_ALIVE, 1, GL_BYTE,  alive);
+    BUBBLE_ATTRIB(ATTRIB_TRANS_ANGLE, 2, GL_FLOAT, trans_angle);
+    BUBBLE_ATTRIB(ATTRIB_TRANS_COLOR, 3, GL_FLOAT, trans_color);
+    BUBBLE_ATTRIB(ATTRIB_TRANS_STARTTIME, 1, GL_DOUBLE, trans_starttime);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -270,9 +297,12 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
             GROWING().alive = false;
         }
     }
+    const double time = glfwGetTime();
+
     // Update state
     FOR_ACTIVE_BUBBLES(i) {
         update_position(sh, dt, i);
+        update_trans(&sh->bubbles[i], time);
     }
 
     check_collisions(sh);
@@ -286,7 +316,7 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
 
     // Set uniforms
-    glUniform1f(sh->uniforms.time, glfwGetTime());
+    glUniform1f(sh->uniforms.time, time);
     glUniform2f(sh->uniforms.resolution, window_width, window_height);
 
     // Draw

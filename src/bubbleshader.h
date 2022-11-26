@@ -12,10 +12,13 @@
 
 typedef struct  {
     Vector2 pos;
+    Vector2 v;
     Color color;
     float rad;
-    Vector2 v;
     GLbyte alive;
+    Vector2 trans_angle;
+    Color trans_color;
+    double trans_starttime;
 } Bubble;
 
 typedef struct { DERIVES_Shader(); 
