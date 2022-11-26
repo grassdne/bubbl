@@ -14,7 +14,7 @@ const float MIN_TRANSPARENCY = 0.0;
 const float MAX_TRANSPARENCY = 0.7;
 
 const float PI = 3.14159265358979;
-const float TIME_FACTOR = 3.0;
+const float SHADOW_REVOLUTION_TIME = 5.0;
 const float BUBBLE_SHADOW_RAD = 0.2;
 
 float distanceSq(vec2 a, vec2 b) {
@@ -23,8 +23,9 @@ float distanceSq(vec2 a, vec2 b) {
 }
 
 void main() {
+    // Using squared distance to optimize out unneeded square root operation
     if (distanceSq(gl_FragCoord.xy, bubble_pos) < rad*rad) {
-        float theta = time*TIME_FACTOR;
+        float theta = time * 2*PI / SHADOW_REVOLUTION_TIME;
         vec2 shadow_pos = bubble_pos + rad*BUBBLE_SHADOW_RAD * vec2(cos(theta), sin(theta));
         float a = mix(MIN_TRANSPARENCY, MAX_TRANSPARENCY, distance(gl_FragCoord.xy, shadow_pos) / rad);
         outcolor = vec4(bubble_color, a);

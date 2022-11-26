@@ -17,6 +17,10 @@
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
 
+
+bool verbose;
+#define VPRINTF(...) if (verbose) printf(__VA_ARGS__)
+
 typedef struct {
     BubbleShader bubble;
     PoppingShader pop;
@@ -95,7 +99,7 @@ static void frame(GLFWwindow *window) {
 
 static void on_content_rescale(GLFWwindow *window, float xs, float ys) {
     (void)window;
-    printf("xscale=%f :: yscale=%f\n", xs, ys);
+    VPRINTF("xscale=%f :: yscale=%f\n", xs, ys);
     if (xs != ys) {
         printf("Error: display s is x%f on the x-axis but x%f on the y axis\n", xs, ys);
     }
@@ -148,8 +152,9 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
-int main(void)
-{
+int main(int argc, char **argv) {
+    (void)argc;
+    verbose = argv[1] && argv[1][0] == '-' && argv[1][1] == 'v';
     srand(time(NULL));
 	glfwSetErrorCallback(error_callback);
 	if( !glfwInit()) exit(1);
@@ -179,22 +184,21 @@ int main(void)
     on_content_rescale(window, xscale, yscale);
     glfwSetWindowContentScaleCallback(window, on_content_rescale);
 
-    glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
 		fprintf(stderr, "GLEW init failed\n");
 		exit(1);
 	}
-	else if (false && (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects)) {
-		printf("Shaders not available\n");
-		exit(1);
-	}
+	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
+    //    fprintf(stderr, "Shaders not available\n");
+    //    exit(1);
+	//}
 
-    printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
-    printf("MEMORY USAGE\n");
-    printf("Bubbles:    %lu b\n", (unsigned long)sizeof(shaders.bubble));
-    printf("Pop effect: %lu b\n", (unsigned long)sizeof(shaders.pop));
-    printf("Background: %lu b\n", (unsigned long)sizeof(shaders.bg));
-    printf("TOTAL: %lu b\n", (unsigned long)sizeof(shaders));
+    VPRINTF("OpenGL Version: %s\n", glGetString(GL_VERSION));
+    VPRINTF("MEMORY USAGE\n");
+    VPRINTF("Bubbles:    %lu b\n", (unsigned long)sizeof(shaders.bubble));
+    VPRINTF("Pop effect: %lu b\n", (unsigned long)sizeof(shaders.pop));
+    VPRINTF("Background: %lu b\n", (unsigned long)sizeof(shaders.bg));
+    VPRINTF("TOTAL: %lu b\n", (unsigned long)sizeof(shaders));
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

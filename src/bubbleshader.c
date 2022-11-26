@@ -8,12 +8,13 @@
 
 #define SETS_OF_BUBBLES 1
 #define MAX_BUBBLE_SPEED SCALECONTENT(500.0)
+#define MIN_BUBBLE_SPEED SCALECONTENT(200.0)
 #define BASE_RADIUS SCALECONTENT(35.0)
-#define VARY_RADIUS SCALECONTENT(50.0)
+#define MAX_RADIUS SCALECONTENT(100.0)
 
-#define MAX_GROWTH SCALECONTENT(175.0)
+#define MAX_GROWTH SCALECONTENT(200.0)
 #define GROWTH_TIME 2.0
-#define GROWING_RDELTA (MAX_GROWTH / GROWTH_TIME)
+#define GROWING_RAD_DELTA (MAX_GROWTH / GROWTH_TIME)
 
 // Bubble growing under mouse is at index 0
 // I need everything in one big buffer for instanced rendering
@@ -58,11 +59,17 @@ static float clamp(float v, float min, float max) {
     return v;
 }
 
+static double randminmax(double min, double max) {
+    return randreal() * (max - min) + min;
+}
+
+static double randomsign(void) {
+    return randreal() > 0.5 ? -1.0 : 1.0;
+}
+
 static void gen_random_speed(Bubble *bubble) {
-    // [-1, 1]
-    bubble->v.x = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
-    // [-1, 1]
-    bubble->v.y = (randreal() - 0.5) * 2 * MAX_BUBBLE_SPEED;
+    bubble->v.x = randomsign() * randminmax(MIN_BUBBLE_SPEED, MAX_BUBBLE_SPEED);
+    bubble->v.y = randomsign() * randminmax(MIN_BUBBLE_SPEED, MAX_BUBBLE_SPEED);
 }
 
 static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
@@ -74,7 +81,7 @@ static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
         bubble->rad = BASE_RADIUS;
     } else {
         // [BASE_RADIUS, BASE_RADIUS+VARY_RADIUS]
-        bubble->rad = BASE_RADIUS + randreal() * VARY_RADIUS;
+        bubble->rad = randminmax(BASE_RADIUS, MAX_RADIUS);
     }
     gen_random_speed(bubble);
     bubble->alive = true;
@@ -257,7 +264,7 @@ void bubbleInit(BubbleShader *sh) {
 
 void bubbleOnDraw(BubbleShader *sh, double dt) {
     if (GROWING().alive) {
-        GROWING().rad += (GROWING_RDELTA * dt);
+        GROWING().rad += (GROWING_RAD_DELTA * dt);
         if (GROWING().rad >= MAX_GROWTH) {
             pop_bubble(&GROWING());
             GROWING().alive = false;
