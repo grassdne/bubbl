@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
+#define DEFAULT_ENABLE_COLOR_SWAP_FUN true
 #define SETS_OF_BUBBLES 1
 #define MAX_BUBBLE_SPEED SCALECONTENT(500.0)
 #define MIN_BUBBLE_SPEED SCALECONTENT(200.0)
@@ -163,10 +164,9 @@ static void separate_bubbles(Bubble *restrict a, Bubble *restrict b) {
 }
 
 static void start_transition(Bubble *restrict bubble, Bubble *restrict other) {
-    if (bubble->trans_starttime == TRANS_STARTTIME_SENTINAL) return;
     bubble->trans_color = other->color;
     bubble->trans_starttime = glfwGetTime();
-    bubble->trans_angle = vec_Diff(bubble->v, other->v);
+    bubble->trans_angle = vec_Normalized(vec_Diff(other->pos, bubble->pos));
 
 }
 
@@ -182,7 +182,10 @@ static void check_collisions(BubbleShader *sh) {
 
                 separate_bubbles(&sh->bubbles[i], &sh->bubbles[j]);
 
-                if (sh->enable_color_swap_fun) {
+                if (sh->enable_color_swap_fun 
+                        && sh->bubbles[i].trans_starttime == TRANS_STARTTIME_SENTINAL
+                        && sh->bubbles[j].trans_starttime == TRANS_STARTTIME_SENTINAL)
+                {
                     start_transition(&sh->bubbles[i], &sh->bubbles[j]);
                     start_transition(&sh->bubbles[j], &sh->bubbles[i]);
                 }
@@ -232,7 +235,7 @@ static void init_bubble_vbo(BubbleShader *sh) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    sh->enable_color_swap_fun = false;
+    sh->enable_color_swap_fun = DEFAULT_ENABLE_COLOR_SWAP_FUN;
 }
 #undef BUBBLE_ATTRIIB
 
