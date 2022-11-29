@@ -1,4 +1,3 @@
-CC = clang
 CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
 CLIBS = `pkg-config --libs glfw3 glew` -lm
 
