@@ -6,6 +6,9 @@
 #include "common.h"
 #include "shaderutil.h"
 
+#define TRANS_STARTTIME_SENTINAL -1.0
+#define TRANS_TIME 1.0
+
 #define BUBBLE_CAPACITY 128
 
 #define BUBBLE_UNIFORMS($) $(time) $(resolution)
@@ -19,6 +22,7 @@ typedef struct  {
     Vector2 trans_angle;
     Color trans_color;
     double trans_starttime;
+    double last_transformation;
 } Bubble;
 
 typedef struct { DERIVES_Shader(); 
@@ -26,7 +30,7 @@ typedef struct { DERIVES_Shader();
     Bubble bubbles[BUBBLE_CAPACITY];
     int num_bubbles;
     GLuint bubble_vbo;
-    bool enable_color_swap_fun;
+    bool paused_movement;
 } BubbleShader;
 
 void bubbleOnDraw(BubbleShader *sh, double dt);

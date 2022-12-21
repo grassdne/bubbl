@@ -11,7 +11,7 @@
 #define MAX_BUBBLE_SPEED SCALECONTENT(500.0)
 #define MIN_BUBBLE_SPEED SCALECONTENT(200.0)
 #define BASE_RADIUS SCALECONTENT(35.0)
-#define MAX_RADIUS SCALECONTENT(100.0)
+#define MAX_RADIUS SCALECONTENT(50.0)
 
 #define MAX_GROWTH SCALECONTENT(200.0)
 #define GROWTH_TIME 2.0
@@ -21,9 +21,9 @@
 // I need everything in one big buffer for instanced rendering
 #define GROWING_INDEX 0
 #define GROWING() (sh->bubbles[GROWING_INDEX])
-
-#define TRANS_STARTTIME_SENTINAL -1.0
-#define TRANS_TIME 1.0
+#define IN_TRANSITION(b) (!((b).trans_starttime == TRANS_STARTTIME_SENTINAL))
+#define POST_COLLIDE_SPACING 1.0
+#define TRANS_IMMUNE_PERIOD 1.0
 
 const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
@@ -120,6 +120,9 @@ void bubbleCreate(BubbleShader *sh, Vector2 pos) {
 }
 
 static void update_position(BubbleShader *sh, double dt, int i) {
+    if (sh->paused_movement || IN_TRANSITION(sh->bubbles[i]))
+        return;
+
     double nextx = sh->bubbles[i].pos.x + sh->bubbles[i].v.x * dt;
     const float rad = sh->bubbles[i].rad;
     const float max_y = window_height - rad;
@@ -139,11 +142,11 @@ static void update_position(BubbleShader *sh, double dt, int i) {
 }
 
 static void update_trans(Bubble *b, double time) {
-    if (b->trans_starttime != TRANS_STARTTIME_SENTINAL
-            && time - b->trans_starttime > TRANS_TIME)
+    if (IN_TRANSITION(*b) && time - b->trans_starttime > TRANS_TIME)
     {
         b->color = b->trans_color;
         b->trans_starttime = TRANS_STARTTIME_SENTINAL;
+        b->last_transformation = glfwGetTime();
     }
 }
 
@@ -155,7 +158,6 @@ static bool is_collision(Bubble *restrict a, Bubble *restrict b) {
     return distSq < collisionDist * collisionDist;
 }
 
-#define POST_COLLIDE_SPACING 1.0
 static void separate_bubbles(Bubble *restrict a, Bubble *restrict b) {
     // Push back bubble a so it is no longer colliding with b
     Vector2 dir = vec_Normalized(vec_Diff(a->pos, b->pos));
@@ -167,7 +169,6 @@ static void start_transition(Bubble *restrict bubble, Bubble *restrict other) {
     bubble->trans_color = other->color;
     bubble->trans_starttime = glfwGetTime();
     bubble->trans_angle = vec_Normalized(vec_Diff(other->pos, bubble->pos));
-
 }
 
 static void check_collisions(BubbleShader *sh) {
@@ -175,16 +176,21 @@ static void check_collisions(BubbleShader *sh) {
         FOR_ACTIVE_BUBBLES(j) {
             if (j == i) continue; // Can't collide with yourself!
             if (is_collision(sh->bubbles+i, sh->bubbles+j)) {
+                // Simple elastic collision
+                // An elastic collision with the same masses means they just 
+                // swap velocities!
+                // TODO: Should they have different masses?
                 Vector2 Vi = sh->bubbles[i].v;
                 Vector2 Vj = sh->bubbles[j].v;
                 sh->bubbles[i].v = Vj;
                 sh->bubbles[j].v = Vi;
 
                 separate_bubbles(&sh->bubbles[i], &sh->bubbles[j]);
-
-                if (sh->enable_color_swap_fun 
-                        && sh->bubbles[i].trans_starttime == TRANS_STARTTIME_SENTINAL
-                        && sh->bubbles[j].trans_starttime == TRANS_STARTTIME_SENTINAL)
+                const double time = glfwGetTime();
+                if (!IN_TRANSITION(sh->bubbles[i])
+                &&  !IN_TRANSITION(sh->bubbles[j])
+                &&  time-sh->bubbles[i].last_transformation > TRANS_IMMUNE_PERIOD
+                &&  time-sh->bubbles[j].last_transformation > TRANS_IMMUNE_PERIOD)
                 {
                     start_transition(&sh->bubbles[i], &sh->bubbles[j]);
                     start_transition(&sh->bubbles[j], &sh->bubbles[i]);
@@ -234,8 +240,6 @@ static void init_bubble_vbo(BubbleShader *sh) {
     BUBBLE_ATTRIB(ATTRIB_TRANS_STARTTIME, 1, GL_DOUBLE, trans_starttime);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    sh->enable_color_swap_fun = DEFAULT_ENABLE_COLOR_SWAP_FUN;
 }
 #undef BUBBLE_ATTRIIB
 

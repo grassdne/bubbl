@@ -31,7 +31,6 @@ typedef struct {
 static Shaders shaders = {0};
 
 static double lasttime;
-static bool paused = false;
 
 static int windowed_xpos, windowed_ypos;
 
@@ -77,24 +76,18 @@ void onRemoveBubble(Bubble *bubble) {
 
 static void frame(GLFWwindow *window) {
     (void)window;
+    double now = glfwGetTime();
+    double dt = now - lasttime;
+    lasttime = now;
 
-    if (paused) {
-        glfwSetTime(lasttime);
-    }
-    else {
-        double now = glfwGetTime();
-        double dt = now - lasttime;
-        lasttime = now;
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    bgOnDraw(&shaders.bg, dt);
+    bubbleOnDraw(&shaders.bubble, dt);
+    poppingOnDraw(&shaders.pop, dt);
 
-        glClearColor(1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-        bgOnDraw(&shaders.bg, dt);
-        bubbleOnDraw(&shaders.bubble, dt);
-        poppingOnDraw(&shaders.pop, dt);
-
-        glfwSwapBuffers(window);
-        //printf("FPS: %f\n", 1.0 / (glfwGetTime() - now));
-    }
+    glfwSwapBuffers(window);
+    //printf("FPS: %f\n", 1.0 / (glfwGetTime() - now));
 }
 
 static void on_content_rescale(GLFWwindow *window, float xs, float ys) {
@@ -137,15 +130,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
             break;
         }
-
-        case GLFW_KEY_S:
-            shaders.bubble.enable_color_swap_fun = !shaders.bubble.enable_color_swap_fun;
         }
     }
     else if (action == GLFW_PRESS) {
         switch (key) {
         case GLFW_KEY_SPACE:
-            paused = !paused;
+            shaders.bubble.paused_movement = !shaders.bubble.paused_movement;
             break;
         }
         
