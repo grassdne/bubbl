@@ -24,6 +24,7 @@
 #define IN_TRANSITION(b) (!((b).trans_starttime == TRANS_STARTTIME_SENTINAL))
 #define POST_COLLIDE_SPACING 1.0
 #define TRANS_IMMUNE_PERIOD 1.0
+#define TRANSITIONS_ENABLED false
 
 const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
@@ -187,7 +188,8 @@ static void check_collisions(BubbleShader *sh) {
 
                 separate_bubbles(&sh->bubbles[i], &sh->bubbles[j]);
                 const double time = glfwGetTime();
-                if (!IN_TRANSITION(sh->bubbles[i])
+                if (TRANSITIONS_ENABLED
+                &&  !IN_TRANSITION(sh->bubbles[i])
                 &&  !IN_TRANSITION(sh->bubbles[j])
                 &&  time-sh->bubbles[i].last_transformation > TRANS_IMMUNE_PERIOD
                 &&  time-sh->bubbles[j].last_transformation > TRANS_IMMUNE_PERIOD)
