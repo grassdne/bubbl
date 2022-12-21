@@ -24,7 +24,7 @@
 #define IN_TRANSITION(b) (!((b).trans_starttime == TRANS_STARTTIME_SENTINAL))
 #define POST_COLLIDE_SPACING 1.0
 #define TRANS_IMMUNE_PERIOD 1.0
-#define TRANSITIONS_ENABLED false
+#define TRANSITIONS_ENABLED 1
 
 const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
