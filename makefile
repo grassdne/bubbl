@@ -1,9 +1,10 @@
-CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension
-CLIBS = `pkg-config --libs glfw3 glew` -lm
+PKGS = luajit glfw3 glew
+CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension  `pkg-config --cflags $(PKGS)`
+CLIBS = `pkg-config --libs $(PKGS)` -lm
 
 CMAIN=src/main.c
 CSRC=src/*.c
-EXE=main
+EXE=bubbles
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
 LIBRARY_DIRS_WIN = -LC:\mingw_dev\lib
@@ -15,7 +16,7 @@ CLIBS_MACOS = -framework OpenGL -framework IOKit
 
 all: $(EXE)
 
-debug: CFLAGS += -g
+debug: CFLAGS += -g0
 debug: $(EXE)
 
 release: CFLAGS += -O3
@@ -30,7 +31,10 @@ run: $(EXE)
 clean:
 	rm -f $(EXE) $(EXE_WIN)
 
-main: $(CSRC) src/*.h
+compile_commands:
+	bear -- $(MAKE) clean all
+
+$(EXE): $(CSRC) src/*.h
 
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
