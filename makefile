@@ -1,6 +1,6 @@
 PKGS = luajit glfw3 glew
-CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension  `pkg-config --cflags $(PKGS)`
-CLIBS = `pkg-config --libs $(PKGS)` -lm
+CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension `pkg-config --cflags $(PKGS)`
+CLIBS = `pkg-config --libs $(PKGS)` -lm -rdynamic
 
 CMAIN=src/main.c
 CSRC=src/*.c
@@ -16,7 +16,7 @@ CLIBS_MACOS = -framework OpenGL -framework IOKit
 
 all: $(EXE)
 
-debug: CFLAGS += -g0
+debug: CFLAGS += -g
 debug: $(EXE)
 
 release: CFLAGS += -O3
@@ -43,3 +43,5 @@ else ifeq ($(shell uname),Darwin)
 else
 	$(CC) -o $(EXE) $(CSRC) $(CFLAGS) $(CLIBS)
 endif
+
+.PHONY: all debug release install clean run

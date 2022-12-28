@@ -11,7 +11,7 @@ const ShaderDatas BG_SHADER_DATAS = {
     .frag = "shaders/bg.frag",
 };
 
-void bgInit(BgShader* restrict sh, Bubble *bubbles, int *numbbls) {
+void bgInit(BgShader* restrict sh, Bubble *bubbles, size_t *numbbls) {
     sh->bubbles = bubbles;
     sh->numbbls = numbbls;
 

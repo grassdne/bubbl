@@ -4,31 +4,24 @@
 #include <stdio.h>
 #include <assert.h>
 
-const char* malloc_file_source(const char* fpath) {
+char* malloc_file_source(const char* fpath) {
     FILE* f;
     if ((f = fopen(fpath, "r")) == NULL) {
         fprintf(stderr, "Unable to open file (%s): %s\n", fpath, ERROR());
         exit(1);
     }
-    if (fseek(f, 0, SEEK_END)) {
-        fprintf(stderr, "Unable to seek file (%s): %s\n", fpath, ERROR());
-        exit(1);
-    }
+    fseek(f, 0, SEEK_END);
     size_t size = ftell(f);
     rewind(f);
 
     char* s = malloc(size + 1);
-    if (s == NULL) {
-        exit(1);
-    }
-    /* len != size with dos line endings
-     * ftell counts \r\n as the correct 2 bytes,
-     * but fread reads it in as just \n
-     */
+    assert(s);
+
     size_t len = fread(s, 1, size, f);
+    fclose(f);
+
     if (len == 0) {
         fprintf(stderr, "Unable to read file (%s): %s\n", fpath, ERROR());
-        free(s);
         exit(1);
     }
     s[len] = '\0';
@@ -70,9 +63,9 @@ GLint get_bound_array_buffer(void) {
 }
 
 void build_shader(GLuint program, const char *file, GLenum type) {
-    const char* src = malloc_file_source(file); 
+    char* src = malloc_file_source(file); 
     GLuint shader = load_shader(type, src, file);
-    free((void*)src);
+    free(src);
     if (!shader) exit(1);
 
     glAttachShader(program, shader);

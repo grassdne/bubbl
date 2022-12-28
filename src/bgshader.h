@@ -11,10 +11,10 @@
 typedef struct { DERIVES_Shader();
     struct {BG_UNIFORMS(UNI_DECL)} uniforms;
     Bubble *bubbles;
-    int    *numbbls;
+    size_t *numbbls;
 } BgShader;
 
-void bgInit(BgShader* restrict sh, Bubble *bubbles, int *numbbls);
+void bgInit(BgShader* restrict sh, Bubble *bubbles, size_t *numbbls);
 void bgOnDraw(BgShader *sh, double dt);
 
 #endif

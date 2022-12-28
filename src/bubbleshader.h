@@ -28,7 +28,7 @@ typedef struct  {
 typedef struct { DERIVES_Shader(); 
     struct {BUBBLE_UNIFORMS(UNI_DECL)} uniforms;
     Bubble bubbles[BUBBLE_CAPACITY];
-    int num_bubbles;
+    size_t num_bubbles;
     GLuint bubble_vbo;
     bool paused_movement;
 } BubbleShader;
@@ -39,5 +39,7 @@ void bubbleCreate(BubbleShader *sh, Vector2 pos);
 void bubbleOnMouseDown(BubbleShader *sh, Vector2 mouse);
 void bubbleOnMouseUp(BubbleShader *sh, Vector2 mouse);
 void bubbleOnMouseMove(BubbleShader *sh, Vector2 mouse);
+size_t create_open_bubble_slot(BubbleShader *sh);
+int bubble_at_point(BubbleShader *sh, Vector2 mouse);
 
 #endif

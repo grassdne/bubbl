@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <assert.h>
 
 #include "common.h"
 #include "vector2.h"
@@ -35,6 +36,8 @@ static Shaders shaders = {0};
 
 static double lasttime;
 
+static bool started = false;
+
 static int windowed_xpos, windowed_ypos;
 
 int window_width = SCREEN_WIDTH;
@@ -51,40 +54,76 @@ static Vector2 window_to_opengl_pos(double xpos, double ypos) {
     return (Vector2){xpos*scale, window_height - ypos*scale};
 }
 
-static void on_mouse_down(GLFWwindow* W, int button, int action, int mods) {
-    (void)mods;
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        double xpos, ypos;
-        glfwGetCursorPos(W, &xpos, &ypos);	
-        Vector2 mouse = window_to_opengl_pos(xpos, ypos);
-
-        if (action == GLFW_PRESS) {
-            bubbleOnMouseDown(&shaders.bubble, mouse);
-        }
-        else if (action == GLFW_RELEASE) {
-            bubbleOnMouseUp(&shaders.bubble, mouse);
-        }
-    }
-}
-
-static void on_mouse_move(GLFWwindow* W, double xpos, double ypos) {
-    (void)W;
-    bubbleOnMouseMove(&shaders.bubble, window_to_opengl_pos(xpos, ypos));
-}
-
-void error(lua_State *L, const char *fmt, ...) {
+static void error(lua_State *L, const char *fmt, ...) {
     va_list argp;
     va_start(argp, fmt);
     vfprintf(stderr, fmt, argp);
     fprintf(stderr, "\n");
     va_end(argp);
     lua_close(L);
-    exit(EXIT_FAILURE);
+    exit(1);
 }
 
-#define CONFIG_FILE_NAME "config.lua"
+static int error_traceback(lua_State *L) {
+    luaL_traceback(L, L, lua_tostring(L, -1), 1);
+    error(L, "lua: %s\n", lua_tostring(L, -1));
+    return 1;
+}
+
+static void call_lua_callback(lua_State *L, int nargs) {
+    lua_pcall(L, nargs, 0, 1);
+}
+
+static void on_mouse_button(GLFWwindow* W, int button, int action, int mods) {
+    (void)mods;
+    lua_State *L = glfwGetWindowUserPointer(W);
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        double xpos, ypos;
+        glfwGetCursorPos(W, &xpos, &ypos);	
+        Vector2 mouse = window_to_opengl_pos(xpos, ypos);
+
+        if (action == GLFW_PRESS) {
+            lua_getglobal(L, "on_mouse_down");
+            if (lua_isfunction(L, -1)) {
+                lua_pushnumber(L, mouse.x);
+                lua_pushnumber(L, mouse.y);
+                call_lua_callback(L, 2);
+            } else {
+                fprintf(stderr, "WARNING: missing `on_mouse_down` Lua global function\n");
+            }
+            //bubbleOnMouseDown(&shaders.bubble, mouse);
+        }
+        else if (action == GLFW_RELEASE) {
+            lua_getglobal(L, "on_mouse_up");
+            if (lua_isfunction(L, -1)) {
+                lua_pushnumber(L, mouse.x);
+                lua_pushnumber(L, mouse.y);
+                call_lua_callback(L, 2);
+            } else {
+                fprintf(stderr, "WARNING: missing `on_mouse_up` Lua global function\n");
+            }
+            //bubbleOnMouseUp(&shaders.bubble, mouse);
+        }
+    }
+}
+
+static void on_mouse_move(GLFWwindow* W, double xpos, double ypos) {
+    Vector2 pos = window_to_opengl_pos(xpos, ypos);
+    lua_State *L = glfwGetWindowUserPointer(W);
+    lua_getglobal(L, "on_mouse_move");
+    if (lua_isfunction(L, -1)) {
+        lua_pushnumber(L, pos.x);
+        lua_pushnumber(L, pos.y);
+        call_lua_callback(L, 2);
+    } else {
+        fprintf(stderr, "WARNING: missing `on_mouse_move` Lua global function\n");
+    }
+    //bubbleOnMouseMove(&shaders.bubble, window_to_opengl_pos(xpos, ypos));
+}
+
+#define CONFIG_FILE_NAME "lua/config.lua"
 void reload_config(lua_State *L, GLFWwindow *W) {
-    if (luaL_dofile(L, "logic.lua") || luaL_dofile(L, "config.lua"))
+    if (luaL_dofile(L, "lua/logic.lua") || luaL_dofile(L, "lua/config.lua"))
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
 
     lua_getglobal(L, "title");
@@ -99,21 +138,34 @@ void onRemoveBubble(Bubble *bubble) {
     poppingPop(&shaders.pop, bubble->pos, bubble->color, bubble->rad);
 }
 
+void create_pop(Vector2 pos, Color color, float rad) {
+    poppingPop(&shaders.pop, pos, color, rad);
+}
+
+int get_bubble_at_point(Vector2 pos) {
+    return bubble_at_point(&shaders.bubble, pos);
+}
+
+void destroy_bubble(size_t id) {
+    shaders.bubble.bubbles[id].alive = false;
+}
+
 static void frame(GLFWwindow *W) {
     (void)W;
     double now = glfwGetTime();
     double dt = now - lasttime;
     lasttime = now;
 
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     lua_State *L = glfwGetWindowUserPointer(W);
     lua_getglobal(L, "on_update");
     if (!lua_isfunction(L, -1))
-        error(L, "expected `OnUpdate` function in Lua config");
+        error(L, "expected `on_update` function in Lua config");
     lua_pushnumber(L, dt);
-    lua_call(L, 1, 0);
+    call_lua_callback(L, 1);
 
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
     bgOnDraw(&shaders.bg, dt);
     bubbleOnDraw(&shaders.bubble, dt);
     poppingOnDraw(&shaders.pop, dt);
@@ -132,22 +184,29 @@ static void on_content_rescale(GLFWwindow *W, float xs, float ys) {
 }
 
 static void on_framebuffer_resize(GLFWwindow *W, int width, int height) {
-    (void)W;
     glViewport(0, 0, width, height);
     window_width = width;
     window_height = height;
-    frame(W);
+    lua_State *L = glfwGetWindowUserPointer(W);
+    (void)L;
+    lua_pushinteger(L, window_width);
+    lua_setglobal(L, "window_width");
+    lua_pushinteger(L, window_height);
+    lua_setglobal(L, "window_height");
+
+    if (started) frame(W);
 }
 
 static void key_callback(GLFWwindow* W, int key, int scancode, int action, int mods) {
 	(void)scancode; (void)mods;
+    //lua_State *L = glfwGetWindowUserPointer(W);
     if (action == GLFW_RELEASE) {
         switch (key) {
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(W, GL_TRUE);
             break;
 
-        case GLFW_KEY_F11: {
+        case GLFW_KEY_F11:
             if (glfwGetWindowMonitor(W)) {
                 // Fullscreen -> Windowed
                 glfwSetWindowMonitor(W, NULL, windowed_xpos, windowed_ypos, SCREEN_WIDTH, SCREEN_HEIGHT, GLFW_DONT_CARE);
@@ -159,9 +218,7 @@ static void key_callback(GLFWwindow* W, int key, int scancode, int action, int m
                 glfwGetWindowPos(W, &windowed_xpos, &windowed_ypos);
                 glfwSetWindowMonitor(W, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
             }
-
             break;
-        }
         }
     }
     else if (action == GLFW_PRESS) {
@@ -174,31 +231,38 @@ static void key_callback(GLFWwindow* W, int key, int scancode, int action, int m
     }
 }
 
-static double l_get_number_field(lua_State *L, const char *key) {
-    lua_pushstring(L, key);
-    lua_gettable(L, -2);
-    if (!lua_isnumber(L, -1))
-        luaL_error(L, "expected key `%s` in table", key);
-    double num = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-    return num;
-}
-static int l_create_bubble(lua_State *L) {
-    if (!lua_istable(L, -1))
-        error(L, "expected valid `color` table argument");
-
-    double red = l_get_number_field(L, "r");
-    double green = l_get_number_field(L, "g");
-    double blue = l_get_number_field(L, "b");
-    printf("red=%f, green=%f, blue=%f\n", red, green, blue);
-    return 0;
-}
-
 static void on_window_focus(GLFWwindow *W, int focused) {
     lua_State *L = glfwGetWindowUserPointer(W);
     if (focused) {
         reload_config(L, W);
     }
+}
+
+int create_bubble(Color color, Vector2 position, Vector2 velocity, int radius)
+{
+    Bubble bubble = {
+        .color = color,
+        .pos = position,
+        .v = velocity,
+        .rad = radius,
+        .trans_color = color,
+        .trans_starttime = TRANS_STARTTIME_SENTINAL,
+        .alive = true,
+    };
+    int slot = create_open_bubble_slot(&shaders.bubble);
+    assert(slot >= 0 && "unable to create bubble");
+    shaders.bubble.bubbles[slot] = bubble;
+    return slot;
+}
+Bubble *get_bubble(size_t id)
+{
+    if (id < shaders.bubble.num_bubbles+1) {
+        Bubble *bubble = &shaders.bubble.bubbles[id];
+        if (bubble->alive) {
+            return bubble;
+        }
+    }
+    return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -207,8 +271,7 @@ int main(int argc, char **argv) {
 
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
-    lua_pushcfunction(L, l_create_bubble);
-    lua_setglobal(L, "create_bubble");
+    lua_pushcfunction(L, error_traceback);
 
     srand(time(NULL));
 	glfwSetErrorCallback(error_callback);
@@ -231,8 +294,11 @@ int main(int argc, char **argv) {
     glfwSetFramebufferSizeCallback(W, &on_framebuffer_resize);
     glfwSetWindowUserPointer(W, L);
 
-    glfwGetFramebufferSize(W, &window_width, &window_height);
-    glViewport(0, 0, window_width, window_height);
+    {
+        int w, h;
+        glfwGetFramebufferSize(W, &w, &h);
+        on_framebuffer_resize(W, w, h);
+    }
 
     float xscale, yscale;
     glfwGetWindowContentScale(W, &xscale, &yscale);
@@ -267,15 +333,16 @@ int main(int argc, char **argv) {
     poppingInit(&shaders.pop);
     bgInit(&shaders.bg, shaders.bubble.bubbles, &shaders.bubble.num_bubbles);
 
-    glfwSetMouseButtonCallback(W, on_mouse_down);
+    glfwSetMouseButtonCallback(W, on_mouse_button);
     glfwSetCursorPosCallback(W, on_mouse_move);
     glfwSetWindowFocusCallback(W, on_window_focus);
 
-    if (luaL_dofile(L, "init.lua")) {
-        error(L, "error loading init.lua: %s", lua_tostring(L, -1));
+    if (luaL_dofile(L, "lua/init.lua")) {
+        error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
     reload_config(L, W);
 
+    started = true;
     lasttime = glfwGetTime();
 	while (!glfwWindowShouldClose(W)) {
         frame(W);

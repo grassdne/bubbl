@@ -42,7 +42,7 @@ void onRemoveBubble(Bubble*);
  *    ...
  * }
 */
-#define FOR_ACTIVE_BUBBLES($) for (int $ = GROWING_INDEX+1; $ <= sh->num_bubbles; ++$) if (sh->bubbles[$].alive)
+#define FOR_ACTIVE_BUBBLES($) for (size_t $ = GROWING_INDEX+1; $ <= sh->num_bubbles; ++$) if (sh->bubbles[$].alive)
 
 // Explicitly numbered because need to match vertex shader
 typedef enum {
@@ -97,8 +97,9 @@ static void new_bubble(Bubble *bubble, Vector2 pos, bool togrow) {
     bubble->trans_starttime = TRANS_STARTTIME_SENTINAL;
 }
 
-int create_open_bubble_slot(BubbleShader *sh) {
-    for (int i = 1; i < sh->num_bubbles; ++i) {
+size_t create_open_bubble_slot(BubbleShader *sh)
+{
+    for (size_t i = 1; i < sh->num_bubbles; ++i) {
         if (!sh->bubbles[i].alive) {
             return i;
         }
@@ -294,11 +295,20 @@ void bubbleInit(BubbleShader *sh) {
 
     shaderBuildProgram(sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
 
+    (void)make_starting_bubbles;
+#if 0
     make_starting_bubbles(sh);
+#endif
     init_bubble_vbo(sh);
 }
 
 void bubbleOnDraw(BubbleShader *sh, double dt) {
+    (void)dt;
+    (void)update_position;
+    (void)update_trans;
+    (void)check_collisions;
+    const double time = glfwGetTime();
+#if 0
     if (GROWING().alive) {
         GROWING().rad += (GROWING_RAD_DELTA * dt);
         if (GROWING().rad >= MAX_GROWTH) {
@@ -306,7 +316,6 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
             GROWING().alive = false;
         }
     }
-    const double time = glfwGetTime();
 
     // Update state
     FOR_ACTIVE_BUBBLES(i) {
@@ -315,6 +324,7 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
     }
 
     check_collisions(sh);
+#endif
 
     // Bind
 	glUseProgram(sh->program);
