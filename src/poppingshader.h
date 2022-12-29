@@ -33,7 +33,8 @@ typedef struct {
 
 typedef struct { POP_UNIFORMS(UNI_DECL) } PopUniforms;
 
-typedef struct { DERIVES_Shader();
+typedef struct {
+    Shader shader;
     Popping pops[MAX_POPPING];
     int num_popping;
     PopUniforms uniforms;

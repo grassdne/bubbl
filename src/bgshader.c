@@ -35,8 +35,8 @@ Color color_mix(Color a, Color b, float f) {
 
 void bgOnDraw(BgShader *sh, double dt) {
     (void)dt;
-    glUseProgram(sh->program);
-    glBindVertexArray(sh->vao);
+    glUseProgram(sh->shader.program);
+    glBindVertexArray(sh->shader.vao);
 
     Color colors[MAX_ELEMS];
     Vector2 positions[MAX_ELEMS];

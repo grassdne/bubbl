@@ -327,8 +327,8 @@ void bubbleOnDraw(BubbleShader *sh, double dt) {
 #endif
 
     // Bind
-	glUseProgram(sh->program);
-    glBindVertexArray(sh->vao);
+	glUseProgram(sh->shader.program);
+    glBindVertexArray(sh->shader.vao);
     glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
     
     // Update buffer

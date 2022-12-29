@@ -6,11 +6,9 @@
 //GLuint loadShader(GLenum shaderType, const char* source, const char *from);
 
 #define UNI_DECL($n) GLint $n;
-#define UNI_GETS($name) sh->uniforms.$name = glGetUniformLocation(sh->program, #$name);
+#define UNI_GETS($name) sh->uniforms.$name = glGetUniformLocation(sh->shader.program, #$name);
 
-#define DERIVES_Shader() GLuint program; GLuint vao
-
-typedef struct { DERIVES_Shader(); } Shader;
+typedef struct { GLuint program; GLuint vao; } Shader;
 
 typedef struct {
     const char* vert;

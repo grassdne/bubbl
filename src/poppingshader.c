@@ -83,7 +83,7 @@ void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
     }
     pop->numparticles = count;
 
-    glBindVertexArray(sh->vao);
+    glBindVertexArray(sh->shader.vao);
 
     glGenBuffers(1, &sh->pops[n].vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, sh->pops[n].vbo);
@@ -106,8 +106,8 @@ void kill_popping(PoppingShader *sh, int i) {
 
 void poppingOnDraw(PoppingShader *sh, double dt) {
     // Bind
-    glUseProgram(sh->program);
-    glBindVertexArray(sh->vao);
+    glUseProgram(sh->shader.program);
+    glBindVertexArray(sh->shader.vao);
 
     double time = glfwGetTime();
 

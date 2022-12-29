@@ -11,7 +11,7 @@
 
 #define BUBBLE_CAPACITY 128
 
-#define BUBBLE_UNIFORMS($) $(time) $(resolution)
+#define BUBBLE_UNIFORMS(_) _(time) _(resolution)
 
 typedef struct  {
     Vector2 pos;
@@ -25,7 +25,8 @@ typedef struct  {
     double last_transformation;
 } Bubble;
 
-typedef struct { DERIVES_Shader(); 
+typedef struct {
+    Shader shader;
     struct {BUBBLE_UNIFORMS(UNI_DECL)} uniforms;
     Bubble bubbles[BUBBLE_CAPACITY];
     size_t num_bubbles;
