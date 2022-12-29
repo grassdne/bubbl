@@ -95,6 +95,8 @@ do
     end
 end
 
+KEY_SPACE = 32
+
 math.randomseed(os.time())
 
 dbg = function(...) print(...) return ... end

@@ -4,11 +4,11 @@ local C = ffi.C
 title = "Elastic Bubbles"
 
 TWEAK = {
-    STARTING_BUBBLE_COUNT = 8,
+    STARTING_BUBBLE_COUNT = 10,
     BUBBLE_SPEED_BASE = 150,
     BUBBLE_SPEED_VARY = 200,
     BUBBLE_RAD_BASE = 35,
-    BUBBLE_RAD_VARY = 20,
+    BUBBLE_RAD_VARY = 25,
     MAX_GROWTH = 200,
     GROWTH_TIME = 2,
 }
@@ -26,10 +26,6 @@ end
 vary = function (base, vary)
     return base + vary * math.random()
 end
-
-on_start = function()
-end
-
 
 local random_velocity = function()
     return Vector2(randomsign() * vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY),
@@ -88,16 +84,18 @@ on_update = function(dt)
     -- Move bubbles
     for _, bubble in pairs(bubbles) do
         assert(bubble ~= growing_bubble)
-        local next = bubble.C.pos + bubble.C.v:scale(dt)
-        local max_y = window_height - bubble.C.rad
-        local max_x = window_width - bubble.C.rad
-        if next.x < bubble.C.rad or next.x > max_x then
-            bubble.C.v.x = -bubble.C.v.x
+        if movement_enabled then
+            local next = bubble.C.pos + bubble.C.v:scale(dt)
+            local max_y = window_height - bubble.C.rad
+            local max_x = window_width - bubble.C.rad
+            if next.x < bubble.C.rad or next.x > max_x then
+                bubble.C.v.x = -bubble.C.v.x
+            end
+            if next.y < bubble.C.rad or next.y > max_y then
+                bubble.C.v.y = -bubble.C.v.y
+            end
+            bubble.C.pos = next
         end
-        if next.y < bubble.C.rad or next.y > max_y then
-            bubble.C.v.y = -bubble.C.v.y
-        end
-        bubble.C.pos = next
         ensure_bubble_in_bounds(bubble)
     end
     -- Handle collisions
@@ -139,11 +137,18 @@ on_mouse_move = function(x, y)
     end
 end
 
+on_key = function(key, down)
+    if down and key == KEY_SPACE then
+        movement_enabled = not movement_enabled
+    end
+end
+
 if not initialized then
     initialized = true
     -- Do stuff here!
     bubbles = {}
     growing_bubble = nil
+    movement_enabled = true
 
     for i=1, TWEAK.STARTING_BUBBLE_COUNT do
         add_bubble(Bubble.new(Color.random(), random_position(), random_velocity(), random_radius()))
