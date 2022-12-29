@@ -199,7 +199,7 @@ static void on_framebuffer_resize(GLFWwindow *W, int width, int height) {
 
 static void key_callback(GLFWwindow* W, int key, int scancode, int action, int mods) {
 	(void)scancode; (void)mods;
-    //lua_State *L = glfwGetWindowUserPointer(W);
+    lua_State *L = glfwGetWindowUserPointer(W);
     if (action == GLFW_RELEASE) {
         switch (key) {
         case GLFW_KEY_ESCAPE:
@@ -227,8 +227,11 @@ static void key_callback(GLFWwindow* W, int key, int scancode, int action, int m
             shaders.bubble.paused_movement = !shaders.bubble.paused_movement;
             break;
         }
-        
     }
+    lua_getglobal(L, "on_key");
+    lua_pushinteger(L, key);
+    lua_pushboolean(L, action == GLFW_PRESS);
+    call_lua_callback(L, 2);
 }
 
 static void on_window_focus(GLFWwindow *W, int focused) {
