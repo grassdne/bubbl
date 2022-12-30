@@ -42,6 +42,7 @@ void free(void *p);
 void bubbleshader_draw(BubbleShader *s);
 void pop_draw(PoppingShader *s, double dt);
 void bgshader_draw(BgShader *sh, const size_t indices[MAX_ELEMS], size_t num_elems);
+double glfwGetTime(void);
 ]]
 
 BGSHADER_MAX_ELEMS = 10
@@ -111,6 +112,7 @@ do
             local bubble = setmetatable({}, Bubble)
             bubble.id = ffi.C.create_bubble(shader, color, pos, velocity, radius)
             bubble.C = ffi.C.get_bubble(shader, bubble.id)
+            bubble.in_transition = false
             return bubble
         end;
         draw = function (shader)
@@ -284,3 +286,11 @@ KEY_MENU = 348
 math.randomseed(os.time())
 
 dbg = function(...) print(...) return ... end
+
+lock_global_table = function()
+    setmetatable(_G, {
+        __newindex = function(t, k, v)
+            error("attempt to set undeclared global \""..k.."\"", 2)
+        end;
+    })
+end

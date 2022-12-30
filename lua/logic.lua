@@ -12,9 +12,11 @@ TWEAK = {
     MAX_GROWTH = 200,
     MIN_GROWTH_RATE = 50,
     MAX_GROWTH_RATE = 225,
+    TRANS_IMMUNE_PERIOD = 1,
+    TRANS_TIME = 1,
 }
 
-local growing_bubble
+local cursor_bubble
 
 local add_bubble = function (bubble)
     bubbles[bubble.id] = bubble;
@@ -51,16 +53,13 @@ local is_collision = function (a, b)
 end
 
 local swap_velocities = function (a, b)
-    local av = Vector2(a.C.v)
-    local bv = Vector2(b.C.v)
-    a.C.v = bv
-    b.C.v = av
+    a.C.v, b.C.v = Vector2(b.C.v), Vector2(a.C.v)
 end
 
 local separate_bubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
     local dir_b_to_a = Vector2.normalize(a.C.pos - b.C.pos)
-    local mindist = b.C.rad + a.C.rad + 1
+    local mindist = b.C.rad + a.C.rad
     a.C.pos = b.C.pos + dir_b_to_a * mindist
 end
 
@@ -73,7 +72,7 @@ end
 
 local collect_all_bubbles = function ()
     local all_bubbles = {}
-    if growing_bubble then table.insert(all_bubbles, growing_bubble) end
+    if cursor_bubble then table.insert(all_bubbles, cursor_bubble) end
     for _, b in pairs(bubbles) do table.insert(all_bubbles, b) end
     return all_bubbles
 end
@@ -88,32 +87,53 @@ local get_bubble_ids_for_bgshader = function ()
     return ids
 end
 
+local start_transition = function (bubble, other)
+    bubble.in_transition = true
+    bubble.C.trans_color = other.C.color;
+    bubble.C.trans_starttime = C.glfwGetTime();
+    bubble.C.trans_angle = (other.C.pos - bubble.C.pos):normalize();
+end
+local stop_transition = function (bubble)
+    bubble.in_transition = false
+    bubble.C.color = bubble.C.trans_color;
+    bubble.C.last_transformation = C.glfwGetTime();
+end
+
+local move_bubble = function (bubble, dt)
+    local next = bubble.C.pos + bubble.C.v:scale(dt)
+    local max_y = window_height - bubble.C.rad
+    local max_x = window_width - bubble.C.rad
+    if next.x < bubble.C.rad or next.x > max_x then
+        bubble.C.v.x = -bubble.C.v.x
+    end
+    if next.y < bubble.C.rad or next.y > max_y then
+        bubble.C.v.y = -bubble.C.v.y
+    end
+    bubble.C.pos = next
+end
+
 on_update = function(dt)
+    local time = C.glfwGetTime()
+
     -- Grow bubble under mouse
-    if growing_bubble then
-        local percent_complete = growing_bubble.C.rad / TWEAK.MAX_GROWTH
+    if cursor_bubble then
+        local percent_complete = cursor_bubble.C.rad / TWEAK.MAX_GROWTH
         local growth_rate = percent_complete * (TWEAK.MAX_GROWTH_RATE - TWEAK.MIN_GROWTH_RATE) + TWEAK.MIN_GROWTH_RATE
-        growing_bubble:delta_radius(growth_rate * dt)
-        ensure_bubble_in_bounds(growing_bubble)
-        if growing_bubble.C.rad > TWEAK.MAX_GROWTH then
-            pop_bubble(growing_bubble)
-            growing_bubble = nil
+        cursor_bubble:delta_radius(growth_rate * dt)
+        ensure_bubble_in_bounds(cursor_bubble)
+        if cursor_bubble.C.rad > TWEAK.MAX_GROWTH then
+            pop_bubble(cursor_bubble)
+            cursor_bubble = nil
         end
     end
     -- Move bubbles
     for _, bubble in pairs(bubbles) do
-        assert(bubble ~= growing_bubble)
-        if movement_enabled then
-            local next = bubble.C.pos + bubble.C.v:scale(dt)
-            local max_y = window_height - bubble.C.rad
-            local max_x = window_width - bubble.C.rad
-            if next.x < bubble.C.rad or next.x > max_x then
-                bubble.C.v.x = -bubble.C.v.x
-            end
-            if next.y < bubble.C.rad or next.y > max_y then
-                bubble.C.v.y = -bubble.C.v.y
-            end
-            bubble.C.pos = next
+        assert(bubble ~= cursor_bubble)
+        if movement_enabled and not bubble.in_transition then
+            move_bubble(bubble, dt)
+        end
+        if bubble.in_transition and time - bubble.C.trans_starttime > TWEAK.TRANS_TIME then
+            stop_transition(bubble)
         end
         ensure_bubble_in_bounds(bubble)
     end
@@ -123,12 +143,20 @@ on_update = function(dt)
             if is_collision(a, b) then
                 swap_velocities(a, b)
                 separate_bubbles(a, b)
+
+                if not a.in_transition and not b.in_transition
+                    and time - a.C.last_transformation > TWEAK.TRANS_IMMUNE_PERIOD
+                    and time - b.C.last_transformation > TWEAK.TRANS_IMMUNE_PERIOD
+                then
+                    start_transition(a, b);
+                    start_transition(b, a);
+                end
             end
         end
-        if growing_bubble and is_collision(a, growing_bubble) then
+        if cursor_bubble and is_collision(a, cursor_bubble) then
             -- Should colliding bubbles bounce backwards?
             --a.C.v = -a.C.v
-            separate_bubbles(a, growing_bubble)
+            separate_bubbles(a, cursor_bubble)
         end
     end
 
@@ -147,25 +175,25 @@ local bubble_at_point = function (pos)
 end
 
 on_mouse_down = function(x, y)
-    if growing_bubble then return end
+    if cursor_bubble then return end
     local bubble = bubble_at_point(Vector2(x, y))
     if bubble then
         pop_bubble(bubble)
     else
-        growing_bubble = shaders.bubble:create_bubble(Color.random(), Vector2(x, y), random_velocity(), random_radius())
+        cursor_bubble = shaders.bubble:create_bubble(Color.random(), Vector2(x, y), random_velocity(), random_radius())
     end
 end
 
 on_mouse_up = function(x, y)
-    if growing_bubble then
-        add_bubble(growing_bubble)
-        growing_bubble = nil
+    if cursor_bubble then
+        add_bubble(cursor_bubble)
+        cursor_bubble = nil
     end
 end
 
 on_mouse_move = function(x, y)
-    if growing_bubble then
-        growing_bubble.C.pos = Vector2(x, y)
+    if cursor_bubble then
+        cursor_bubble.C.pos = Vector2(x, y)
     end
 end
 
@@ -183,9 +211,11 @@ if not initialized then
     initialized = true
     -- Do stuff here!
     bubbles = {}
-    growing_bubble = nil
     movement_enabled = true
     shaders = {}
+    -- Any more globals is an error!
+    lock_global_table()
+
     shaders.bubble = create_bubble_shader()
     shaders.pop = create_pop_shader()
     shaders.bg = create_bg_shader(shaders.bubble)
