@@ -34,12 +34,8 @@ typedef struct {
     bool paused_movement;
 } BubbleShader;
 
-void bubbleOnDraw(BubbleShader *sh, double dt);
 void bubbleInit(BubbleShader *sh);
 void bubbleCreate(BubbleShader *sh, Vector2 pos);
-void bubbleOnMouseDown(BubbleShader *sh, Vector2 mouse);
-void bubbleOnMouseUp(BubbleShader *sh, Vector2 mouse);
-void bubbleOnMouseMove(BubbleShader *sh, Vector2 mouse);
 size_t create_open_bubble_slot(BubbleShader *sh);
 int bubble_at_point(BubbleShader *sh, Vector2 mouse);
 

@@ -30,7 +30,6 @@ typedef struct {
     PopParticle *particles;
 } Popping;
 
-
 typedef struct { POP_UNIFORMS(UNI_DECL) } PopUniforms;
 
 typedef struct {
@@ -41,7 +40,5 @@ typedef struct {
 } PoppingShader;
 
 void poppingInit(PoppingShader *sh);
-void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size);
-void poppingOnDraw(PoppingShader *sh, double dt);
 
 #endif

@@ -16,6 +16,5 @@ typedef struct {
 } BgShader;
 
 void bgInit(BgShader* restrict sh, Bubble *bubbles, size_t *numbbls);
-void bgOnDraw(BgShader *sh, double dt);
 
 #endif

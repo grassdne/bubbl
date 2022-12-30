@@ -7,10 +7,11 @@ TWEAK = {
     STARTING_BUBBLE_COUNT = 10,
     BUBBLE_SPEED_BASE = 150,
     BUBBLE_SPEED_VARY = 200,
-    BUBBLE_RAD_BASE = 35,
+    BUBBLE_RAD_BASE = 30,
     BUBBLE_RAD_VARY = 25,
     MAX_GROWTH = 200,
-    GROWTH_TIME = 2,
+    MIN_GROWTH_RATE = 50,
+    MAX_GROWTH_RATE = 225,
 }
 
 local growing_bubble
@@ -39,8 +40,8 @@ end
 local random_position = function() return Vector2(math.random()*window_width, math.random()*window_height) end
 
 local pop_bubble = function(bubble)
-    C.create_pop(bubble.C.pos, bubble.C.color, bubble.C.rad)
-    C.destroy_bubble(bubble.id)
+    shaders.pop:create_pop(bubble.C.pos, bubble.C.color, bubble.C.rad)
+    shaders.bubble:destroy_bubble(bubble.id)
     bubbles[bubble.id] = nil
 end
 
@@ -65,16 +66,34 @@ end
 
 minmax = function(x, min, max) return math.min(max, math.max(min, x)) end
 
-ensure_bubble_in_bounds = function (bubble)
+local ensure_bubble_in_bounds = function (bubble)
     bubble.C.pos.x = minmax(bubble.C.pos.x, bubble.C.rad, window_width   - bubble.C.rad)
     bubble.C.pos.y = minmax(bubble.C.pos.y, bubble.C.rad, window_height  - bubble.C.rad)
+end
+
+local collect_all_bubbles = function ()
+    local all_bubbles = {}
+    if growing_bubble then table.insert(all_bubbles, growing_bubble) end
+    for _, b in pairs(bubbles) do table.insert(all_bubbles, b) end
+    return all_bubbles
+end
+
+local get_bubble_ids_for_bgshader = function ()
+    local all_bubbles = collect_all_bubbles()
+    table.sort(all_bubbles, function(a, b) return a.C.rad > b.C.rad end)
+    local ids = {}
+    for i=1, math.min(#all_bubbles, BGSHADER_MAX_ELEMS) do 
+        ids[i] = all_bubbles[i].id
+    end
+    return ids
 end
 
 on_update = function(dt)
     -- Grow bubble under mouse
     if growing_bubble then
-        local delta_radius = TWEAK.MAX_GROWTH / TWEAK.GROWTH_TIME
-        growing_bubble:delta_radius(delta_radius * dt)
+        local percent_complete = growing_bubble.C.rad / TWEAK.MAX_GROWTH
+        local growth_rate = percent_complete * (TWEAK.MAX_GROWTH_RATE - TWEAK.MIN_GROWTH_RATE) + TWEAK.MIN_GROWTH_RATE
+        growing_bubble:delta_radius(growth_rate * dt)
         ensure_bubble_in_bounds(growing_bubble)
         if growing_bubble.C.rad > TWEAK.MAX_GROWTH then
             pop_bubble(growing_bubble)
@@ -112,15 +131,28 @@ on_update = function(dt)
             separate_bubbles(a, growing_bubble)
         end
     end
+
+    -- Draw bubbles!
+    shaders.bg:draw(get_bubble_ids_for_bgshader())
+    shaders.pop:draw(dt)
+    shaders.bubble:draw()
+end
+
+local bubble_at_point = function (pos)
+    for id, b in pairs(bubbles) do
+        if pos:dist(b.C.pos) < b.C.rad then
+            return b
+        end
+    end
 end
 
 on_mouse_down = function(x, y)
     if growing_bubble then return end
-    local bubble = C.get_bubble_at_point(Vector2(x, y))
-    if bubble >= 0 then
-        pop_bubble(bubbles[bubble])
+    local bubble = bubble_at_point(Vector2(x, y))
+    if bubble then
+        pop_bubble(bubble)
     else
-        growing_bubble = Bubble.new(Color.random(), Vector2(x, y), random_velocity(), random_radius())
+        growing_bubble = shaders.bubble:create_bubble(Color.random(), Vector2(x, y), random_velocity(), random_radius())
     end
 end
 
@@ -140,6 +172,10 @@ end
 on_key = function(key, down)
     if down and key == KEY_SPACE then
         movement_enabled = not movement_enabled
+    elseif down and key == KEY_BACKSPACE then
+        for _,b in pairs(bubbles) do
+            pop_bubble(b)
+        end
     end
 end
 
@@ -149,8 +185,12 @@ if not initialized then
     bubbles = {}
     growing_bubble = nil
     movement_enabled = true
+    shaders = {}
+    shaders.bubble = create_bubble_shader()
+    shaders.pop = create_pop_shader()
+    shaders.bg = create_bg_shader(shaders.bubble)
 
     for i=1, TWEAK.STARTING_BUBBLE_COUNT do
-        add_bubble(Bubble.new(Color.random(), random_position(), random_velocity(), random_radius()))
+        add_bubble(shaders.bubble:create_bubble(Color.random(), random_position(), random_velocity(), random_radius()))
     end
 end

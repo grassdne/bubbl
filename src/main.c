@@ -25,15 +25,6 @@
 bool verbose;
 #define VPRINTF(...) if (verbose) printf(__VA_ARGS__)
 
-typedef struct {
-    BubbleShader bubble;
-    PoppingShader pop;
-    BgShader bg;
-} Shaders;
-
-// Zero initialize everything!
-static Shaders shaders = {0};
-
 static double lasttime;
 
 static bool started = false;
@@ -91,7 +82,6 @@ static void on_mouse_button(GLFWwindow* W, int button, int action, int mods) {
             } else {
                 fprintf(stderr, "WARNING: missing `on_mouse_down` Lua global function\n");
             }
-            //bubbleOnMouseDown(&shaders.bubble, mouse);
         }
         else if (action == GLFW_RELEASE) {
             lua_getglobal(L, "on_mouse_up");
@@ -102,7 +92,6 @@ static void on_mouse_button(GLFWwindow* W, int button, int action, int mods) {
             } else {
                 fprintf(stderr, "WARNING: missing `on_mouse_up` Lua global function\n");
             }
-            //bubbleOnMouseUp(&shaders.bubble, mouse);
         }
     }
 }
@@ -118,13 +107,14 @@ static void on_mouse_move(GLFWwindow* W, double xpos, double ypos) {
     } else {
         fprintf(stderr, "WARNING: missing `on_mouse_move` Lua global function\n");
     }
-    //bubbleOnMouseMove(&shaders.bubble, window_to_opengl_pos(xpos, ypos));
 }
 
 #define CONFIG_FILE_NAME "lua/config.lua"
-void reload_config(lua_State *L, GLFWwindow *W) {
-    if (luaL_dofile(L, "lua/logic.lua") || luaL_dofile(L, "lua/config.lua"))
+void reload_config(lua_State *L, GLFWwindow *W, bool err) {
+    if (luaL_dofile(L, "lua/logic.lua") || luaL_dofile(L, "lua/config.lua")) {
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
+        if (err) exit(1);
+    }
 
     lua_getglobal(L, "title");
     if (!lua_isstring(L, -1)) {
@@ -133,21 +123,22 @@ void reload_config(lua_State *L, GLFWwindow *W) {
         glfwSetWindowTitle(W, lua_tostring(L, -1));
     }
 }
-// Communicate bubble shader -> popping shader
-void onRemoveBubble(Bubble *bubble) {
-    poppingPop(&shaders.pop, bubble->pos, bubble->color, bubble->rad);
-}
 
-void create_pop(Vector2 pos, Color color, float rad) {
-    poppingPop(&shaders.pop, pos, color, rad);
+BubbleShader* create_bubble_shader(void) {
+    BubbleShader *sh = malloc(sizeof(BubbleShader));
+    bubbleInit(sh);
+    return sh;
 }
-
-int get_bubble_at_point(Vector2 pos) {
-    return bubble_at_point(&shaders.bubble, pos);
+PoppingShader* create_pop_shader(void) {
+    PoppingShader *sh = malloc(sizeof(PoppingShader));
+    poppingInit(sh);
+    return sh;
 }
-
-void destroy_bubble(size_t id) {
-    shaders.bubble.bubbles[id].alive = false;
+BgShader* create_bg_shader(BubbleShader *bubble_shader)
+{
+    BgShader *sh = malloc(sizeof(BgShader));
+    bgInit(sh, bubble_shader->bubbles, &bubble_shader->num_bubbles);
+    return sh;
 }
 
 static void frame(GLFWwindow *W) {
@@ -166,12 +157,7 @@ static void frame(GLFWwindow *W) {
     lua_pushnumber(L, dt);
     call_lua_callback(L, 1);
 
-    bgOnDraw(&shaders.bg, dt);
-    bubbleOnDraw(&shaders.bubble, dt);
-    poppingOnDraw(&shaders.pop, dt);
-
     glfwSwapBuffers(W);
-    //printf("FPS: %f\n", 1.0 / (glfwGetTime() - now));
 }
 
 static void on_content_rescale(GLFWwindow *W, float xs, float ys) {
@@ -221,13 +207,6 @@ static void key_callback(GLFWwindow* W, int key, int scancode, int action, int m
             break;
         }
     }
-    else if (action == GLFW_PRESS) {
-        switch (key) {
-        case GLFW_KEY_SPACE:
-            shaders.bubble.paused_movement = !shaders.bubble.paused_movement;
-            break;
-        }
-    }
     lua_getglobal(L, "on_key");
     lua_pushinteger(L, key);
     lua_pushboolean(L, action == GLFW_PRESS);
@@ -237,35 +216,8 @@ static void key_callback(GLFWwindow* W, int key, int scancode, int action, int m
 static void on_window_focus(GLFWwindow *W, int focused) {
     lua_State *L = glfwGetWindowUserPointer(W);
     if (focused) {
-        reload_config(L, W);
+        reload_config(L, W, false);
     }
-}
-
-int create_bubble(Color color, Vector2 position, Vector2 velocity, int radius)
-{
-    Bubble bubble = {
-        .color = color,
-        .pos = position,
-        .v = velocity,
-        .rad = radius,
-        .trans_color = color,
-        .trans_starttime = TRANS_STARTTIME_SENTINAL,
-        .alive = true,
-    };
-    int slot = create_open_bubble_slot(&shaders.bubble);
-    assert(slot >= 0 && "unable to create bubble");
-    shaders.bubble.bubbles[slot] = bubble;
-    return slot;
-}
-Bubble *get_bubble(size_t id)
-{
-    if (id < shaders.bubble.num_bubbles+1) {
-        Bubble *bubble = &shaders.bubble.bubbles[id];
-        if (bubble->alive) {
-            return bubble;
-        }
-    }
-    return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -318,23 +270,12 @@ int main(int argc, char **argv) {
     //    exit(1);
 	//}
 
-    VPRINTF("OpenGL Version: %s\n", glGetString(GL_VERSION));
-    VPRINTF("MEMORY USAGE\n");
-    VPRINTF("Bubbles:    %lu b\n", (unsigned long)sizeof(shaders.bubble));
-    VPRINTF("Pop effect: %lu b\n", (unsigned long)sizeof(shaders.pop));
-    VPRINTF("Background: %lu b\n", (unsigned long)sizeof(shaders.bg));
-    VPRINTF("TOTAL: %lu b\n", (unsigned long)sizeof(shaders));
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
     //glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LESS);
     //glEnable(GL_CULL_FACE);
-    
-    bubbleInit(&shaders.bubble);
-    poppingInit(&shaders.pop);
-    bgInit(&shaders.bg, shaders.bubble.bubbles, &shaders.bubble.num_bubbles);
 
     glfwSetMouseButtonCallback(W, on_mouse_button);
     glfwSetCursorPosCallback(W, on_mouse_move);
@@ -343,7 +284,7 @@ int main(int argc, char **argv) {
     if (luaL_dofile(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
-    reload_config(L, W);
+    reload_config(L, W, true);
 
     started = true;
     lasttime = glfwGetTime();

@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define MAX_ELEMS 10
 
@@ -18,13 +19,6 @@ void bgInit(BgShader* restrict sh, Bubble *bubbles, size_t *numbbls) {
    shaderBuildProgram(sh, BG_SHADER_DATAS, BG_UNIFORMS); 
 }
 
-static Bubble *bubbles;
-static int compare(const void *a, const void *b) {
-    int i = *(int*)a;
-    int j = *(int*)b;
-    return bubbles[i].rad < bubbles[j].rad;
-}
-
 Color color_mix(Color a, Color b, float f) {
     Color c;
     c.r = a.r * (1 - f) + b.r * f;
@@ -33,31 +27,18 @@ Color color_mix(Color a, Color b, float f) {
     return c;
 }
 
-void bgOnDraw(BgShader *sh, double dt) {
-    (void)dt;
+void bgshader_draw(BgShader *sh, size_t indices[MAX_ELEMS], size_t num_elems)
+{
+    assert(num_elems <= MAX_ELEMS && "bgshader can only draw for up to MAX_ELEMS");
     glUseProgram(sh->shader.program);
     glBindVertexArray(sh->shader.vao);
 
     Color colors[MAX_ELEMS];
     Vector2 positions[MAX_ELEMS];
 
-    int indices[BUBBLE_CAPACITY];
-    int len;
-
-    int i, j;
-    for (i = 0, j = 0; j < BUBBLE_CAPACITY; ++j) {
-        if (sh->bubbles[j].alive) {
-            indices[i] = j;
-            ++i;
-        }
-    }
-    len = i;
-    bubbles = sh->bubbles;
-    qsort((void*)indices, (size_t)len, sizeof(int), &compare);
-
     double time = glfwGetTime();
 
-    for (int i = 0; i < len && i < MAX_ELEMS; ++i) {
+    for (size_t i = 0; i < num_elems; ++i) {
         const Bubble *b = &sh->bubbles[indices[i]];
         if (b->trans_starttime == TRANS_STARTTIME_SENTINAL) colors[i] = b->color;
         else colors[i] = color_mix(b->color, b->trans_color, (time-b->trans_starttime)/TRANS_TIME);
@@ -65,11 +46,11 @@ void bgOnDraw(BgShader *sh, double dt) {
     }
 
 
-    if (len) {
+    if (num_elems) {
         glUniform2f(sh->uniforms.resolution, window_width, window_height);
-        glUniform1i(sh->uniforms.num_elements, len);
-        glUniform3fv(sh->uniforms.colors, len, (float*)colors);
-        glUniform2fv(sh->uniforms.positions, len, (float*)positions);
+        glUniform1i(sh->uniforms.num_elements, num_elems);
+        glUniform3fv(sh->uniforms.colors, num_elems, (float*)colors);
+        glUniform2fv(sh->uniforms.positions, num_elems, (float*)positions);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }

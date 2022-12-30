@@ -32,7 +32,8 @@ void poppingInit(PoppingShader *sh) {
     assert(get_bound_array_buffer() == 0);
 }
 
-void poppingPop(PoppingShader *sh, Vector2 pos, Color color, float size)
+
+void create_pop(PoppingShader *sh, Vector2 pos, Color color, float size)
 {
     int n = -1;
     // Recycle dead pops
@@ -104,7 +105,7 @@ void kill_popping(PoppingShader *sh, int i) {
     glDeleteBuffers(1, &sh->pops[i].vbo);
 }
 
-void poppingOnDraw(PoppingShader *sh, double dt) {
+void pop_draw(PoppingShader *sh, double dt) {
     // Bind
     glUseProgram(sh->shader.program);
     glBindVertexArray(sh->shader.vao);
