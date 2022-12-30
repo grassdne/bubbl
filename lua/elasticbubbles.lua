@@ -1,20 +1,6 @@
 local ffi = require "ffi"
-local C = ffi.C
 
 title = "Elastic Bubbles"
-
-TWEAK = {
-    STARTING_BUBBLE_COUNT = 10,
-    BUBBLE_SPEED_BASE = 150,
-    BUBBLE_SPEED_VARY = 200,
-    BUBBLE_RAD_BASE = 30,
-    BUBBLE_RAD_VARY = 25,
-    MAX_GROWTH = 200,
-    MIN_GROWTH_RATE = 50,
-    MAX_GROWTH_RATE = 225,
-    TRANS_IMMUNE_PERIOD = 1,
-    TRANS_TIME = 1,
-}
 
 local cursor_bubble
 
@@ -39,12 +25,48 @@ local random_radius = function()
     return TWEAK.BUBBLE_RAD_BASE + math.random() * TWEAK.BUBBLE_RAD_VARY
 end
 
-local random_position = function() return Vector2(math.random()*window_width, math.random()*window_height) end
+local random_position = function()
+    return Vector2(math.random()*window_width, math.random()*window_height)
+end
+
+local Particle = {
+    new = function (Self, velocity, pos, color, radius)
+        local p = setmetatable({}, Self)
+        p.velocity = velocity
+        p.id = shaders.pop:push_particle(ParticleEntity(pos, color, radius, 0, true))
+        return p
+    end;
+}
+
+local create_pop_effect = function (center, color, size)
+    local pop = {}
+    -- Add center bubble
+    table.insert(pop, Particle:new(Vector2(0,0), center, color, TWEAK.POP_PT_RADIUS))
+
+    for i=1, (size - TWEAK.POP_PT_RADIUS) / TWEAK.POP_LAYER_WIDTH do
+        local rad = i * TWEAK.POP_LAYER_WIDTH
+        local num_particles_in_layer = TWEAK.POP_PARTICLE_LAYOUT * i
+        for i = 1, num_particles_in_layer do
+            local theta = 2.0*math.pi * (i / num_particles_in_layer);
+            local dir = Vector2(math.cos(theta), math.sin(theta))
+            local velocity = dir * (TWEAK.POP_EXPAND_MULT * rad / TWEAK.POP_LIFETIME)
+            table.insert(pop, Particle:new(velocity, dir * rad + center, color, TWEAK.POP_PT_RADIUS))
+        end
+    end
+    pop.start_time = ffi.C.glfwGetTime()
+    return pop
+end
 
 local pop_bubble = function(bubble)
-    shaders.pop:create_pop(bubble.C.pos, bubble.C.color, bubble.C.rad)
+    table.insert(pop_effects, create_pop_effect(bubble.C.pos, bubble.C.color, bubble.C.rad))
     shaders.bubble:destroy_bubble(bubble.id)
     bubbles[bubble.id] = nil
+end
+
+local destroy_pop_effect = function (pop)
+    for _,pt in ipairs(pop) do
+        shaders.pop:destroy_particle(pt.id)
+    end
 end
 
 local is_collision = function (a, b)
@@ -59,7 +81,7 @@ end
 local separate_bubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
     local dir_b_to_a = Vector2.normalize(a.C.pos - b.C.pos)
-    local mindist = b.C.rad + a.C.rad
+    local mindist = a.C.rad + b.C.rad
     a.C.pos = b.C.pos + dir_b_to_a * mindist
 end
 
@@ -90,13 +112,13 @@ end
 local start_transition = function (bubble, other)
     bubble.in_transition = true
     bubble.C.trans_color = other.C.color;
-    bubble.C.trans_starttime = C.glfwGetTime();
+    bubble.C.trans_starttime = ffi.C.glfwGetTime();
     bubble.C.trans_angle = (other.C.pos - bubble.C.pos):normalize();
 end
 local stop_transition = function (bubble)
     bubble.in_transition = false
     bubble.C.color = bubble.C.trans_color;
-    bubble.C.last_transformation = C.glfwGetTime();
+    bubble.C.last_transformation = ffi.C.glfwGetTime();
 end
 
 local move_bubble = function (bubble, dt)
@@ -113,7 +135,7 @@ local move_bubble = function (bubble, dt)
 end
 
 on_update = function(dt)
-    local time = C.glfwGetTime()
+    local time = ffi.C.glfwGetTime()
 
     -- Grow bubble under mouse
     if cursor_bubble then
@@ -160,6 +182,25 @@ on_update = function(dt)
         end
     end
 
+    -- Update pop effect particles
+    for _, pop in ipairs(pop_effects) do
+        local new_age = time - pop.start_time
+        for _, particle in ipairs(pop) do
+            local ent = shaders.pop:get_particle(particle.id)
+            ent.pos = ent.pos + particle.velocity * dt
+            ent.radius = ent.radius + TWEAK.POP_PT_RADIUS_DELTA * dt
+            ent.age = new_age
+        end
+    end
+    -- Pop effects should be in chronological order
+    for i = #pop_effects, 1, -1 do
+        if time - pop_effects[i].start_time < TWEAK.POP_LIFETIME then
+            break
+        end
+        destroy_pop_effect(pop_effects[i])
+        pop_effects[i] = nil
+    end
+
     -- Draw bubbles!
     shaders.bg:draw(get_bubble_ids_for_bgshader())
     shaders.pop:draw(dt)
@@ -198,9 +239,9 @@ on_mouse_move = function(x, y)
 end
 
 on_key = function(key, down)
-    if down and key == KEY_SPACE then
+    if down and key == KEY.SPACE then
         movement_enabled = not movement_enabled
-    elseif down and key == KEY_BACKSPACE then
+    elseif down and key == KEY.BACKSPACE then
         for _,b in pairs(bubbles) do
             pop_bubble(b)
         end
@@ -211,13 +252,34 @@ if not initialized then
     initialized = true
     -- Do stuff here!
     bubbles = {}
+    pop_effects = {}
     movement_enabled = true
     shaders = {}
+
+    TWEAK = {
+        STARTING_BUBBLE_COUNT = 10;
+        BUBBLE_SPEED_BASE = 150;
+        BUBBLE_SPEED_VARY = 225;
+        BUBBLE_RAD_BASE = 30;
+        BUBBLE_RAD_VARY = 25;
+        MAX_GROWTH = 200;
+        MIN_GROWTH_RATE = 50;
+        MAX_GROWTH_RATE = 225;
+        TRANS_IMMUNE_PERIOD = 1;
+        TRANS_TIME = 1;
+        POP_EXPAND_MULT = 2.0;
+        POP_LAYER_WIDTH = 10.0;
+        POP_PARTICLE_LAYOUT = 5;
+        POP_LIFETIME = 1.0;
+        POP_PT_RADIUS = 7.0;
+        POP_PT_RADIUS_DELTA = 4.0;
+    }
+
     -- Any more globals is an error!
     lock_global_table()
 
-    shaders.bubble = create_bubble_shader()
     shaders.pop = create_pop_shader()
+    shaders.bubble = create_bubble_shader()
     shaders.bg = create_bg_shader(shaders.bubble)
 
     for i=1, TWEAK.STARTING_BUBBLE_COUNT do

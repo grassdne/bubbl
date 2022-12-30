@@ -84,6 +84,7 @@ static void on_mouse_button(GLFWwindow* W, int button, int action, int mods) {
             }
         }
         else if (action == GLFW_RELEASE) {
+            printf ("mouse released!\n");
             lua_getglobal(L, "on_mouse_up");
             if (lua_isfunction(L, -1)) {
                 lua_pushnumber(L, mouse.x);
@@ -111,7 +112,7 @@ static void on_mouse_move(GLFWwindow* W, double xpos, double ypos) {
 
 #define CONFIG_FILE_NAME "lua/config.lua"
 void reload_config(lua_State *L, GLFWwindow *W, bool err) {
-    if (luaL_dofile(L, "lua/logic.lua") || luaL_dofile(L, "lua/config.lua")) {
+    if (luaL_dofile(L, "lua/config.lua")) {
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
         if (err) exit(1);
     }
@@ -125,18 +126,18 @@ void reload_config(lua_State *L, GLFWwindow *W, bool err) {
 }
 
 BubbleShader* create_bubble_shader(void) {
-    BubbleShader *sh = malloc(sizeof(BubbleShader));
+    BubbleShader *sh = calloc(sizeof(BubbleShader), 1);
     bubbleInit(sh);
     return sh;
 }
 PoppingShader* create_pop_shader(void) {
-    PoppingShader *sh = malloc(sizeof(PoppingShader));
+    PoppingShader *sh = calloc(sizeof(PoppingShader), 1);
     poppingInit(sh);
     return sh;
 }
 BgShader* create_bg_shader(BubbleShader *bubble_shader)
 {
-    BgShader *sh = malloc(sizeof(BgShader));
+    BgShader *sh = calloc(sizeof(BgShader), 1);
     bgInit(sh, bubble_shader->bubbles, &bubble_shader->num_bubbles);
     return sh;
 }

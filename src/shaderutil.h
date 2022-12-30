@@ -8,6 +8,8 @@
 #define UNI_DECL($n) GLint $n;
 #define UNI_GETS($name) sh->uniforms.$name = glGetUniformLocation(sh->shader.program, #$name);
 
+#define CHECK_GL_ERROR() checkGlError(__FILE__, __LINE__)
+
 typedef struct { GLuint program; GLuint vao; } Shader;
 
 typedef struct {
@@ -21,6 +23,8 @@ GLint get_bound_array_buffer(void);
 
 void shaderInit(Shader *sh);
 void shaderLinkProgram(Shader *sh);
+
+void checkGlError(const char *file, const int line);
 
 double randreal(void);
 
