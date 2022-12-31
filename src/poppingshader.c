@@ -49,14 +49,24 @@ void init_particles(ParticlePool *particles) {
     grow_particle_pool(particles, PARTICLES_INIT_CAPACITY);
 }
 
-size_t push_particle(PoppingShader *sh, Particle particle)
-{
+// TODO: consider caching dead bubbles to avoid linear iteration
+// Adding thousands of particles at once should be nothing
+static size_t make_empty_space(PoppingShader *sh) {
     ParticlePool *pool = &sh->particles;
+    for (size_t i = 0; i < pool->count; i++) {
+        if (pool->buf[i].alive == false) return i;
+    }
     if (pool->count >= pool->capacity) {
         grow_particle_pool(pool, pool->capacity * 2);
     }
-    pool->buf[pool->count] = particle;
     return pool->count++;
+}
+
+size_t push_particle(PoppingShader *sh, Particle particle)
+{
+    size_t pos = make_empty_space(sh);
+    sh->particles.buf[pos] = particle;
+    return pos;
 }
 
 Particle *pop_get_particle(PoppingShader *sh, size_t id)
@@ -84,126 +94,23 @@ void poppingInit(PoppingShader *sh) {
 
 }
 
-#if 0
-void create_pop(PoppingShader *sh, Vector2 pos, Color color, float size)
-{
-    int n = -1;
-    // Recycle dead pops
-    for (int i = 0; i < sh->num_popping; ++i) {
-        if (!sh->pops[i].alive) {
-            n = i;
-            break;
-        }
-    }
-    // Is there room for another?
-    if (n < 0 && sh->num_popping < (int)MAX_POPPING) {
-        n = sh->num_popping++;
-    }
-
-    if (n < 0) {
-        // We reached the limit!!
-        return;
-    }
-    Popping* pop = &sh->pops[n];
-    pop->starttime = get_time();
-    pop->pos = pos;
-    pop->color = color;
-    pop->alive = true;
-    pop->pt_radius = PT_RADIUS;
-
-    int count = 0;
-    for (int i = 0; i < size/LAYER_WIDTH-1; i++) {
-        count += PARTICLE_LAYOUT * i;
-    }
-
-    pop->particles = malloc(count * sizeof(PopParticle));
-    if (pop->particles == NULL) exit(1);
-
-    int i = 0;
-    for (float r = LAYER_WIDTH; r < size - LAYER_WIDTH; r += LAYER_WIDTH) {
-        int numps = PARTICLE_LAYOUT * r / LAYER_WIDTH;
-        for (int j = 0; j < numps; ++j) {
-            float theta = 2.0*M_PI * ((float)j / numps);
-            assert(i < count);
-
-            Vector2 rect = {cos(theta), sin(theta)};
-            pop->particles[i++] = (PopParticle) {
-                .pos = vec_Mult(rect, r),
-                .v   = vec_Mult(rect, EXPAND_MULT * r / POP_LIFETIME),
-            };
-        }
-    }
-    pop->num_particles = count;
-
-    glBindVertexArray(sh->shader.vao);
-
-    glGenBuffers(1, &sh->pops[n].vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, sh->pops[n].vbo);
-	glBufferData(GL_ARRAY_BUFFER, count * sizeof(PopParticle), pop->particles, GL_DYNAMIC_DRAW);
-
-    glEnableVertexAttribArray(ATTRIB_PARTICLE_OFFSET);
-    // glVertexAttribPointer needs to be called on draw
-    //glVertexAttribPointer(ATTRIB_PARTICLE_OFFSET, 2, GL_FLOAT, GL_FALSE, sizeof(PopParticle), (void*)0);
-    glVertexAttribDivisor(ATTRIB_PARTICLE_OFFSET, 1);
-
-    glBindVertexArray(0);
-}
-
-void kill_popping(PoppingShader *sh, int i) {
-    sh->pops[i].alive = false;
-    free(sh->pops[i].particles);
-    sh->pops[i].particles = NULL;
-    glDeleteBuffers(1, &sh->pops[i].vbo);
-}
-#endif
-
 void pop_draw(PoppingShader *sh) {
     // Bind
     glUseProgram(sh->shader.program);
     glBindVertexArray(sh->shader.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, sh->particles.vbo);
 
     double time = get_time();
 
-/*
-    for (int i = 0; i < sh->num_popping; ++i) {
-        Popping *p = &sh->pops[i];
-        if (!p->alive) continue;
-        if (time - p->starttime > POP_LIFETIME) {
-            kill_popping(sh, i);
-            continue;
-        }
-
-        p->pt_radius += PT_DELTA_RADIUS * dt;
-        for (size_t j = 0; j < p->num_particles; ++j) {
-            p->particles[j].pos.x += p->particles[j].v.x * dt;
-            p->particles[j].pos.y += p->particles[j].v.y * dt;
-        }
-    glBindBuffer(GL_ARRAY_BUFFER, p->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, p->num_particles*sizeof(PopParticle), p->particles);
-
-    glVertexAttribPointer(ATTRIB_PARTICLE_OFFSET, 2, GL_FLOAT, GL_FALSE, sizeof(PopParticle), (void*)0);
-    */
-
-    glBindBuffer(GL_ARRAY_BUFFER, sh->particles.vbo);
-
     // Update buffer
-    size_t sz = sh->particles.count * sizeof(Particle);
-
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sz, sh->particles.buf);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sh->particles.count * sizeof(Particle), sh->particles.buf);
     CHECK_GL_ERROR();
 
-    // Set uniforms
-    //glUniform1f(sh->uniforms.age, time - p->starttime);
-    //glUniform2f(sh->uniforms.position, p->pos.x, p->pos.y);
-    //glUniform3f(sh->uniforms.color, p->color.r, p->color.g, p->color.b);
-    //glUniform1f(sh->uniforms.particle_radius, p->pt_radius);
     glUniform2f(sh->uniforms.resolution, window_width, window_height);
     glUniform1f(sh->uniforms.time, time);
 
-    // Draw
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->particles.count);
 
-    // Unbind
     glUseProgram(0);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
