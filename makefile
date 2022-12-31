@@ -1,4 +1,4 @@
-PKGS = luajit glfw3 glew
+PKGS = luajit sdl2 glew
 CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension `pkg-config --cflags $(PKGS)`
 CLIBS = `pkg-config --libs $(PKGS)` -lm -rdynamic
 

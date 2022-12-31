@@ -1,7 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <GL/glew.h>
-#define GLFW_INCLUDE_GLEXT
-#include <GLFW/glfw3.h>
+
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
 
 #include "luajit.h"
 #include <lualib.h>
@@ -29,13 +30,17 @@ static double lasttime;
 
 static bool started = false;
 
-static int windowed_xpos, windowed_ypos;
+// How about we just do everything in seconds please and thank you
+double get_time(void) { return SDL_GetTicks64() * 0.001; }
+
+//static int windowed_xpos, windowed_ypos;
 
 int window_width = SCREEN_WIDTH;
 int window_height = SCREEN_HEIGHT;
 float scale;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
 
+#if 0
 static void error_callback(int error, const char* description) {
 	(void)error;
 	fputs(description, stderr);
@@ -44,6 +49,7 @@ static void error_callback(int error, const char* description) {
 static Vector2 window_to_opengl_pos(double xpos, double ypos) {
     return (Vector2){xpos*scale, window_height - ypos*scale};
 }
+#endif
 
 static void error(lua_State *L, const char *fmt, ...) {
     va_list argp;
@@ -65,6 +71,7 @@ static void call_lua_callback(lua_State *L, int nargs) {
     lua_pcall(L, nargs, 0, 1);
 }
 
+#if 0
 static void on_mouse_button(GLFWwindow* W, int button, int action, int mods) {
     (void)mods;
     lua_State *L = glfwGetWindowUserPointer(W);
@@ -96,7 +103,9 @@ static void on_mouse_button(GLFWwindow* W, int button, int action, int mods) {
         }
     }
 }
+#endif
 
+#if 0
 static void on_mouse_move(GLFWwindow* W, double xpos, double ypos) {
     Vector2 pos = window_to_opengl_pos(xpos, ypos);
     lua_State *L = glfwGetWindowUserPointer(W);
@@ -109,9 +118,10 @@ static void on_mouse_move(GLFWwindow* W, double xpos, double ypos) {
         fprintf(stderr, "WARNING: missing `on_mouse_move` Lua global function\n");
     }
 }
+#endif
 
 #define CONFIG_FILE_NAME "lua/config.lua"
-void reload_config(lua_State *L, GLFWwindow *W, bool err) {
+void reload_config(lua_State *L, SDL_Window *W, bool err) {
     if (luaL_dofile(L, "lua/config.lua")) {
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
         if (err) exit(1);
@@ -121,7 +131,7 @@ void reload_config(lua_State *L, GLFWwindow *W, bool err) {
     if (!lua_isstring(L, -1)) {
         fprintf(stderr, "expected `title` string in Lua config\n");
     } else {
-        glfwSetWindowTitle(W, lua_tostring(L, -1));
+        SDL_SetWindowTitle(W, lua_tostring(L, -1));
     }
 }
 
@@ -142,25 +152,25 @@ BgShader* create_bg_shader(BubbleShader *bubble_shader)
     return sh;
 }
 
-static void frame(GLFWwindow *W) {
-    (void)W;
-    double now = glfwGetTime();
+static void frame(SDL_Window *W) {
+    double now = get_time();
     double dt = now - lasttime;
     lasttime = now;
 
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    lua_State *L = glfwGetWindowUserPointer(W);
+    lua_State *L = SDL_GetWindowData(W, "L");
     lua_getglobal(L, "on_update");
     if (!lua_isfunction(L, -1))
         error(L, "expected `on_update` function in Lua config");
     lua_pushnumber(L, dt);
     call_lua_callback(L, 1);
 
-    glfwSwapBuffers(W);
+    SDL_GL_SwapWindow(W);
 }
 
+#if 0
 static void on_content_rescale(GLFWwindow *W, float xs, float ys) {
     (void)W;
     VPRINTF("xscale=%f :: yscale=%f\n", xs, ys);
@@ -169,7 +179,9 @@ static void on_content_rescale(GLFWwindow *W, float xs, float ys) {
     }
     scale = xs;
 }
+#endif
 
+#if 0
 static void on_framebuffer_resize(GLFWwindow *W, int width, int height) {
     glViewport(0, 0, width, height);
     window_width = width;
@@ -183,7 +195,9 @@ static void on_framebuffer_resize(GLFWwindow *W, int width, int height) {
 
     if (started) frame(W);
 }
+#endif
 
+#if 0
 static void key_callback(GLFWwindow* W, int key, int scancode, int action, int mods) {
 	(void)scancode; (void)mods;
     lua_State *L = glfwGetWindowUserPointer(W);
@@ -213,13 +227,16 @@ static void key_callback(GLFWwindow* W, int key, int scancode, int action, int m
     lua_pushboolean(L, action == GLFW_PRESS);
     call_lua_callback(L, 2);
 }
+#endif
 
+#if 0
 static void on_window_focus(GLFWwindow *W, int focused) {
     lua_State *L = glfwGetWindowUserPointer(W);
     if (focused) {
         reload_config(L, W, false);
     }
 }
+#endif
 
 int main(int argc, char **argv) {
     (void)argc;
@@ -230,42 +247,59 @@ int main(int argc, char **argv) {
     lua_pushcfunction(L, error_traceback);
 
     srand(time(NULL));
-	glfwSetErrorCallback(error_callback);
-	if( !glfwInit()) exit(1);
+	//glfwSetErrorCallback(error_callback);
+    //if( !glfwInit()) exit(1);
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        return fprintf(stderr, "error initializing SDL: %s\n", SDL_GetError()), 1;
 
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-	GLFWwindow* W = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bubbles", NULL, NULL);
-	if (!W) {
-		glfwTerminate();
-		exit(1);
-	}
+    SDL_Window *window = SDL_CreateWindow("MineSector", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+    if (window == NULL)
+        return fprintf(stderr, "error opening window: %s\n", SDL_GetError()), 1;
 
-	glfwMakeContextCurrent(W);
-	glfwSetKeyCallback(W, key_callback);
-    glfwSetFramebufferSizeCallback(W, &on_framebuffer_resize);
-    glfwSetWindowUserPointer(W, L);
+    lua_pushinteger(L, window_width);
+    lua_setglobal(L, "window_width");
+    lua_pushinteger(L, window_height);
+    lua_setglobal(L, "window_height");
 
-    {
-        int w, h;
-        glfwGetFramebufferSize(W, &w, &h);
-        on_framebuffer_resize(W, w, h);
-    }
+    //glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    float xscale, yscale;
-    glfwGetWindowContentScale(W, &xscale, &yscale);
+	//GLFWwindow* W = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Bubbles", NULL, NULL);
+    
+    if (SDL_GL_CreateContext(window) == NULL)
+        return fprintf(stderr, "error creating OpenGL context: %s\n", SDL_GetError()), 1;
+
+	//glfwMakeContextCurrent(W);
+	//glfwSetKeyCallback(W, key_callback);
+    //glfwSetFramebufferSizeCallback(W, &on_framebuffer_resize);
+    //glfwSetWindowUserPointer(W, L);
+
+    SDL_SetWindowData(window, "L", L);
+    //{
+    //    int w, h;
+    //    glfwGetFramebufferSize(W, &w, &h);
+    //    on_framebuffer_resize(W, w, h);
+    //}
+
+    //float xscale, yscale;
+    //glfwGetWindowContentScale(W, &xscale, &yscale);
     // initial scale
-    on_content_rescale(W, xscale, yscale);
-    glfwSetWindowContentScaleCallback(W, on_content_rescale);
+    //on_content_rescale(W, xscale, yscale);
+    //glfwSetWindowContentScaleCallback(W, on_content_rescale);
 
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "GLEW init failed\n");
-		exit(1);
-	}
+    GLenum err = glewInit();
+	if (err)
+		return fprintf(stderr, "error initializing GLEW: %s\n", glewGetErrorString(err)), 1;
+
+    if (SDL_GL_SetSwapInterval(1) < 0)
+        return fprintf(stderr, "unable to set VSync: %s\n", SDL_GetError()), 1;
 	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
     //    fprintf(stderr, "Shaders not available\n");
     //    exit(1);
@@ -278,25 +312,71 @@ int main(int argc, char **argv) {
     //glDepthFunc(GL_LESS);
     //glEnable(GL_CULL_FACE);
 
-    glfwSetMouseButtonCallback(W, on_mouse_button);
-    glfwSetCursorPosCallback(W, on_mouse_move);
-    glfwSetWindowFocusCallback(W, on_window_focus);
+    //glfwSetMouseButtonCallback(W, on_mouse_button);
+    //glfwSetCursorPosCallback(W, on_mouse_move);
+    //glfwSetWindowFocusCallback(W, on_window_focus);
 
     if (luaL_dofile(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
-    reload_config(L, W, true);
+    reload_config(L, window, true);
 
     started = true;
-    lasttime = glfwGetTime();
-	while (!glfwWindowShouldClose(W)) {
-        frame(W);
-        glfwPollEvents();
+    lasttime = get_time();
+    bool should_quit = false;
+	while (!should_quit) {
+        frame(window);
+        SDL_Event e;
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+            case SDL_QUIT:
+                should_quit = true;
+                break;
+            case SDL_KEYDOWN:
+                // TODO: fullscreen
+                if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    should_quit = true;
+                    break;
+                }
+                /* fallthrough */
+            case SDL_KEYUP:
+                lua_getglobal(L, "on_key");
+                lua_pushstring(L, SDL_GetKeyName(e.key.keysym.sym));
+                lua_pushboolean(L, e.type == SDL_KEYDOWN);
+                call_lua_callback(L, 2);
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP:
+                if (e.button.button == SDL_BUTTON_LEFT) {
+                    const char *name = e.type == SDL_MOUSEBUTTONUP ? "on_mouse_up" : "on_mouse_down";
+                    lua_getglobal(L, name);
+                    if (lua_isfunction(L, -1)) {
+                        lua_pushnumber(L, e.button.x);
+                        lua_pushnumber(L, window_height - e.button.y);
+                        call_lua_callback(L, 2);
+                    } else {
+                        fprintf(stderr, "WARNING: missing `%s` Lua global function\n", name);
+                    }
+                }
+                break;
+
+            case SDL_MOUSEMOTION:
+                lua_getglobal(L, "on_mouse_move");
+                if (lua_isfunction(L, -1)) {
+                    lua_pushnumber(L, e.motion.x);
+                    lua_pushnumber(L, window_height - e.motion.y);
+                    call_lua_callback(L, 2);
+                } else {
+                    fprintf(stderr, "WARNING: missing `on_mouse_move` Lua global function\n");
+                }
+                break;
+            }
+        }
 	}
 
-	glfwDestroyWindow(W);
-	glfwTerminate();
-
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     lua_close(L);
     return 0;
 }

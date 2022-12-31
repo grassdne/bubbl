@@ -60,13 +60,13 @@ void update_trans(Bubble *b, double time) {
     {
         b->color = b->trans_color;
         b->trans_starttime = TRANS_STARTTIME_SENTINAL;
-        b->last_transformation = glfwGetTime();
+        b->last_transformation = get_time();
     }
 }
 
 void start_transition(Bubble *restrict bubble, Bubble *restrict other) {
     bubble->trans_color = other->color;
-    bubble->trans_starttime = glfwGetTime();
+    bubble->trans_starttime = get_time();
     bubble->trans_angle = vec_Normalized(vec_Diff(other->pos, bubble->pos));
 }
 
@@ -132,7 +132,7 @@ void bubbleInit(BubbleShader *sh) {
 }
 
 void bubbleshader_draw(BubbleShader *sh) {
-    const double time = glfwGetTime();
+    const double time = get_time();
 
     // Bind
 	glUseProgram(sh->shader.program);

@@ -54,7 +54,7 @@ Particle *pop_get_particle(PoppingShader *s, size_t id);
 void pop_destroy_particle(PoppingShader *s, size_t id);
 size_t push_particle(PoppingShader *s, Particle particle);
 void bgshader_draw(BgShader *sh, const size_t indices[MAX_ELEMS], size_t num_elems);
-double glfwGetTime(void);
+double get_time(void);
 ]]
 
 BGSHADER_MAX_ELEMS = 10
@@ -170,128 +170,6 @@ ffi.metatype("BgShader", mt)
 create_bg_shader = function(bubbleshader)
     return ffi.gc(C.create_bg_shader(bubbleshader), C.free)
 end
-
-KEY = {}
-KEY.SPACE = 32
-KEY.APOSTROPHE = 39
-KEY.COMMA = 44
-KEY.MINUS = 45
-KEY.PERIOD = 46
-KEY.SLASH = 47
-KEY.NUM_0 = 48
-KEY.NUM_1 = 49
-KEY.NUM_2 = 50
-KEY.NUM_3 = 51
-KEY.NUM_4 = 52
-KEY.NUM_5 = 53
-KEY.NUM_6 = 54
-KEY.NUM_7 = 55
-KEY.NUM_8 = 56
-KEY.NUM_9 = 57
-KEY.SEMICOLON = 59
-KEY.EQUAL = 61
-KEY.A = 65
-KEY.B = 66
-KEY.C = 67
-KEY.D = 68
-KEY.E = 69
-KEY.F = 70
-KEY.G = 71
-KEY.H = 72
-KEY.I = 73
-KEY.J = 74
-KEY.K = 75
-KEY.L = 76
-KEY.M = 77
-KEY.N = 78
-KEY.O = 79
-KEY.P = 80
-KEY.Q = 81
-KEY.R = 82
-KEY.S = 83
-KEY.T = 84
-KEY.U = 85
-KEY.V = 86
-KEY.W = 87
-KEY.X = 88
-KEY.Y = 89
-KEY.Z = 90
-KEY.LEFT_BRACKET = 91
-KEY.BACKSLASH = 92
-KEY.RIGHT_BRACKET = 93
-KEY.GRAVE_ACCENT = 96
-KEY.WORLD_1 = 161
-KEY.WORLD_2 = 162
-KEY.ESCAPE = 256
-KEY.ENTER = 257
-KEY.TAB = 258
-KEY.BACKSPACE = 259
-KEY.INSERT = 260
-KEY.DELETE = 261
-KEY.RIGHT = 262
-KEY.LEFT = 263
-KEY.DOWN = 264
-KEY.UP = 265
-KEY.PAGE_UP = 266
-KEY.PAGE_DOWN = 267
-KEY.HOME = 268
-KEY.END = 269
-KEY.CAPS_LOCK = 280
-KEY.SCROLL_LOCK = 281
-KEY.NUM_LOCK = 282
-KEY.PRINT_SCREEN = 283
-KEY.PAUSE = 284
-KEY.F1 = 290
-KEY.F2 = 291
-KEY.F3 = 292
-KEY.F4 = 293
-KEY.F5 = 294
-KEY.F6 = 295
-KEY.F7 = 296
-KEY.F8 = 297
-KEY.F9 = 298
-KEY.F10 = 299
-KEY.F11 = 300
-KEY.F12 = 301
-KEY.F13 = 302
-KEY.F14 = 303
-KEY.F15 = 304
-KEY.F16 = 305
-KEY.F17 = 306
-KEY.F18 = 307
-KEY.F19 = 308
-KEY.F20 = 309
-KEY.F21 = 310
-KEY.F22 = 311
-KEY.F23 = 312
-KEY.F24 = 313
-KEY.F25 = 314
-KEY.KP_0 = 320
-KEY.KP_1 = 321
-KEY.KP_2 = 322
-KEY.KP_3 = 323
-KEY.KP_4 = 324
-KEY.KP_5 = 325
-KEY.KP_6 = 326
-KEY.KP_7 = 327
-KEY.KP_8 = 328
-KEY.KP_9 = 329
-KEY.KP_DECIMAL = 330
-KEY.KP_DIVIDE = 331
-KEY.KP_MULTIPLY = 332
-KEY.KP_SUBTRACT = 333
-KEY.KP_ADD = 334
-KEY.KP_ENTER = 335
-KEY.KP_EQUAL = 336
-KEY.LEFT_SHIFT = 340
-KEY.LEFT_CONTROL = 341
-KEY.LEFT_ALT = 342
-KEY.LEFT_SUPER = 343
-KEY.RIGHT_SHIFT = 344
-KEY.RIGHT_CONTROL = 345
-KEY.RIGHT_ALT = 346
-KEY.RIGHT_SUPER = 347
-KEY.MENU = 348
 
 math.randomseed(os.time())
 

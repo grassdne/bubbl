@@ -36,7 +36,7 @@ void bgshader_draw(BgShader *sh, size_t indices[MAX_ELEMS], size_t num_elems)
     Color colors[MAX_ELEMS];
     Vector2 positions[MAX_ELEMS];
 
-    double time = glfwGetTime();
+    double time = get_time();
 
     for (size_t i = 0; i < num_elems; ++i) {
         const Bubble *b = &sh->bubbles[indices[i]];

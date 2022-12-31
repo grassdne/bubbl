@@ -53,7 +53,7 @@ local create_pop_effect = function (center, color, size)
             table.insert(pop, Particle:new(velocity, dir * rad + center, color, TWEAK.POP_PT_RADIUS))
         end
     end
-    pop.start_time = ffi.C.glfwGetTime()
+    pop.start_time = ffi.C.get_time()
     return pop
 end
 
@@ -112,13 +112,13 @@ end
 local start_transition = function (bubble, other)
     bubble.in_transition = true
     bubble.C.trans_color = other.C.color;
-    bubble.C.trans_starttime = ffi.C.glfwGetTime();
+    bubble.C.trans_starttime = ffi.C.get_time();
     bubble.C.trans_angle = (other.C.pos - bubble.C.pos):normalize();
 end
 local stop_transition = function (bubble)
     bubble.in_transition = false
     bubble.C.color = bubble.C.trans_color;
-    bubble.C.last_transformation = ffi.C.glfwGetTime();
+    bubble.C.last_transformation = ffi.C.get_time();
 end
 
 local move_bubble = function (bubble, dt)
@@ -135,7 +135,7 @@ local move_bubble = function (bubble, dt)
 end
 
 on_update = function(dt)
-    local time = ffi.C.glfwGetTime()
+    local time = ffi.C.get_time()
 
     -- Grow bubble under mouse
     if cursor_bubble then
@@ -239,9 +239,9 @@ on_mouse_move = function(x, y)
 end
 
 on_key = function(key, down)
-    if down and key == KEY.SPACE then
+    if down and key == "Space" then
         movement_enabled = not movement_enabled
-    elseif down and key == KEY.BACKSPACE then
+    elseif down and key == "Backspace" then
         for _,b in pairs(bubbles) do
             pop_bubble(b)
         end

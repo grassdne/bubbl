@@ -105,7 +105,7 @@ void create_pop(PoppingShader *sh, Vector2 pos, Color color, float size)
         return;
     }
     Popping* pop = &sh->pops[n];
-    pop->starttime = glfwGetTime();
+    pop->starttime = get_time();
     pop->pos = pos;
     pop->color = color;
     pop->alive = true;
@@ -162,7 +162,7 @@ void pop_draw(PoppingShader *sh) {
     glUseProgram(sh->shader.program);
     glBindVertexArray(sh->shader.vao);
 
-    double time = glfwGetTime();
+    double time = get_time();
 
 /*
     for (int i = 0; i < sh->num_popping; ++i) {

@@ -18,6 +18,8 @@ extern const float QUAD[8];
 
 #define SCALECONTENT(p) (p * scale)
 
+double get_time(void);
+
 typedef struct {
     float r, g, b;
 } Color;
