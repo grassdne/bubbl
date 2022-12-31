@@ -181,53 +181,15 @@ static void on_content_rescale(GLFWwindow *W, float xs, float ys) {
 }
 #endif
 
-#if 0
-static void on_framebuffer_resize(GLFWwindow *W, int width, int height) {
-    glViewport(0, 0, width, height);
-    window_width = width;
-    window_height = height;
-    lua_State *L = glfwGetWindowUserPointer(W);
-    (void)L;
+static void on_window_resize(SDL_Window *W) {
+    SDL_GL_GetDrawableSize(W, &window_width, &window_height);
+    glViewport(0, 0, window_width, window_height);
+    lua_State *L = SDL_GetWindowData(W, "L");
     lua_pushinteger(L, window_width);
     lua_setglobal(L, "window_width");
     lua_pushinteger(L, window_height);
     lua_setglobal(L, "window_height");
-
-    if (started) frame(W);
 }
-#endif
-
-#if 0
-static void key_callback(GLFWwindow* W, int key, int scancode, int action, int mods) {
-	(void)scancode; (void)mods;
-    lua_State *L = glfwGetWindowUserPointer(W);
-    if (action == GLFW_RELEASE) {
-        switch (key) {
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(W, GL_TRUE);
-            break;
-
-        case GLFW_KEY_F11:
-            if (glfwGetWindowMonitor(W)) {
-                // Fullscreen -> Windowed
-                glfwSetWindowMonitor(W, NULL, windowed_xpos, windowed_ypos, SCREEN_WIDTH, SCREEN_HEIGHT, GLFW_DONT_CARE);
-            }
-            else {
-                // Windowed -> Fullscreen
-                // Get resolution
-                const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-                glfwGetWindowPos(W, &windowed_xpos, &windowed_ypos);
-                glfwSetWindowMonitor(W, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
-            }
-            break;
-        }
-    }
-    lua_getglobal(L, "on_key");
-    lua_pushinteger(L, key);
-    lua_pushboolean(L, action == GLFW_PRESS);
-    call_lua_callback(L, 2);
-}
-#endif
 
 #if 0
 static void on_window_focus(GLFWwindow *W, int focused) {
@@ -323,6 +285,7 @@ int main(int argc, char **argv) {
 
     started = true;
     lasttime = get_time();
+    bool is_fullscreen = false;
     bool should_quit = false;
 	while (!should_quit) {
         frame(window);
@@ -336,6 +299,20 @@ int main(int argc, char **argv) {
                 // TODO: fullscreen
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
                     should_quit = true;
+                    break;
+                }
+                else if (e.key.keysym.sym == SDLK_F11) {
+                    printf("Hello, World!\n");
+                    if (is_fullscreen) {
+                        is_fullscreen = false;
+                        SDL_SetWindowFullscreen(window, 0);
+                        SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+                    }
+                    else {
+                        is_fullscreen = true;
+                        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+                    }
+                    on_window_resize(window);
                     break;
                 }
                 /* fallthrough */
@@ -369,6 +346,12 @@ int main(int argc, char **argv) {
                     call_lua_callback(L, 2);
                 } else {
                     fprintf(stderr, "WARNING: missing `on_mouse_move` Lua global function\n");
+                }
+                break;
+
+            case SDL_WINDOWEVENT:
+                if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                    on_window_resize(window);
                 }
                 break;
             }
