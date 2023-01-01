@@ -218,7 +218,7 @@ int main(int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-    SDL_Window *window = SDL_CreateWindow("MineSector", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+    SDL_Window *window = SDL_CreateWindow("bubbl", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
     if (window == NULL)
         return fprintf(stderr, "error opening window: %s\n", SDL_GetError()), 1;
 
@@ -260,8 +260,13 @@ int main(int argc, char **argv) {
 	if (err)
 		return fprintf(stderr, "error initializing GLEW: %s\n", glewGetErrorString(err)), 1;
 
-    if (SDL_GL_SetSwapInterval(1) < 0)
-        return fprintf(stderr, "unable to set VSync: %s\n", SDL_GetError()), 1;
+    if (SDL_GL_SetSwapInterval(-1) < 0) {
+        VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
+        if (SDL_GL_SetSwapInterval(1) < 0) {
+            return fprintf(stderr, "unable to set VSync: %s\n", SDL_GetError()), 1;
+        }
+
+    }
 	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
     //    fprintf(stderr, "Shaders not available\n");
     //    exit(1);
