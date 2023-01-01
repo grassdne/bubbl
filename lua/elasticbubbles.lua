@@ -171,8 +171,7 @@ on_update = function(dt)
             end
         end
         if cursor_bubble and is_collision(a, cursor_bubble) then
-            -- Should colliding bubbles bounce backwards?
-            --a:velocity(-a:velocity())
+            -- TODO: Should bubbles that collide with cursor bubble bounce backwards?
             separate_bubbles(a, cursor_bubble)
         end
     end
