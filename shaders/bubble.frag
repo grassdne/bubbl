@@ -33,8 +33,9 @@ void main() {
         vec2 light_pos = bubble_pos + rad*BUBBLE_LIGHT_RAD * vec2(cos(theta), sin(theta));
         // Color is gradiant between transitioning colors
         float percent_trans = (time - trans_starttime) / TRANS_TIME; 
-        vec3 color = mix(trans_color, bubble_color,
-            smoothstep(percent_trans * rad*2, (1+percent_trans)*rad*2, distance(gl_FragCoord.xy, bubble_pos + trans_angle*rad)));
+        float dist_to_trans_origin = distance(gl_FragCoord.xy, bubble_pos + trans_angle*rad);
+        float transitioned_radius = 2*rad * percent_trans;
+        vec3 color = mix(trans_color, bubble_color, smoothstep(transitioned_radius, 2*rad+transitioned_radius, dist_to_trans_origin));
         // Alpha is gradiant based on proximity to light center
         float a = mix(MIN_TRANSPARENCY, MAX_TRANSPARENCY, distance(gl_FragCoord.xy, light_pos) / rad);
         outcolor = vec4(color, a);
