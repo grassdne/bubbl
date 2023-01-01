@@ -34,7 +34,7 @@ clean:
 compile_commands:
 	bear -- $(MAKE) clean all
 
-$(EXE): $(CSRC) src/*.h
+$(EXE): $(CSRC) src/*.h makefile
 
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
