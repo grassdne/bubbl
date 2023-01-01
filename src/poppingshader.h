@@ -1,7 +1,6 @@
 #ifndef SHADER_POP_H
 #define SHADER_POP_H
 #include <GL/glew.h>
-#include "vector2.h"
 #include "common.h"
 #include "shaderutil.h"
 

@@ -2,9 +2,8 @@
 #define SHADER_BUBBLE_H
 
 #include <GL/glew.h>
-#include "vector2.h"
-#include "common.h"
 #include "shaderutil.h"
+#include "common.h"
 
 #define TRANS_STARTTIME_SENTINAL -1.0
 #define TRANS_TIME 1.0

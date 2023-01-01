@@ -24,4 +24,6 @@ typedef struct {
     float r, g, b;
 } Color;
 
+typedef struct { float x, y; } Vector2;
+
 #endif

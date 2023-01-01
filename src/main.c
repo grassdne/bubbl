@@ -15,7 +15,6 @@
 #include <assert.h>
 
 #include "common.h"
-#include "vector2.h"
 #include "bubbleshader.h"
 #include "poppingshader.h"
 #include "bgshader.h"
