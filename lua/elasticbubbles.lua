@@ -2,7 +2,7 @@ title = "Elastic Bubbles"
 
 TWEAK = {
     STARTING_BUBBLE_COUNT = 10;
-    BUBBLE_SPEED_BASE = 150;
+    BUBBLE_SPEED_BASE = 200;
     BUBBLE_SPEED_VARY = 225;
     BUBBLE_RAD_BASE = 30;
     BUBBLE_RAD_VARY = 25;
