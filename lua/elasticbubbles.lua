@@ -37,7 +37,8 @@ local create_pop_effect = function (center, color, size)
     while distance < size - TWEAK.POP_PT_RADIUS do
         distance = distance + TWEAK.POP_LAYER_WIDTH
         num_particles_in_layer = num_particles_in_layer + TWEAK.POP_PARTICLE_LAYOUT
-        for theta = 0, 2*PI, 2*PI/num_particles_in_layer do
+        for i = 1, num_particles_in_layer do
+            local theta = 2*PI / num_particles_in_layer * i
             local dir = Vector2(math.cos(theta), math.sin(theta))
             local velocity = dir * (TWEAK.POP_EXPAND_MULT * distance / TWEAK.POP_LIFETIME)
             table.insert(pop, Particle:new(velocity, dir * distance + center, color, TWEAK.POP_PT_RADIUS))
