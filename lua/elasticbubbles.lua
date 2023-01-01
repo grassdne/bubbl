@@ -1,28 +1,17 @@
-local ffi = require "ffi"
-
 title = "Elastic Bubbles"
 
-local cursor_bubble
-
+local ffi = require "ffi"
 local add_bubble = function (bubble)
     bubbles[bubble.id] = bubble;
 end
 
-randomsign = function()
-    return math.random() > 0.5 and 1 or -1
-end
-
-vary = function (base, vary)
-    return base + vary * math.random()
-end
-
 local random_velocity = function()
-    return Vector2(randomsign() * vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY),
-    randomsign() * vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY))
+    return Vector2(random.sign() * random.vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY),
+    random.sign() * random.vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY))
 end
 
 local random_radius = function()
-    return TWEAK.BUBBLE_RAD_BASE + math.random() * TWEAK.BUBBLE_RAD_VARY
+    return random.vary(TWEAK.BUBBLE_RAD_BASE, TWEAK.BUBBLE_RAD_VARY)
 end
 
 local random_position = function()
@@ -33,7 +22,7 @@ local Particle = {
     new = function (Self, velocity, pos, color, radius)
         local p = setmetatable({}, Self)
         p.velocity = velocity
-        p.id = shaders.pop:push_particle(ParticleEntity(pos, color, radius, 0, true))
+        p.id = shaders.pop:create_particle(pos, color, radius)
         return p
     end;
 }
@@ -43,14 +32,15 @@ local create_pop_effect = function (center, color, size)
     -- Add center bubble
     table.insert(pop, Particle:new(Vector2(0,0), center, color, TWEAK.POP_PT_RADIUS))
 
-    for i=1, (size - TWEAK.POP_PT_RADIUS) / TWEAK.POP_LAYER_WIDTH do
-        local rad = i * TWEAK.POP_LAYER_WIDTH
-        local num_particles_in_layer = TWEAK.POP_PARTICLE_LAYOUT * i
-        for i = 1, num_particles_in_layer do
-            local theta = 2.0*math.pi * (i / num_particles_in_layer);
+    local distance = 0
+    local num_particles_in_layer = 0
+    while distance < size - TWEAK.POP_PT_RADIUS do
+        distance = distance + TWEAK.POP_LAYER_WIDTH
+        num_particles_in_layer = num_particles_in_layer + TWEAK.POP_PARTICLE_LAYOUT
+        for theta = 0, 2*PI, 2*PI/num_particles_in_layer do
             local dir = Vector2(math.cos(theta), math.sin(theta))
-            local velocity = dir * (TWEAK.POP_EXPAND_MULT * rad / TWEAK.POP_LIFETIME)
-            table.insert(pop, Particle:new(velocity, dir * rad + center, color, TWEAK.POP_PT_RADIUS))
+            local velocity = dir * (TWEAK.POP_EXPAND_MULT * distance / TWEAK.POP_LIFETIME)
+            table.insert(pop, Particle:new(velocity, dir * distance + center, color, TWEAK.POP_PT_RADIUS))
         end
     end
     pop.start_time = ffi.C.get_time()
@@ -58,7 +48,7 @@ local create_pop_effect = function (center, color, size)
 end
 
 local pop_bubble = function(bubble)
-    table.insert(pop_effects, create_pop_effect(bubble.C.pos, bubble.C.color, bubble.C.rad))
+    table.insert(pop_effects, create_pop_effect(bubble:position(), bubble:color(), bubble:radius()))
     shaders.bubble:destroy_bubble(bubble.id)
     bubbles[bubble.id] = nil
 end
@@ -70,26 +60,30 @@ local destroy_pop_effect = function (pop)
 end
 
 local is_collision = function (a, b)
-    local mindist = a.C.rad + b.C.rad
-    return a ~= b and Vector2.distsq(a.C.pos, b.C.pos) < mindist*mindist
+    local mindist = a:radius() + b:radius()
+    return a ~= b and Vector2.distsq(a:position(), b:position()) < mindist*mindist
 end
 
 local swap_velocities = function (a, b)
-    a.C.v, b.C.v = Vector2(b.C.v), Vector2(a.C.v)
+    local av, bv = a:velocity(), b:velocity()
+    a:velocity(bv)
+    b:velocity(av)
 end
 
 local separate_bubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
-    local dir_b_to_a = Vector2.normalize(a.C.pos - b.C.pos)
-    local mindist = a.C.rad + b.C.rad
-    a.C.pos = b.C.pos + dir_b_to_a * mindist
+    local dir_b_to_a = Vector2.normalize(a:position() - b:position())
+    local mindist = a:radius() + b:radius()
+    a:position(b:position() + dir_b_to_a * mindist)
 end
 
 minmax = function(x, min, max) return math.min(max, math.max(min, x)) end
 
 local ensure_bubble_in_bounds = function (bubble)
-    bubble.C.pos.x = minmax(bubble.C.pos.x, bubble.C.rad, window_width   - bubble.C.rad)
-    bubble.C.pos.y = minmax(bubble.C.pos.y, bubble.C.rad, window_height  - bubble.C.rad)
+    local pos = bubble:position()
+    pos.x = minmax(pos.x, bubble:radius(), window_width  - bubble:radius())
+    pos.y = minmax(pos.y, bubble:radius(), window_height - bubble:radius())
+    bubble:position(pos)
 end
 
 local collect_all_bubbles = function ()
@@ -101,7 +95,7 @@ end
 
 local get_bubble_ids_for_bgshader = function ()
     local all_bubbles = collect_all_bubbles()
-    table.sort(all_bubbles, function(a, b) return a.C.rad > b.C.rad end)
+    table.sort(all_bubbles, function(a, b) return a:radius() > b:radius() end)
     local ids = {}
     for i=1, math.min(#all_bubbles, BGSHADER_MAX_ELEMS) do 
         ids[i] = all_bubbles[i].id
@@ -110,28 +104,28 @@ local get_bubble_ids_for_bgshader = function ()
 end
 
 local start_transition = function (bubble, other)
+    bubble:start_transformation(other:color(), ffi.C.get_time(),
+        (other:position() - bubble:position()):normalize())
     bubble.in_transition = true
-    bubble.C.trans_color = other.C.color;
-    bubble.C.trans_starttime = ffi.C.get_time();
-    bubble.C.trans_angle = (other.C.pos - bubble.C.pos):normalize();
 end
 local stop_transition = function (bubble)
     bubble.in_transition = false
-    bubble.C.color = bubble.C.trans_color;
-    bubble.C.last_transformation = ffi.C.get_time();
+    bubble:color(bubble:transformation_color())
+    bubble.last_transition = ffi.C.get_time();
 end
 
 local move_bubble = function (bubble, dt)
-    local next = bubble.C.pos + bubble.C.v:scale(dt)
-    local max_y = window_height - bubble.C.rad
-    local max_x = window_width - bubble.C.rad
-    if next.x < bubble.C.rad or next.x > max_x then
-        bubble.C.v.x = -bubble.C.v.x
+    local next = bubble:position() + bubble:velocity():scale(dt)
+    local max_y = window_height - bubble:radius()
+    local max_x = window_width - bubble:radius()
+    if next.x < bubble:radius() or next.x > max_x then
+        bubble:x_velocity(-bubble:x_velocity())
+        bubble:y_velocity(-bubble:y_velocity())
     end
-    if next.y < bubble.C.rad or next.y > max_y then
-        bubble.C.v.y = -bubble.C.v.y
+    if next.y < bubble:radius() or next.y > max_y then
+        bubble:y_velocity(-bubble:y_velocity())
     end
-    bubble.C.pos = next
+    bubble:position(next)
 end
 
 on_update = function(dt)
@@ -139,13 +133,13 @@ on_update = function(dt)
 
     -- Grow bubble under mouse
     if cursor_bubble then
-        local percent_complete = cursor_bubble.C.rad / TWEAK.MAX_GROWTH
+        local percent_complete = cursor_bubble:radius() / TWEAK.MAX_GROWTH
         local growth_rate = percent_complete * (TWEAK.MAX_GROWTH_RATE - TWEAK.MIN_GROWTH_RATE) + TWEAK.MIN_GROWTH_RATE
         cursor_bubble:delta_radius(growth_rate * dt)
         ensure_bubble_in_bounds(cursor_bubble)
-        if cursor_bubble.C.rad > TWEAK.MAX_GROWTH then
+        if cursor_bubble:radius() > TWEAK.MAX_GROWTH then
             pop_bubble(cursor_bubble)
-            cursor_bubble = nil
+            cursor_bubble = false
         end
     end
     -- Move bubbles
@@ -167,8 +161,8 @@ on_update = function(dt)
                 separate_bubbles(a, b)
 
                 if not a.in_transition and not b.in_transition
-                    and time - a.C.last_transformation > TWEAK.TRANS_IMMUNE_PERIOD
-                    and time - b.C.last_transformation > TWEAK.TRANS_IMMUNE_PERIOD
+                    and time - (a.last_transition or 0) > TWEAK.TRANS_IMMUNE_PERIOD
+                    and time - (b.last_transition or 0) > TWEAK.TRANS_IMMUNE_PERIOD
                 then
                     start_transition(a, b);
                     start_transition(b, a);
@@ -177,7 +171,7 @@ on_update = function(dt)
         end
         if cursor_bubble and is_collision(a, cursor_bubble) then
             -- Should colliding bubbles bounce backwards?
-            --a.C.v = -a.C.v
+            --a:velocity(-a:velocity())
             separate_bubbles(a, cursor_bubble)
         end
     end
@@ -209,7 +203,7 @@ end
 
 local bubble_at_point = function (pos)
     for id, b in pairs(bubbles) do
-        if pos:dist(b.C.pos) < b.C.rad then
+        if pos:dist(b:position()) < b:radius() then
             return b
         end
     end
@@ -228,13 +222,13 @@ end
 on_mouse_up = function(x, y)
     if cursor_bubble then
         add_bubble(cursor_bubble)
-        cursor_bubble = nil
+        cursor_bubble = false
     end
 end
 
 on_mouse_move = function(x, y)
     if cursor_bubble then
-        cursor_bubble.C.pos = Vector2(x, y)
+        cursor_bubble:position(Vector2(x, y))
     end
 end
 
@@ -250,11 +244,12 @@ end
 
 if not initialized then
     initialized = true
-    -- Do stuff here!
+    -- Globals initialized here!
     bubbles = {}
     pop_effects = {}
     movement_enabled = true
     shaders = {}
+    cursor_bubble = false
 
     TWEAK = {
         STARTING_BUBBLE_COUNT = 10;
@@ -278,9 +273,9 @@ if not initialized then
     -- Any more globals is an error!
     lock_global_table()
 
-    shaders.pop = create_pop_shader()
-    shaders.bubble = create_bubble_shader()
-    shaders.bg = create_bg_shader(shaders.bubble)
+    shaders.pop = PoppingShader:new()
+    shaders.bubble = BubbleShader:new()
+    shaders.bg = BgShader:new(shaders.bubble)
 
     for i=1, TWEAK.STARTING_BUBBLE_COUNT do
         add_bubble(shaders.bubble:create_bubble(Color.random(), random_position(), random_velocity(), random_radius()))

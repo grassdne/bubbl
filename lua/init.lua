@@ -76,6 +76,7 @@ local vec2_mt = {
     distsq     = function (a, b)    return (a - b):lengthsq() end,
     dist       = function (a, b)    return math.sqrt(a:distsq(b)) end,
     normalize  = function (v)       return v / v:length() end,
+    unpack = function(v) return v.x, v.y end
 }
 vec2_mt.__index = vec2_mt
 Vector2 = ffi.metatype("Vector2", vec2_mt)
@@ -109,12 +110,68 @@ Bubble.__index = Bubble
 function Bubble:delta_radius(dr)
     self.C.rad = self.C.rad + dr
 end
+function Bubble:position(set)
+    if set then self.C.pos = set end
+    return Vector2(self.C.pos)
+end
+function Bubble:color(set)
+    if set then self.C.color = set end
+    return Color(self.C.color)
+end
+function Bubble:radius(set)
+    if set then self.C.rad = set end
+    return tonumber(self.C.rad)
+end
+function Bubble:velocity(set)
+    if set then self.C.v = set end
+    return Vector2(self.C.v)
+end
+function Bubble:x_velocity(set)
+    if set then self.C.v.x = set end
+    return tonumber(self.C.v.x)
+end
+function Bubble:y_velocity(set)
+    if set then self.C.v.y = set end
+    return tonumber(self.C.v.y)
+end
+function Bubble:x_position(set)
+    if set then self.C.pos.x = set end
+    return tonumber(self.C.pos.x)
+end
+function Bubble:y_position(set)
+    if set then self.C.pos.y = set end
+    return tonumber(self.C.pos.y)
+end
+function Bubble:red(set)
+    if set then self.C.color.r = set end
+    return tonumber(self.C.color.r)
+end
+function Bubble:green(set)
+    if set then self.C.color.g = set end
+    return tonumber(self.C.color.g)
+end
+function Bubble:blue(set)
+    if set then self.C.color.b = set end
+    return tonumber(self.C.color.b)
+end
+function Bubble:transformation_color(set)
+    if set then self.C.trans_color = set end
+    return Color(self.C.trans_color)
+end
+function Bubble:start_transformation(color, start_time, angle)
+    self.C.trans_color = color
+    self.C.trans_starttime = start_time
+    self.C.trans_angle = angle
+end
 
 local mt = {
 }
 ParticleEntity = ffi.metatype("Particle", mt)
 
 local mt = {
+    new = function (Self)
+        return ffi.gc(C.create_bubble_shader(), C.free)
+    end;
     create_bubble = function (shader, color, pos, velocity, radius)
         local bubble = setmetatable({}, Bubble)
         bubble.id = C.create_bubble(shader, color, pos, velocity, radius)
@@ -133,19 +190,18 @@ local mt = {
 mt.__index = mt
 BubbleShader = ffi.metatype("BubbleShader", mt)
 
-create_bubble_shader = function()
-    return ffi.gc(C.create_bubble_shader(), C.free)
-end
-
 local mt = {
+    new = function (Self)
+        return ffi.gc(C.create_pop_shader(), C.free)
+    end;
     draw = function (shader, dt)
         C.pop_draw(shader, dt)
     end;
     get_particle = function (shader, id)
         return C.pop_get_particle(shader, id)
     end;
-    push_particle = function (shader, particle)
-        return C.push_particle(shader, particle)
+    create_particle = function (shader, pos, color, radius)
+        return C.push_particle(shader, ParticleEntity(pos, color, radius, 0, true))
     end;
     destroy_particle = function (self, id)
         local particle = self:get_particle(id)
@@ -153,23 +209,18 @@ local mt = {
     end;
 }
 mt.__index = mt
-ffi.metatype("PoppingShader", mt)
-
-create_pop_shader = function()
-    return ffi.gc(C.create_pop_shader(), C.free)
-end
+PoppingShader = ffi.metatype("PoppingShader", mt)
 
 local mt = {
+    new = function (Self, bubbleshader)
+        return ffi.gc(C.create_bg_shader(bubbleshader), C.free)
+    end;
     draw = function (shader, indices)
         C.bgshader_draw(shader, ffi.new("uint64_t[10]", indices), #indices)
     end;
 }
 mt.__index = mt
-ffi.metatype("BgShader", mt)
-
-create_bg_shader = function(bubbleshader)
-    return ffi.gc(C.create_bg_shader(bubbleshader), C.free)
-end
+BgShader = ffi.metatype("BgShader", mt)
 
 math.randomseed(os.time())
 
@@ -333,3 +384,20 @@ WEBCOLORS = {
     WHITESMOKE = Color.hex "#f5f5f5",
     YELLOWGREEN = Color.hex "#9acd32",
 }
+
+-- utilities around math.random()
+random = {
+    sign = function()
+        return math.random() > 0.5 and 1 or -1
+    end;
+    vary = function (base, vary)
+        return base + vary * math.random()
+    end;
+    minmax = function (min, max)
+        return math.random() * (max - min) + min
+    end;
+    select = function (a)
+        return a[math.random(1, #a)]
+    end;
+}
+PI = math.pi
