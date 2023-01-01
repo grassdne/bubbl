@@ -55,21 +55,6 @@ size_t create_open_bubble_slot(BubbleShader *sh)
     return -1;
 } 
 
-void update_trans(Bubble *b, double time) {
-    if (IN_TRANSITION(*b) && time - b->trans_starttime > TRANS_TIME)
-    {
-        b->color = b->trans_color;
-        b->trans_starttime = TRANS_STARTTIME_SENTINAL;
-        b->last_transformation = get_time();
-    }
-}
-
-void start_transition(Bubble *restrict bubble, Bubble *restrict other) {
-    bubble->trans_color = other->color;
-    bubble->trans_starttime = get_time();
-    bubble->trans_angle = vec_Normalized(vec_Diff(other->pos, bubble->pos));
-}
-
 #define BUBBLE_ATTRIB(loc, count, type, field) do{ \
     glEnableVertexAttribArray(loc); \
     glVertexAttribPointer(loc, count, type, GL_FALSE, sizeof(Bubble), \
