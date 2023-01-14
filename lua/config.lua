@@ -1,1 +1,1 @@
-require "rainbow"
+require "elasticbubbles"
