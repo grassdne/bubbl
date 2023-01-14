@@ -91,6 +91,12 @@ BgShader* create_bg_shader(BubbleShader *bubble_shader)
     return sh;
 }
 
+typedef struct { int width; int height; } Dimensions;
+Dimensions get_resolution(void)
+{
+    return (Dimensions){ window_width, window_height };
+}
+
 static void frame(SDL_Window *W) {
     double now = get_time();
     double dt = now - lasttime;
@@ -126,6 +132,8 @@ int main(int argc, char **argv) {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
     lua_pushcfunction(L, error_traceback);
+
+    SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11,wayland");
 
     srand(time(NULL));
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -193,7 +201,6 @@ int main(int argc, char **argv) {
                     break;
                 }
                 else if (e.key.keysym.sym == SDLK_F11) {
-                    printf("Hello, World!\n");
                     if (is_fullscreen) {
                         is_fullscreen = false;
                         SDL_SetWindowFullscreen(window, 0);
@@ -205,6 +212,9 @@ int main(int argc, char **argv) {
                     }
                     on_window_resize(window);
                     break;
+                }
+                else if (e.key.keysym.sym == SDLK_r) {
+                    reload_config(L, window, false);
                 }
                 /* fallthrough */
             case SDL_KEYUP:

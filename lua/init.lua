@@ -55,6 +55,8 @@ void pop_destroy_particle(PoppingShader *s, size_t id);
 size_t push_particle(PoppingShader *s, Particle particle);
 void bgshader_draw(BgShader *sh, const size_t indices[MAX_ELEMS], size_t num_elems);
 double get_time(void);
+typedef struct { int width; int height; } Dimensions;
+Dimensions get_resolution(void);
 ]]
 
 BGSHADER_MAX_ELEMS = 10
@@ -92,6 +94,20 @@ local color_mt = {
     end,
     random = function()
         return Color(math.random(), math.random(), math.random())
+    end,
+
+    -- Translated directly from
+    -- https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
+    ---@param hue        number in range [0, 360]
+    ---@param saturation number in range [0, 1]
+    ---@param lightness  number in range [0, 1]
+    hsl = function(hue, saturation, lightness)
+        local function magic(n)
+            local k = (n + hue / 30) % 12
+            local a = saturation * math.min(lightness, 1 - lightness)
+            return lightness - a * math.max(-1, math.min(k - 3, 9 - k, 1))
+        end
+        return Color(magic(0), magic(8), magic(4))
     end,
 }
 color_mt.__index = color_mt
@@ -401,3 +417,8 @@ random = {
     end;
 }
 PI = math.pi
+
+function resolution()
+    local dimensions = ffi.C.get_resolution()
+    return (Vector2){ dimensions.width, dimensions.height }
+end

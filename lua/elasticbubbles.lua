@@ -17,6 +17,8 @@ TWEAK = {
     POP_LIFETIME = 1.0;
     POP_PT_RADIUS = 7.0;
     POP_PT_RADIUS_DELTA = 4.0;
+    BUBBLE_HUE = 0.9,
+    BUBBLE_LIGHTNESS = 0.5,
 }
 
 local ffi = require "ffi"
@@ -35,6 +37,10 @@ end
 
 local random_position = function()
     return Vector2(math.random()*window_width, math.random()*window_height)
+end
+
+local random_color = function()
+    return Color.hsl(math.random()*360, TWEAK.BUBBLE_HUE, TWEAK.BUBBLE_LIGHTNESS)
 end
 
 local Particle = {
@@ -234,7 +240,7 @@ on_mouse_down = function(x, y)
     if bubble then
         pop_bubble(bubble)
     else
-        cursor_bubble = shaders.bubble:create_bubble(Color.random(), Vector2(x, y), random_velocity(), random_radius())
+        cursor_bubble = shaders.bubble:create_bubble(random_color(), Vector2(x, y), random_velocity(), random_radius())
     end
 end
 
@@ -278,6 +284,6 @@ if not initialized then
     shaders.bg = BgShader:new(shaders.bubble)
 
     for i=1, TWEAK.STARTING_BUBBLE_COUNT do
-        add_bubble(shaders.bubble:create_bubble(Color.random(), random_position(), random_velocity(), random_radius()))
+        add_bubble(shaders.bubble:create_bubble(random_color(), random_position(), random_velocity(), random_radius()))
     end
 end
