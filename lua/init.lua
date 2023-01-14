@@ -55,8 +55,7 @@ void pop_destroy_particle(PoppingShader *s, size_t id);
 size_t push_particle(PoppingShader *s, Particle particle);
 void bgshader_draw(BgShader *sh, const size_t indices[MAX_ELEMS], size_t num_elems);
 double get_time(void);
-typedef struct { int width; int height; } Dimensions;
-Dimensions get_resolution(void);
+uint32_t SDL_GetMouseState(int *x, int *y);
 ]]
 
 BGSHADER_MAX_ELEMS = 10
@@ -95,6 +94,8 @@ local color_mt = {
     random = function()
         return Color(math.random(), math.random(), math.random())
     end,
+    __add = function(a, b) return Color(a.r+b.r, a.g+b.g, a.b+b.b) end,
+    __div = function(a, x) return Color(a.r/x, a.g/x, a.b/x) end,
 
     -- Translated directly from
     -- https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
@@ -418,7 +419,9 @@ random = {
 }
 PI = math.pi
 
-function resolution()
-    local dimensions = ffi.C.get_resolution()
-    return (Vector2){ dimensions.width, dimensions.height }
+mouse_position = function ()
+    local x = ffi.new("int[1]")
+    local y = ffi.new("int[1]")
+    ffi.C.SDL_GetMouseState(x, y);
+    return Vector2(x[0], window_height - y[0])
 end

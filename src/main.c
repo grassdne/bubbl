@@ -91,11 +91,8 @@ BgShader* create_bg_shader(BubbleShader *bubble_shader)
     return sh;
 }
 
-typedef struct { int width; int height; } Dimensions;
-Dimensions get_resolution(void)
-{
-    return (Dimensions){ window_width, window_height };
-}
+int get_window_width(void) { return window_width; }
+int get_window_height(void) { return window_height; }
 
 static void frame(SDL_Window *W) {
     double now = get_time();
@@ -119,10 +116,18 @@ static void on_window_resize(SDL_Window *W) {
     SDL_GL_GetDrawableSize(W, &window_width, &window_height);
     glViewport(0, 0, window_width, window_height);
     lua_State *L = SDL_GetWindowData(W, "L");
+    // Currently we set Lua globals and call callback function
     lua_pushinteger(L, window_width);
     lua_setglobal(L, "window_width");
     lua_pushinteger(L, window_height);
     lua_setglobal(L, "window_height");
+
+    lua_getglobal(L, "on_window_resize");
+    if (lua_isfunction(L, -1)) {
+        lua_pushnumber(L, window_width);
+        lua_pushnumber(L, window_height);
+        call_lua_callback(L, 2);
+    }
 }
 
 int main(int argc, char **argv) {
