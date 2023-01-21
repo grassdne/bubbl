@@ -1,14 +1,8 @@
 title = "🌈🌈🌈"
 
-local SPEED = 4
-local MIN_RADIUS = 13
-local MAX_RADIUS = 28
-local MAX_ATTAINED_RADIUS = 50
-local SPACING = 30
-local START_POS_RIGHT = 3 * SPACING
-local END_POS_LEFT = -3 * SPACING
-local MOUSE_EFFECT_RADIUS = 350
-local DELTA_RADIUS = 30
+local START_POS_RIGHT = RAINBOW.WRAPAROUND_BUFFER * RAINBOW.SPACING
+local END_POS_LEFT = -RAINBOW.WRAPAROUND_BUFFER * RAINBOW.SPACING
+
 local ffi = require "ffi"
 
 pop = PoppingShader:new()
@@ -19,7 +13,6 @@ local Particle = {
         local p = setmetatable({}, Self)
         p.id = pop:create_particle(pos, color, radius)
         p.origin_color = color
-        p.origin_radius = radius
         return p
     end;
 }
@@ -32,9 +25,9 @@ local clear_particles = function ()
 end
 
 local gen_particles = function ()
-    for x=END_POS_LEFT+SPACING, window_width + START_POS_RIGHT, SPACING do
-        for i=0, window_height / SPACING do
-            local radius = random.minmax(MIN_RADIUS, MAX_RADIUS)
+    for x=END_POS_LEFT+RAINBOW.SPACING, window_width + START_POS_RIGHT, RAINBOW.SPACING do
+        for i=0, window_height / RAINBOW.SPACING do
+            local radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS)
             local pos = Vector2(x, window_height * math.random())
             local color = Color.hsl(x/window_width*360, 1, 0.5)
             local pt = Particle:new(pos, color, radius)
@@ -48,13 +41,13 @@ gen_particles()
 on_update = function(dt)
     for _,part in ipairs(particles) do
         local ent = pop:get_particle(part.id);
-        ent.pos.x = ent.pos.x - window_width/SPEED * dt
+        local length = window_width + START_POS_RIGHT - END_POS_LEFT
+        ent.pos.x = ent.pos.x - length / RAINBOW.PERIOD * dt
         if ent.pos.x < END_POS_LEFT then
             ent.pos.x = window_width+START_POS_RIGHT
             ent.pos.y = window_height * math.random()
-            ent.radius = random.minmax(MIN_RADIUS, MAX_RADIUS)
             ent.color = part.origin_color
-            ent.radius = part.origin_radius
+            ent.radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS)
         end
     end
     pop:draw(dt)
@@ -64,9 +57,9 @@ on_update = function(dt)
         for _,part in ipairs(particles) do
             local ent = pop:get_particle(part.id);
             local distsq = mouse:distsq(ent.pos)
-            if distsq < MOUSE_EFFECT_RADIUS*MOUSE_EFFECT_RADIUS then
-                local proximity = 1 - math.sqrt(distsq) / MOUSE_EFFECT_RADIUS
-                ent.radius = math.min(MAX_ATTAINED_RADIUS, ent.radius + DELTA_RADIUS * proximity * dt)
+            if distsq < RAINBOW.MOUSE_EFFECT_RADIUS*RAINBOW.MOUSE_EFFECT_RADIUS then
+                local proximity = 1 - math.sqrt(distsq) / RAINBOW.MOUSE_EFFECT_RADIUS
+                ent.radius = math.min(RAINBOW.MAX_ATTAINED_RADIUS, ent.radius + RAINBOW.SIZE_DELTA * proximity * dt)
             end
         end
     end
