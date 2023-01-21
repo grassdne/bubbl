@@ -26,7 +26,9 @@ local Particle = {
     new = function (Self, velocity, pos, color, radius)
         local p = setmetatable({}, Self)
         p.velocity = velocity
-        p.id = shaders.pop:create_particle(pos, color, radius)
+        p.pos = pos
+        p.color = color
+        p.radius = radius
         return p
     end;
 }
@@ -56,12 +58,6 @@ local pop_bubble = function(bubble)
     table.insert(pop_effects, create_pop_effect(bubble:position(), bubble:color(), bubble:radius()))
     shaders.bubble:destroy_bubble(bubble.id)
     bubbles[bubble.id] = nil
-end
-
-local destroy_pop_effect = function (pop)
-    for _,pt in ipairs(pop) do
-        shaders.pop:destroy_particle(pt.id)
-    end
 end
 
 local is_collision = function (a, b)
@@ -183,11 +179,11 @@ on_update = function(dt)
     -- Update pop effect particles
     for _, pop in ipairs(pop_effects) do
         local new_age = time - pop.start_time
-        for _, particle in ipairs(pop) do
-            local ent = shaders.pop:get_particle(particle.id)
-            ent.pos = ent.pos + particle.velocity * dt
-            ent.radius = ent.radius + ELASTICBUBBLES.POP_PT_RADIUS_DELTA * dt
-            ent.age = new_age
+        for _, pt in ipairs(pop) do
+            pt.pos = pt.pos + pt.velocity * dt
+            pt.radius = pt.radius + ELASTICBUBBLES.POP_PT_RADIUS_DELTA * dt
+            pt.age = new_age
+            shaders.pop:render_particle(pt.pos, pt.color, pt.radius, pt.age)
         end
     end
     -- Pop effects should be in chronological order
@@ -195,7 +191,6 @@ on_update = function(dt)
         if time - pop_effects[i].start_time < ELASTICBUBBLES.POP_LIFETIME then
             break
         end
-        destroy_pop_effect(pop_effects[i])
         pop_effects[i] = nil
     end
 

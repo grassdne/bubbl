@@ -9,6 +9,8 @@
 #define UNI_GETS($name) sh->uniforms.$name = glGetUniformLocation(sh->shader.program, #$name);
 
 #define CHECK_GL_ERROR() checkGlError(__FILE__, __LINE__)
+#undef glGenBuffers
+#define glGenBuffers(...) __glewGenBuffers(__VA_ARGS__), CHECK_GL_ERROR()
 
 typedef struct { GLuint program; GLuint vao; } Shader;
 

@@ -28,7 +28,6 @@ typedef struct {
     Color color;
     float radius;
     float age;
-    bool alive;
 } Particle;
 
 // Opaque types
@@ -49,10 +48,8 @@ int get_bubble_at_point(Vector2 pos);
 Bubble *get_bubble(BubbleShader *s, size_t id);
 void free(void *p);
 void bubbleshader_draw(BubbleShader *s);
-void pop_draw(PoppingShader *s, double dt);
-Particle *pop_get_particle(PoppingShader *s, size_t id);
-void pop_destroy_particle(PoppingShader *s, size_t id);
-size_t push_particle(PoppingShader *s, Particle particle);
+void flush_particles(PoppingShader *s, double dt);
+void render_particle(PoppingShader *s, Particle particle);
 void bgshader_draw(BgShader *sh, const size_t indices[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 uint32_t SDL_GetMouseState(int *x, int *y);
@@ -212,17 +209,10 @@ local mt = {
         return ffi.gc(C.create_pop_shader(), C.free)
     end;
     draw = function (shader, dt)
-        C.pop_draw(shader, dt)
+        C.flush_particles(shader, dt)
     end;
-    get_particle = function (shader, id)
-        return C.pop_get_particle(shader, id)
-    end;
-    create_particle = function (shader, pos, color, radius)
-        return C.push_particle(shader, ParticleEntity(pos, color, radius, 0, true))
-    end;
-    destroy_particle = function (self, id)
-        local particle = self:get_particle(id)
-        particle.alive = false
+    render_particle = function (shader, pos, color, radius, age)
+        C.render_particle(shader, ParticleEntity(pos, color, radius, age))
     end;
 }
 mt.__index = mt

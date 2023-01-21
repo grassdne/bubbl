@@ -11,16 +11,15 @@ particles = {}
 local Particle = {
     new = function (Self, pos, color, radius)
         local p = setmetatable({}, Self)
-        p.id = pop:create_particle(pos, color, radius)
+        p.pos = pos
+        p.radius = radius
+        p.color = color
         p.origin_color = color
         return p
     end;
 }
 
 local clear_particles = function ()
-    for _,part in ipairs(particles) do
-        pop:destroy_particle(part.id)
-    end
     particles = {}
 end
 
@@ -40,42 +39,38 @@ gen_particles()
 
 on_update = function(dt)
     for _,part in ipairs(particles) do
-        local ent = pop:get_particle(part.id);
         local length = window_width + START_POS_RIGHT - END_POS_LEFT
-        ent.pos.x = ent.pos.x - length / RAINBOW.PERIOD * dt
-        if ent.pos.x < END_POS_LEFT then
-            ent.pos.x = window_width+START_POS_RIGHT
-            ent.pos.y = window_height * math.random()
-            ent.color = part.origin_color
-            ent.radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS)
+        part.pos.x = part.pos.x - length / RAINBOW.PERIOD * dt
+        if part.pos.x < END_POS_LEFT then
+            part.pos.x = window_width+START_POS_RIGHT
+            part.pos.y = window_height * math.random()
+            part.color = part.origin_color
+            part.radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS)
         end
+        pop:render_particle(part.pos, part.color, part.radius, 1)
     end
-    pop:draw(dt)
 
     local mouse = mouse_position()
     if mouse.x > 0 and mouse.x < window_width and mouse.y > 0 and mouse.y < window_height then
         for _,part in ipairs(particles) do
-            local ent = pop:get_particle(part.id);
-            local distsq = mouse:distsq(ent.pos)
+            local distsq = mouse:distsq(part.pos)
             if distsq < RAINBOW.MOUSE_EFFECT_RADIUS*RAINBOW.MOUSE_EFFECT_RADIUS then
                 local proximity = 1 - math.sqrt(distsq) / RAINBOW.MOUSE_EFFECT_RADIUS
-                ent.radius = math.min(RAINBOW.MAX_ATTAINED_RADIUS, ent.radius + RAINBOW.SIZE_DELTA * proximity * dt)
+                part.radius = math.min(RAINBOW.MAX_ATTAINED_RADIUS, part.radius + RAINBOW.SIZE_DELTA * proximity * dt)
             end
         end
     end
+
+    pop:draw(dt)
 end
 
-on_mouse_move = function(x, y)
-end
+on_mouse_move = function(x, y) end
 
-on_mouse_up = function()
-end
+on_mouse_up = function(x, y) end
 
-on_mouse_down = function()
-end
+on_mouse_down = function(x, y) end
 
-on_key = function(key, down)
-end
+on_key = function(key, down) end
 
 on_window_resize = function(w, h)
     clear_particles()
