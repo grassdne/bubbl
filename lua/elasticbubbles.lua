@@ -23,20 +23,22 @@ local random_color = function()
 end
 
 local Particle = {
-    new = function (Self, velocity, pos, color, radius)
+    new = function (Self, velocity, pos)
         local p = setmetatable({}, Self)
         p.velocity = velocity
         p.pos = pos
-        p.color = color
-        p.radius = radius
         return p
     end;
 }
 
 local create_pop_effect = function (center, color, size)
-    local pop = {}
-    -- Add center bubble
-    table.insert(pop, Particle:new(Vector2(0,0), center, color, ELASTICBUBBLES.POP_PT_RADIUS))
+    local pop = {
+        pt_radius = ELASTICBUBBLES.POP_PT_RADIUS,
+        color = color,
+
+        -- Center bubble
+        [1] = Particle:new(Vector2(0,0), center)
+    }
 
     local distance = 0
     local num_particles_in_layer = 0
@@ -47,7 +49,7 @@ local create_pop_effect = function (center, color, size)
             local theta = 2*PI / num_particles_in_layer * i
             local dir = Vector2(math.cos(theta), math.sin(theta))
             local velocity = dir * (ELASTICBUBBLES.POP_EXPAND_MULT * distance / ELASTICBUBBLES.POP_LIFETIME)
-            table.insert(pop, Particle:new(velocity, dir * distance + center, color, ELASTICBUBBLES.POP_PT_RADIUS))
+            table.insert(pop, Particle:new(velocity, dir * distance + center))
         end
     end
     pop.start_time = ffi.C.get_time()
@@ -178,12 +180,11 @@ on_update = function(dt)
 
     -- Update pop effect particles
     for _, pop in ipairs(pop_effects) do
-        local new_age = time - pop.start_time
+        pop.pt_radius = pop.pt_radius + ELASTICBUBBLES.POP_PT_RADIUS_DELTA * dt
+        pop.age = time - pop.start_time
         for _, pt in ipairs(pop) do
             pt.pos = pt.pos + pt.velocity * dt
-            pt.radius = pt.radius + ELASTICBUBBLES.POP_PT_RADIUS_DELTA * dt
-            pt.age = new_age
-            shaders.pop:render_particle(pt.pos, pt.color, pt.radius, pt.age)
+            shaders.pop:render_particle(pt.pos, pop.color, pop.pt_radius, pop.age)
         end
     end
     -- Pop effects should be in chronological order
