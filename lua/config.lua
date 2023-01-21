@@ -1,4 +1,4 @@
-ELASTIC_BUBBLE = {
+ELASTICBUBBLES = {
     STARTING_BUBBLE_COUNT = 10,
     BUBBLE_SPEED_BASE = 200,
     BUBBLE_SPEED_VARY = 225,
@@ -29,5 +29,5 @@ RAINBOW = {
     MOUSE_EFFECT_RADIUS = 300,
     SIZE_DELTA = 55,
 }
---require "elasticbubbles"
-require "rainbow"
+require "elasticbubbles"
+--require "rainbow"

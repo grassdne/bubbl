@@ -1,19 +1,17 @@
 title = "Elastic Bubbles"
 
-local TWEAK = CONFIG.ELASTIC_BUBBLE
-
 local ffi = require "ffi"
 local add_bubble = function (bubble)
     bubbles[bubble.id] = bubble;
 end
 
 local random_velocity = function()
-    return Vector2(random.sign() * random.vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY),
-    random.sign() * random.vary(TWEAK.BUBBLE_SPEED_BASE, TWEAK.BUBBLE_SPEED_VARY))
+    return Vector2(random.sign() * random.vary(ELASTICBUBBLES.BUBBLE_SPEED_BASE, ELASTICBUBBLES.BUBBLE_SPEED_VARY),
+    random.sign() * random.vary(ELASTICBUBBLES.BUBBLE_SPEED_BASE, ELASTICBUBBLES.BUBBLE_SPEED_VARY))
 end
 
 local random_radius = function()
-    return random.vary(TWEAK.BUBBLE_RAD_BASE, TWEAK.BUBBLE_RAD_VARY)
+    return random.vary(ELASTICBUBBLES.BUBBLE_RAD_BASE, ELASTICBUBBLES.BUBBLE_RAD_VARY)
 end
 
 local random_position = function()
@@ -21,7 +19,7 @@ local random_position = function()
 end
 
 local random_color = function()
-    return Color.hsl(math.random()*360, TWEAK.BUBBLE_HUE, TWEAK.BUBBLE_LIGHTNESS)
+    return Color.hsl(math.random()*360, ELASTICBUBBLES.BUBBLE_HUE, ELASTICBUBBLES.BUBBLE_LIGHTNESS)
 end
 
 local Particle = {
@@ -36,18 +34,18 @@ local Particle = {
 local create_pop_effect = function (center, color, size)
     local pop = {}
     -- Add center bubble
-    table.insert(pop, Particle:new(Vector2(0,0), center, color, TWEAK.POP_PT_RADIUS))
+    table.insert(pop, Particle:new(Vector2(0,0), center, color, ELASTICBUBBLES.POP_PT_RADIUS))
 
     local distance = 0
     local num_particles_in_layer = 0
-    while distance < size - TWEAK.POP_PT_RADIUS do
-        distance = distance + TWEAK.POP_LAYER_WIDTH
-        num_particles_in_layer = num_particles_in_layer + TWEAK.POP_PARTICLE_LAYOUT
+    while distance < size - ELASTICBUBBLES.POP_PT_RADIUS do
+        distance = distance + ELASTICBUBBLES.POP_LAYER_WIDTH
+        num_particles_in_layer = num_particles_in_layer + ELASTICBUBBLES.POP_PARTICLE_LAYOUT
         for i = 1, num_particles_in_layer do
             local theta = 2*PI / num_particles_in_layer * i
             local dir = Vector2(math.cos(theta), math.sin(theta))
-            local velocity = dir * (TWEAK.POP_EXPAND_MULT * distance / TWEAK.POP_LIFETIME)
-            table.insert(pop, Particle:new(velocity, dir * distance + center, color, TWEAK.POP_PT_RADIUS))
+            local velocity = dir * (ELASTICBUBBLES.POP_EXPAND_MULT * distance / ELASTICBUBBLES.POP_LIFETIME)
+            table.insert(pop, Particle:new(velocity, dir * distance + center, color, ELASTICBUBBLES.POP_PT_RADIUS))
         end
     end
     pop.start_time = ffi.C.get_time()
@@ -140,11 +138,11 @@ on_update = function(dt)
 
     -- Grow bubble under mouse
     if cursor_bubble then
-        local percent_complete = cursor_bubble:radius() / TWEAK.MAX_GROWTH
-        local growth_rate = percent_complete * (TWEAK.MAX_GROWTH_RATE - TWEAK.MIN_GROWTH_RATE) + TWEAK.MIN_GROWTH_RATE
+        local percent_complete = cursor_bubble:radius() / ELASTICBUBBLES.MAX_GROWTH
+        local growth_rate = percent_complete * (ELASTICBUBBLES.MAX_GROWTH_RATE - ELASTICBUBBLES.MIN_GROWTH_RATE) + ELASTICBUBBLES.MIN_GROWTH_RATE
         cursor_bubble:delta_radius(growth_rate * dt)
         ensure_bubble_in_bounds(cursor_bubble)
-        if cursor_bubble:radius() > TWEAK.MAX_GROWTH then
+        if cursor_bubble:radius() > ELASTICBUBBLES.MAX_GROWTH then
             pop_bubble(cursor_bubble)
             cursor_bubble = false
         end
@@ -155,7 +153,7 @@ on_update = function(dt)
         if movement_enabled and not bubble.in_transition then
             move_bubble(bubble, dt)
         end
-        if bubble.in_transition and time - bubble.C.trans_starttime > TWEAK.TRANS_TIME then
+        if bubble.in_transition and time - bubble.C.trans_starttime > ELASTICBUBBLES.TRANS_TIME then
             stop_transition(bubble)
         end
         ensure_bubble_in_bounds(bubble)
@@ -168,8 +166,8 @@ on_update = function(dt)
                 separate_bubbles(a, b)
 
                 if not a.in_transition and not b.in_transition
-                    and time - (a.last_transition or 0) > TWEAK.TRANS_IMMUNE_PERIOD
-                    and time - (b.last_transition or 0) > TWEAK.TRANS_IMMUNE_PERIOD
+                    and time - (a.last_transition or 0) > ELASTICBUBBLES.TRANS_IMMUNE_PERIOD
+                    and time - (b.last_transition or 0) > ELASTICBUBBLES.TRANS_IMMUNE_PERIOD
                 then
                     start_transition(a, b);
                     start_transition(b, a);
@@ -188,13 +186,13 @@ on_update = function(dt)
         for _, particle in ipairs(pop) do
             local ent = shaders.pop:get_particle(particle.id)
             ent.pos = ent.pos + particle.velocity * dt
-            ent.radius = ent.radius + TWEAK.POP_PT_RADIUS_DELTA * dt
+            ent.radius = ent.radius + ELASTICBUBBLES.POP_PT_RADIUS_DELTA * dt
             ent.age = new_age
         end
     end
     -- Pop effects should be in chronological order
     for i = #pop_effects, 1, -1 do
-        if time - pop_effects[i].start_time < TWEAK.POP_LIFETIME then
+        if time - pop_effects[i].start_time < ELASTICBUBBLES.POP_LIFETIME then
             break
         end
         destroy_pop_effect(pop_effects[i])
@@ -264,7 +262,7 @@ if not initialized then
     shaders.bubble = BubbleShader:new()
     shaders.bg = BgShader:new(shaders.bubble)
 
-    for i=1, TWEAK.STARTING_BUBBLE_COUNT do
+    for i=1, ELASTICBUBBLES.STARTING_BUBBLE_COUNT do
         add_bubble(shaders.bubble:create_bubble(random_color(), random_position(), random_velocity(), random_radius()))
     end
 end
