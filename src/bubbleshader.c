@@ -6,26 +6,10 @@
 #include <stdlib.h>
 #include <GLFW/glfw3.h>
 
-// Bubble growing under mouse is at index 0
-// I need everything in one big buffer for instanced rendering
-#define IN_TRANSITION(b) (!((b).trans_starttime == TRANS_STARTTIME_SENTINAL))
-#define POST_COLLIDE_SPACING 1.0
-#define TRANS_IMMUNE_PERIOD 1.0
-#define TRANSITIONS_ENABLED 0
-
 const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
     .frag = "shaders/bubble.frag",
 };
-
-/*
- * Syntax:
- *
- * FOR_ACTIVE_BUBBLES(i) {
- *    Bubble *bubble = &bubbles[i];
- *    ...
- * }
-*/
 
 // Explicitly numbered because need to match vertex shader
 typedef enum {
