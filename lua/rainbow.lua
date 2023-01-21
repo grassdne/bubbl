@@ -47,7 +47,7 @@ on_update = function(dt)
             part.color = part.origin_color
             part.radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS)
         end
-        pop:render_particle(part.pos, part.color, part.radius, 1)
+        pop:render_particle(part.pos, part.color, part.radius, 0)
     end
 
     local mouse = mouse_position()
