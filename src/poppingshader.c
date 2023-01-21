@@ -19,14 +19,6 @@ typedef enum {
     ATTRIB_ALIVE = 5,
 } VertAttribLocs;
 
-#define POP_LIFETIME 1.0
-#define EXPAND_MULT 2.0
-
-#define LAYER_WIDTH SCALECONTENT(10.0)
-#define PARTICLE_LAYOUT 5
-#define PT_RADIUS SCALECONTENT(8.0);
-#define PT_DELTA_RADIUS (EXPAND_MULT / POP_LIFETIME)
-
 #define PARTICLES_INIT_CAPACITY 1024
 
 #define POP_ATTRIB(loc, count, type, field) do{                         \
