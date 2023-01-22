@@ -1,4 +1,4 @@
-title = "Elastic Bubbles"
+title = "Elastic Bubbles (Press to create or pop a bubble!)"
 
 local ffi = require "ffi"
 local add_bubble = function (bubble)
@@ -202,7 +202,7 @@ on_update = function(dt)
 end
 
 local bubble_at_point = function (pos)
-    for id, b in pairs(bubbles) do
+    for _, b in pairs(bubbles) do
         if pos:dist(b:position()) < b:radius() then
             return b
         end
