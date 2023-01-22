@@ -29,14 +29,22 @@ RAINBOW = {
     MOUSE_EFFECT_RADIUS = 300,
     SIZE_DELTA = 55,
 }
+
+SVGEDITOR = {
+    FILE = "img.svg",
+    COLOR = WEBCOLORS.RED,
+}
+
 -----------------------
 --- Elastic Bubbles ---
 -----------------------
 -- Click and hold to create a bubble
 -- Click a bubble to pop it
-require "elasticbubbles"
+--require "elasticbubbles"
 
 -----------------
 --- Rainbow 1 ---
 -----------------
 --require "rainbow"
+
+require "svgeditor"

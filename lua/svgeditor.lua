@@ -1,0 +1,135 @@
+title = "SVG Editor"
+
+pop = PoppingShader:new()
+bubble = BubbleShader:new()
+circles = {}
+local circle_under_mouse
+local BASE_SIZE = 15
+
+local Particle = {
+    new = function (Self, pos, color, radius, focused)
+        local p = setmetatable({}, Self)
+        p.pos = pos
+        p.radius = radius
+        p.color = color
+        p.focused = focused
+        return p
+    end;
+}
+
+on_update = function(dt)
+    -- Render circles
+    for _,pt in ipairs(circles) do
+        pop:render_particle(pt.pos, pt.color, pt.radius, 0)
+    end
+    pop:draw(dt)
+end
+
+on_mouse_move = function(x, y)
+    if circle_under_mouse then
+        circle_under_mouse.pos = Vector2(x, y)
+    end
+end
+
+on_mouse_up = function(x, y)
+    circle_under_mouse = nil
+end
+
+local SVG_SIZE = 256
+
+local get_bounding_box = function ()
+    -- Could be slow if we have 1 million+ circles
+
+    assert(#circles > 0)
+    local circles = table.copy(circles)
+
+    table.sort(circles, function(a, b) return a.pos.x < b.pos.x end)
+    local leftmost = circles[1].pos.x - circles[1].radius
+    local rightmost = circles[#circles].pos.x + circles[#circles].radius
+
+    table.sort(circles, function(a, b) return a.pos.y < b.pos.y end)
+    local bottommost = circles[1].pos.y - circles[1].radius
+    local topmost = circles[#circles].pos.y + circles[#circles].radius
+
+    return { left=leftmost, right=rightmost, bottom=bottommost, top=topmost }
+end
+
+local get_svg_coords = function()
+    local bounds = get_bounding_box()
+    local width = bounds.right - bounds.left
+    local height = bounds.top - bounds.bottom
+    local size = math.max(width, height)
+    local buffer_left = (size - width) / 2
+    local buffer_bottom = (size - height) / 2
+    local scale = SVG_SIZE / size
+    local coords = {}
+    coords.size = size
+    coords.scale = scale
+    for i,v in ipairs(circles) do
+        local x = (v.pos.x - bounds.left + buffer_left) * scale 
+        -- SVG coordinate system has top left origin
+        local y = (size - (v.pos.y - bounds.bottom + buffer_bottom)) * scale
+        coords[i] = Vector2(x, y)
+    end
+    return coords
+end
+
+local fmt = string.format
+local save_to_svg = function(file_path)
+    local f = assert(io.open(file_path, 'w'))
+    f:write("<?xml version=\"1.0\"?>\n")
+    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_SIZE, SVG_SIZE))
+    
+    print(Color.hex("#FF00FF"):to_hex_string())
+    local coords = get_svg_coords()
+    for i,circle in ipairs(circles) do
+        local x, y = coords[i]:unpack()
+        f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
+                x, y, circle.radius * coords.scale, circle.color:to_hex_string()))
+    end
+
+    f:write("</svg>")
+    f:close()
+end
+
+local circle_at_position = function(pos)
+    -- We iterate backwards to get the front circle
+    for i = #circles, 1, -1 do
+        if circles[i].pos:dist(pos) < circles[i].radius then
+            return circles[i]
+        end
+    end
+    return nil
+end
+
+on_mouse_down = function(x, y)
+    circle_under_mouse = circle_at_position(Vector2(x, y))
+    if not circle_under_mouse then
+        circle_under_mouse = Particle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
+        table.insert(circles, circle_under_mouse)
+    end
+end
+
+local KEY_DELTA_RADIUS = 2
+local MIN_CIRCLE_RADIUS = 5
+
+local circle_delta_radius = function(circle, delta)
+    local new_radius = circle.radius + delta
+    if new_radius > MIN_CIRCLE_RADIUS then
+        circle.radius = new_radius
+    end
+end
+
+on_key = function(key, is_down)
+    if key == "Return" and is_down then
+        save_to_svg(SVGEDITOR.FILE)
+    elseif key == "Up" and is_down then
+        local circle = circle_at_position(mouse_position())
+        if circle then circle_delta_radius(circle, KEY_DELTA_RADIUS) end
+    elseif key == "Down" and is_down then
+        local circle = circle_at_position(mouse_position())
+        if circle then circle_delta_radius(circle, -KEY_DELTA_RADIUS) end
+    end
+end
+
+on_window_resize = function(w, h) end
