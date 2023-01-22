@@ -181,7 +181,6 @@ on_update = function(dt)
     for _, bubble in ipairs(bubbles) do
         if bubble.trans_starttime then
             bubble.trans_percent = (time - bubble.trans_starttime) / ELASTICBUBBLES.TRANSFORM_TIME
-            bubble.trans_percent = 0.5
         end
         shaders.bubble:render(bubble)
     end
