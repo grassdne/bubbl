@@ -38,7 +38,7 @@ void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems)
 
     for (size_t i = 0; i < num_elems; ++i) {
         const Bubble *b = bubbles[i];
-        colors[i] = color_mix(b->color, b->trans_color, b->trans_percent);
+        colors[i] = color_mix(b->color_a, b->color_b, b->trans_percent);
         positions[i] = b->pos;
     }
 

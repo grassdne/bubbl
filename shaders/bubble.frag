@@ -7,10 +7,9 @@ uniform float time;
 
 in float rad;
 in vec2 bubble_pos;
-in vec3 bubble_color;
-in float bottom_left_to_top_right;
+in vec3 color_a;
+in vec3 color_b;
 in vec2 trans_angle;
-in vec3 trans_color;
 in float trans_percent;
 
 const float MIN_TRANSPARENCY = 0.0;
@@ -64,7 +63,7 @@ void main() {
         // smoothstep will return 0 when dist_to_trans_origin is out to the "left" of the gradient
         // smoothstep will return 1 when dist_to_trans_origin is out to the "right" of the gradient
         float percent_transitioned = smoothstep(transitioned_radius - gradient_width, transitioned_radius + gradient_width, dist_to_trans_origin);
-        vec3 color = mix(trans_color, bubble_color, percent_transitioned);
+        vec3 color = mix(color_b, color_a, percent_transitioned);
         outcolor = vec4(color, a);
     }
     else { discard; }

@@ -112,7 +112,7 @@ local start_transition = function (bubble, other)
 end
 local stop_transition = function (bubble)
     bubble.trans_starttime = nil
-    bubble.color = bubble:transformation_color()
+    bubble.color = bubble.color_b
     bubble.last_transition = ffi.C.get_time();
 end
 
@@ -137,7 +137,7 @@ on_update = function(dt)
     if cursor_bubble then
         local percent_complete = cursor_bubble.radius / ELASTICBUBBLES.MAX_GROWTH
         local growth_rate = percent_complete * (ELASTICBUBBLES.MAX_GROWTH_RATE - ELASTICBUBBLES.MIN_GROWTH_RATE) + ELASTICBUBBLES.MIN_GROWTH_RATE
-        cursor_bubble:delta_radius(growth_rate * dt)
+        cursor_bubble.radius = cursor_bubble.radius + growth_rate * dt
         ensure_bubble_in_bounds(cursor_bubble)
         if cursor_bubble.radius > ELASTICBUBBLES.MAX_GROWTH then
             pop_effect_from_bubble(cursor_bubble)

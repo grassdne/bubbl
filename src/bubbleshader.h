@@ -14,11 +14,10 @@
 
 typedef struct  {
     Vector2 pos;
-    Vector2 v;
-    Color color;
     float rad;
+    Color color_a;
+    Color color_b;
     Vector2 trans_angle;
-    Color trans_color;
     float trans_percent;
 } Bubble;
 

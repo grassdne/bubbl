@@ -1,9 +1,9 @@
 title = "SVG Editor"
 
 pop = PoppingShader:new()
-bubble = BubbleShader:new()
+bubblerenderer = BubbleShader:new()
 circles = {}
-local circle_under_mouse
+local circle_dragging
 local BASE_SIZE = 15
 
 local Particle = {
@@ -20,19 +20,24 @@ local Particle = {
 on_update = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
-        pop:render_particle(pt.pos, pt.color, pt.radius, 0)
+        if pt == circle_dragging then
+            bubblerenderer:render_simple(pt.pos, pt.color, pt.radius)
+        else
+            pop:render_particle(pt.pos, pt.color, pt.radius, 0)
+        end
     end
     pop:draw(dt)
+    bubblerenderer:draw()
 end
 
 on_mouse_move = function(x, y)
-    if circle_under_mouse then
-        circle_under_mouse.pos = Vector2(x, y)
+    if circle_dragging then
+        circle_dragging.pos = Vector2(x, y)
     end
 end
 
 on_mouse_up = function(x, y)
-    circle_under_mouse = nil
+    circle_dragging = nil
 end
 
 local SVG_SIZE = 256
@@ -103,10 +108,10 @@ local circle_at_position = function(pos)
 end
 
 on_mouse_down = function(x, y)
-    circle_under_mouse = circle_at_position(Vector2(x, y))
-    if not circle_under_mouse then
-        circle_under_mouse = Particle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
-        table.insert(circles, circle_under_mouse)
+    circle_dragging = circle_at_position(Vector2(x, y))
+    if not circle_dragging then
+        circle_dragging = Particle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
+        table.insert(circles, circle_dragging)
     end
 end
 

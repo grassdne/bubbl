@@ -13,11 +13,10 @@ typedef char GLbyte;
 
 typedef struct  {
     Vector2 pos;
-    Vector2 v;
-    Color color;
     float rad;
+    Color color;
+    Color color_b;
     Vector2 trans_angle;
-    Color trans_color;
     float trans_percent;
 } Bubble;
 
@@ -123,21 +122,14 @@ function Bubble:new(color, pos, velocity, radius)
     bubble.color = color
     bubble.velocity = velocity
     bubble.radius = radius
-    bubble.trans_color = color
+    bubble.color_b = color
     bubble.trans_angle = Vector2(0,0)
     bubble.trans_percent = 0
     bubble.trans_starttime = nil
     return bubble
 end
-function Bubble:delta_radius(dr)
-    self.radius = self.radius + dr
-end
-function Bubble:transformation_color(set)
-    if set then self.trans_color = set end
-    return Color(self.trans_color)
-end
 function Bubble:start_transformation(color, start_time, angle)
-    self.trans_color = color
+    self.color_b = color
     self.trans_percent = 0
     self.trans_starttime = start_time
     self.trans_angle = angle
@@ -145,12 +137,11 @@ end
 function Bubble:c_bubble()
     return BubbleEntity {
         pos = self.position,
-        color = self.color,
-        v = self.velocity,
         rad = self.radius,
-        trans_color = self.trans_color,
-        trans_angle = self.trans_angle,
-        trans_percent = self.trans_percent,
+        color = self.color,
+        color_b = self.color_b or self.color,
+        trans_angle = self.trans_angle or Vector2(0,0),
+        trans_percent = self.trans_percent or 0,
     }
 end
 
@@ -167,9 +158,23 @@ local mt = {
         C.render_bubble(shader, bubble:c_bubble())
     end;
 
+    render_simple = function (shader, pos, color, rad,
+                              opt_color_b, opt_trans_angle, opt_trans_percent)
+        bubble = BubbleEntity()
+        bubble.pos = pos
+        bubble.rad = rad
+        bubble.color = color
+        bubble.color_b = opt_color_b or color
+        bubble.trans_angle = opt_trans_angle or Vector2(0,0)
+        bubble.trans_percent = opt_trans_percent or 0
+        C.render_bubble(shader, bubble)
+    end;
+
     draw = function (shader)
         C.bubbleshader_draw(shader)
     end;
+
+    __tostring = function() return "BubbleShader" end
 }
 
 mt.__index = mt

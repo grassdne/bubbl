@@ -10,16 +10,16 @@ const ShaderDatas BUBBLE_SHADER_DATAS = {
     .frag = "shaders/bubble.frag",
 };
 
-// Explicitly numbered because need to match vertex shader
+// Need to match vertex shader layout
 typedef enum {
     ATTRIB_VERT_POS = 0,
     ATTRIB_BUBBLE_POS = 1,
-    ATTRIB_BUBBLE_COLOR = 2,
+    ATTRIB_COLOR_A = 2,
+    ATTRIB_COLOR_B = 5,
     ATTRIB_BUBBLE_RADIUS = 3,
     ATTRIB_TRANS_ANGLE = 4,
-    ATTRIB_TRANS_COLOR = 5,
     ATTRIB_TRANS_PERCENT = 6,
-} VertAttribLocs;
+} AttributeLocations;
 
 size_t create_open_bubble_slot(BubbleShader *sh)
 {
@@ -42,10 +42,10 @@ static void init_bubble_vbo(BubbleShader *sh) {
 	glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
 
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_POS, 2, GL_FLOAT, pos);
-    BUBBLE_ATTRIB(ATTRIB_BUBBLE_COLOR, 3, GL_FLOAT, color);
+    BUBBLE_ATTRIB(ATTRIB_COLOR_A, 3, GL_FLOAT, color_a);
+    BUBBLE_ATTRIB(ATTRIB_COLOR_B, 3, GL_FLOAT, color_b);
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_RADIUS, 4, GL_FLOAT, rad);
     BUBBLE_ATTRIB(ATTRIB_TRANS_ANGLE, 2, GL_FLOAT, trans_angle);
-    BUBBLE_ATTRIB(ATTRIB_TRANS_COLOR, 3, GL_FLOAT, trans_color);
     BUBBLE_ATTRIB(ATTRIB_TRANS_PERCENT, 1, GL_FLOAT, trans_percent);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -61,7 +61,6 @@ Bubble *get_bubble(BubbleShader *sh, size_t id)
     }
     return NULL;
 }
-
 void render_bubble(BubbleShader *sh, Bubble bubble)
 {
     int slot = create_open_bubble_slot(sh);
