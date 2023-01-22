@@ -16,11 +16,9 @@ typedef struct  {
     Vector2 v;
     Color color;
     float rad;
-    GLbyte alive;
     Vector2 trans_angle;
     Color trans_color;
     double trans_starttime;
-    double last_transformation;
 } Bubble;
 
 typedef struct {
@@ -41,16 +39,12 @@ BgShader* create_bg_shader(BubbleShader *s);
 
 enum{ MAX_ELEMS=10 };
 
-int create_bubble(BubbleShader *s, Color color, Vector2 position, Vector2 velocity, int radius);
-//void create_pop(PoppingShader *s, Vector2 pos, Color color, float rad);
-void destroy_bubble(BubbleShader *s, size_t id);
-int get_bubble_at_point(Vector2 pos);
-Bubble *get_bubble(BubbleShader *s, size_t id);
 void free(void *p);
+void render_bubble(BubbleShader *sh, Bubble bubble);
 void bubbleshader_draw(BubbleShader *s);
 void flush_particles(PoppingShader *s, double dt);
 void render_particle(PoppingShader *s, Particle particle);
-void bgshader_draw(BgShader *sh, const size_t indices[MAX_ELEMS], size_t num_elems);
+void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 uint32_t SDL_GetMouseState(int *x, int *y);
 ]]
@@ -117,15 +111,26 @@ color_mt.__index = color_mt
 Color = ffi.metatype("Color", color_mt)
 
 local mt = {
-    __gc = function(bubble)
-        bubble.C.alive = false
-    end,
 }
 mt.__index = mt
 BubbleEntity = ffi.metatype("Bubble", mt)
 
 Bubble = {}
 Bubble.__index = Bubble
+function Bubble:new(color, pos, velocity, radius)
+    local bubble = setmetatable({}, self)
+    bubble.C = BubbleEntity()
+    bubble.C.pos = pos
+    bubble.C.color = color
+    bubble.C.v = velocity
+    bubble.C.rad = radius
+    bubble.C.trans_color = color
+    bubble.C.trans_angle = Vector2(0,0)
+    bubble.C.trans_starttime = -1
+    
+    bubble.in_transition = false
+    return bubble
+end
 function Bubble:delta_radius(dr)
     self.C.rad = self.C.rad + dr
 end
@@ -191,18 +196,13 @@ local mt = {
     new = function (Self)
         return ffi.gc(C.create_bubble_shader(), C.free)
     end;
-    create_bubble = function (shader, color, pos, velocity, radius)
-        local bubble = setmetatable({}, Bubble)
-        bubble.id = C.create_bubble(shader, color, pos, velocity, radius)
-        bubble.C = C.get_bubble(shader, bubble.id)
-        bubble.in_transition = false
-        return bubble
+
+    render = function (shader, bubble)
+        C.render_bubble(shader, bubble.C)
     end;
+
     draw = function (shader)
         C.bubbleshader_draw(shader)
-    end;
-    destroy_bubble = function (shader, id)
-        C.destroy_bubble(shader, id)
     end;
 }
 
@@ -227,8 +227,9 @@ local mt = {
     new = function (Self, bubbleshader)
         return ffi.gc(C.create_bg_shader(bubbleshader), C.free)
     end;
-    draw = function (shader, indices)
-        C.bgshader_draw(shader, ffi.new("uint64_t[10]", indices), #indices)
+    draw = function (shader, bubbles)
+        assert(#bubbles == 0 or ffi.istype(BubbleEntity, bubbles[1]), "expected bubble entity")
+        C.bgshader_draw(shader, ffi.new("Bubble*[10]", bubbles), #bubbles)
     end;
 }
 mt.__index = mt

@@ -1,9 +1,6 @@
 title = "Elastic Bubbles (Press to create or pop a bubble!)"
 
 local ffi = require "ffi"
-local add_bubble = function (bubble)
-    bubbles[bubble.id] = bubble;
-end
 
 local random_velocity = function()
     return Vector2(random.sign() * random.vary(ELASTICBUBBLES.BUBBLE_SPEED_BASE, ELASTICBUBBLES.BUBBLE_SPEED_VARY),
@@ -56,10 +53,13 @@ local create_pop_effect = function (center, color, size)
     return pop
 end
 
-local pop_bubble = function(bubble)
+local pop_effect_from_bubble = function (bubble)
     table.insert(pop_effects, create_pop_effect(bubble:position(), bubble:color(), bubble:radius()))
-    shaders.bubble:destroy_bubble(bubble.id)
-    bubbles[bubble.id] = nil
+end
+
+local pop_bubble = function(i)
+    local bubble = table.remove(bubbles, i)
+    pop_effect_from_bubble(bubble)
 end
 
 local is_collision = function (a, b)
@@ -96,14 +96,14 @@ local collect_all_bubbles = function ()
     return all_bubbles
 end
 
-local get_bubble_ids_for_bgshader = function ()
+local get_bubbles_for_bgshader = function ()
     local all_bubbles = collect_all_bubbles()
     table.sort(all_bubbles, function(a, b) return a:radius() > b:radius() end)
-    local ids = {}
+    local ents = {}
     for i=1, math.min(#all_bubbles, BGSHADER_MAX_ELEMS) do 
-        ids[i] = all_bubbles[i].id
+        ents[i] = all_bubbles[i].C
     end
-    return ids
+    return ents
 end
 
 local start_transition = function (bubble, other)
@@ -141,7 +141,7 @@ on_update = function(dt)
         cursor_bubble:delta_radius(growth_rate * dt)
         ensure_bubble_in_bounds(cursor_bubble)
         if cursor_bubble:radius() > ELASTICBUBBLES.MAX_GROWTH then
-            pop_bubble(cursor_bubble)
+            pop_effect_from_bubble(cursor_bubble)
             cursor_bubble = false
         end
     end
@@ -178,6 +178,12 @@ on_update = function(dt)
         end
     end
 
+    -- Render bubbles
+    for _, bubble in ipairs(bubbles) do
+        shaders.bubble:render(bubble)
+    end
+    if cursor_bubble then shaders.bubble:render(cursor_bubble) end
+
     -- Update pop effect particles
     for _, pop in ipairs(pop_effects) do
         pop.pt_radius = pop.pt_radius + ELASTICBUBBLES.POP_PT_RADIUS_DELTA * dt
@@ -196,32 +202,32 @@ on_update = function(dt)
     end
 
     -- Draw bubbles!
-    shaders.bg:draw(get_bubble_ids_for_bgshader())
+    shaders.bg:draw(get_bubbles_for_bgshader())
     shaders.pop:draw(dt)
     shaders.bubble:draw()
 end
 
 local bubble_at_point = function (pos)
-    for _, b in pairs(bubbles) do
+    for i, b in pairs(bubbles) do
         if pos:dist(b:position()) < b:radius() then
-            return b
+            return i, b
         end
     end
 end
 
 on_mouse_down = function(x, y)
     if cursor_bubble then return end
-    local bubble = bubble_at_point(Vector2(x, y))
-    if bubble then
-        pop_bubble(bubble)
+    local i = bubble_at_point(Vector2(x, y))
+    if i then
+        pop_bubble(i)
     else
-        cursor_bubble = shaders.bubble:create_bubble(random_color(), Vector2(x, y), random_velocity(), random_radius())
+        cursor_bubble = Bubble:new(random_color(), Vector2(x, y), random_velocity(), random_radius())
     end
 end
 
 on_mouse_up = function(x, y)
     if cursor_bubble then
-        add_bubble(cursor_bubble)
+        table.insert(bubbles, cursor_bubble)
         cursor_bubble = false
     end
 end
@@ -236,8 +242,8 @@ on_key = function(key, down)
     if down and key == "Space" then
         movement_enabled = not movement_enabled
     elseif down and key == "Backspace" then
-        for _,b in pairs(bubbles) do
-            pop_bubble(b)
+        for i = #bubbles, 1, -1 do
+            pop_bubble(i)
         end
     end
 end
@@ -259,6 +265,6 @@ if not initialized then
     shaders.bg = BgShader:new(shaders.bubble)
 
     for i=1, ELASTICBUBBLES.STARTING_BUBBLE_COUNT do
-        add_bubble(shaders.bubble:create_bubble(random_color(), random_position(), random_velocity(), random_radius()))
+        table.insert(bubbles, Bubble:new(random_color(), random_position(), random_velocity(), random_radius()))
     end
 end

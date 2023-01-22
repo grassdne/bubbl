@@ -17,11 +17,9 @@ typedef struct  {
     Vector2 v;
     Color color;
     float rad;
-    GLbyte alive;
     Vector2 trans_angle;
     Color trans_color;
     double trans_starttime;
-    double last_transformation;
 } Bubble;
 
 typedef struct {

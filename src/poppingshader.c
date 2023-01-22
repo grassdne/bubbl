@@ -64,12 +64,12 @@ void flush_particles(PoppingShader *sh) {
     // Bind
     glUseProgram(sh->shader.program);
     glBindVertexArray(sh->shader.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, sh->particles.vbo);
 
     double time = get_time();
 
     // Update buffer
-	glBindBuffer(GL_ARRAY_BUFFER, sh->particles.vbo);
-	glBufferData(GL_ARRAY_BUFFER, sh->particles.capacity * sizeof(Particle), sh->particles.buf, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sh->particles.capacity * sizeof(Particle), sh->particles.buf, GL_STATIC_DRAW);
     CHECK_GL_ERROR();
 
     glUniform2f(sh->uniforms.resolution, window_width, window_height);

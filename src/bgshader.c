@@ -27,7 +27,7 @@ Color color_mix(Color a, Color b, float f) {
     return c;
 }
 
-void bgshader_draw(BgShader *sh, size_t indices[MAX_ELEMS], size_t num_elems)
+void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems)
 {
     assert(num_elems <= MAX_ELEMS && "bgshader can only draw for up to MAX_ELEMS");
     glUseProgram(sh->shader.program);
@@ -39,7 +39,7 @@ void bgshader_draw(BgShader *sh, size_t indices[MAX_ELEMS], size_t num_elems)
     double time = get_time();
 
     for (size_t i = 0; i < num_elems; ++i) {
-        const Bubble *b = &sh->bubbles[indices[i]];
+        const Bubble *b = bubbles[i];
         if (b->trans_starttime == TRANS_STARTTIME_SENTINAL) colors[i] = b->color;
         else colors[i] = color_mix(b->color, b->trans_color, (time-b->trans_starttime)/TRANS_TIME);
         positions[i] = b->pos;
