@@ -18,7 +18,7 @@ typedef struct  {
     float rad;
     Vector2 trans_angle;
     Color trans_color;
-    double trans_starttime;
+    float trans_percent;
 } Bubble;
 
 typedef struct {
@@ -125,8 +125,8 @@ function Bubble:new(color, pos, velocity, radius)
     bubble.radius = radius
     bubble.trans_color = color
     bubble.trans_angle = Vector2(0,0)
-    bubble.trans_starttime = -1
-    bubble.in_transition = false
+    bubble.trans_percent = 0
+    bubble.trans_starttime = nil
     return bubble
 end
 function Bubble:delta_radius(dr)
@@ -138,6 +138,7 @@ function Bubble:transformation_color(set)
 end
 function Bubble:start_transformation(color, start_time, angle)
     self.trans_color = color
+    self.trans_percent = 0
     self.trans_starttime = start_time
     self.trans_angle = angle
 end
@@ -149,7 +150,7 @@ function Bubble:c_bubble()
         rad = self.radius,
         trans_color = self.trans_color,
         trans_angle = self.trans_angle,
-        trans_starttime = self.trans_starttime,
+        trans_percent = self.trans_percent,
     }
 end
 

@@ -36,12 +36,9 @@ void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems)
     Color colors[MAX_ELEMS];
     Vector2 positions[MAX_ELEMS];
 
-    double time = get_time();
-
     for (size_t i = 0; i < num_elems; ++i) {
         const Bubble *b = bubbles[i];
-        if (b->trans_starttime == TRANS_STARTTIME_SENTINAL) colors[i] = b->color;
-        else colors[i] = color_mix(b->color, b->trans_color, (time-b->trans_starttime)/TRANS_TIME);
+        colors[i] = color_mix(b->color, b->trans_color, b->trans_percent);
         positions[i] = b->pos;
     }
 

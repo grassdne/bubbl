@@ -7,14 +7,14 @@ layout(location = 2) in vec3 in_color;
 layout(location = 3) in float in_radius;
 layout(location = 4) in vec2 in_trans_angle;
 layout(location = 5) in vec3 in_trans_color;
-layout(location = 6) in float in_trans_starttime;
+layout(location = 6) in float in_trans_percent;
 
 out vec2 bubble_pos;
 out vec3 bubble_color;
 out float rad;
 out vec2 trans_angle;
 out vec3 trans_color;
-out float trans_starttime;
+out float trans_percent;
 
 out float bottom_left_to_top_right;
 
@@ -36,5 +36,5 @@ void main() {
     bottom_left_to_top_right = length(resolution);
     trans_angle = in_trans_angle;
     trans_color = in_trans_color;
-    trans_starttime = in_trans_starttime;
+    trans_percent = in_trans_percent;
 }

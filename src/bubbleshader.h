@@ -19,7 +19,7 @@ typedef struct  {
     float rad;
     Vector2 trans_angle;
     Color trans_color;
-    double trans_starttime;
+    float trans_percent;
 } Bubble;
 
 typedef struct {

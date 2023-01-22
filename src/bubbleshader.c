@@ -18,7 +18,7 @@ typedef enum {
     ATTRIB_BUBBLE_RADIUS = 3,
     ATTRIB_TRANS_ANGLE = 4,
     ATTRIB_TRANS_COLOR = 5,
-    ATTRIB_TRANS_STARTTIME = 6,
+    ATTRIB_TRANS_PERCENT = 6,
 } VertAttribLocs;
 
 size_t create_open_bubble_slot(BubbleShader *sh)
@@ -46,7 +46,7 @@ static void init_bubble_vbo(BubbleShader *sh) {
     BUBBLE_ATTRIB(ATTRIB_BUBBLE_RADIUS, 4, GL_FLOAT, rad);
     BUBBLE_ATTRIB(ATTRIB_TRANS_ANGLE, 2, GL_FLOAT, trans_angle);
     BUBBLE_ATTRIB(ATTRIB_TRANS_COLOR, 3, GL_FLOAT, trans_color);
-    BUBBLE_ATTRIB(ATTRIB_TRANS_STARTTIME, 1, GL_DOUBLE, trans_starttime);
+    BUBBLE_ATTRIB(ATTRIB_TRANS_PERCENT, 1, GL_FLOAT, trans_percent);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

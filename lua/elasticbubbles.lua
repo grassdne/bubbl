@@ -109,10 +109,9 @@ end
 local start_transition = function (bubble, other)
     bubble:start_transformation(other.color, ffi.C.get_time(),
         (other.position - bubble.position):normalize())
-    bubble.in_transition = true
 end
 local stop_transition = function (bubble)
-    bubble.in_transition = false
+    bubble.trans_starttime = nil
     bubble.color = bubble:transformation_color()
     bubble.last_transition = ffi.C.get_time();
 end
@@ -148,10 +147,10 @@ on_update = function(dt)
     -- Move bubbles
     for _, bubble in pairs(bubbles) do
         assert(bubble ~= cursor_bubble)
-        if movement_enabled and not bubble.in_transition then
+        if movement_enabled and not bubble.trans_starttime then
             move_bubble(bubble, dt)
         end
-        if bubble.in_transition and time - bubble.trans_starttime > ELASTICBUBBLES.TRANS_TIME then
+        if bubble.trans_starttime and time - bubble.trans_starttime > ELASTICBUBBLES.TRANS_TIME then
             stop_transition(bubble)
         end
         ensure_bubble_in_bounds(bubble)
@@ -163,7 +162,7 @@ on_update = function(dt)
                 swap_velocities(a, b)
                 separate_bubbles(a, b)
 
-                if not a.in_transition and not b.in_transition
+                if not a.trans_starttime and not b.trans_starttime
                     and time - (a.last_transition or 0) > ELASTICBUBBLES.TRANS_IMMUNE_PERIOD
                     and time - (b.last_transition or 0) > ELASTICBUBBLES.TRANS_IMMUNE_PERIOD
                 then
@@ -180,6 +179,10 @@ on_update = function(dt)
 
     -- Render bubbles
     for _, bubble in ipairs(bubbles) do
+        if bubble.trans_starttime then
+            bubble.trans_percent = (time - bubble.trans_starttime) / ELASTICBUBBLES.TRANSFORM_TIME
+            bubble.trans_percent = 0.5
+        end
         shaders.bubble:render(bubble)
     end
     if cursor_bubble then shaders.bubble:render(cursor_bubble) end
