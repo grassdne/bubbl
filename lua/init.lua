@@ -107,6 +107,11 @@ local color_mt = {
         end
         return Color(magic(0), magic(8), magic(4))
     end,
+    to_hex_string = function(c)
+        return "#"..string.format("%.2x", c.r*255)
+                  ..string.format("%.2x", c.g*255)
+                  ..string.format("%.2x", c.b*255)
+    end,
 }
 color_mt.__index = color_mt
 Color = ffi.metatype("Color", color_mt)
@@ -408,6 +413,12 @@ random = {
     end;
 }
 PI = math.pi
+
+table.copy = function(tbl)
+    local cpy = {}
+    for k,v in pairs(tbl) do cpy[k] = v end
+    return cpy
+end
 
 mouse_position = function ()
     local x = ffi.new("int[1]")
