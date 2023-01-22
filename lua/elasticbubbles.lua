@@ -54,7 +54,7 @@ local create_pop_effect = function (center, color, size)
 end
 
 local pop_effect_from_bubble = function (bubble)
-    table.insert(pop_effects, create_pop_effect(bubble:position(), bubble:color(), bubble:radius()))
+    table.insert(pop_effects, create_pop_effect(bubble.position, bubble.color, bubble.radius))
 end
 
 local pop_bubble = function(i)
@@ -63,30 +63,30 @@ local pop_bubble = function(i)
 end
 
 local is_collision = function (a, b)
-    local mindist = a:radius() + b:radius()
-    return a ~= b and Vector2.distsq(a:position(), b:position()) < mindist*mindist
+    local mindist = a.radius + b.radius
+    return a ~= b and Vector2.distsq(a.position, b.position) < mindist*mindist
 end
 
 local swap_velocities = function (a, b)
-    local av, bv = a:velocity(), b:velocity()
-    a:velocity(bv)
-    b:velocity(av)
+    local av, bv = a.velocity, b.velocity
+    a.velocity = bv
+    b.velocity = av
 end
 
 local separate_bubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
-    local dir_b_to_a = Vector2.normalize(a:position() - b:position())
-    local mindist = a:radius() + b:radius()
-    a:position(b:position() + dir_b_to_a * mindist)
+    local dir_b_to_a = Vector2.normalize(a.position - b.position)
+    local mindist = a.radius + b.radius
+    a.position = b.position + dir_b_to_a * mindist
 end
 
 minmax = function(x, min, max) return math.min(max, math.max(min, x)) end
 
 local ensure_bubble_in_bounds = function (bubble)
-    local pos = bubble:position()
-    pos.x = minmax(pos.x, bubble:radius(), window_width  - bubble:radius())
-    pos.y = minmax(pos.y, bubble:radius(), window_height - bubble:radius())
-    bubble:position(pos)
+    local pos = bubble.position
+    pos.x = minmax(pos.x, bubble.radius, window_width  - bubble.radius)
+    pos.y = minmax(pos.y, bubble.radius, window_height - bubble.radius)
+    bubble.position = pos
 end
 
 local collect_all_bubbles = function ()
@@ -98,37 +98,37 @@ end
 
 local get_bubbles_for_bgshader = function ()
     local all_bubbles = collect_all_bubbles()
-    table.sort(all_bubbles, function(a, b) return a:radius() > b:radius() end)
+    table.sort(all_bubbles, function(a, b) return a.radius > b.radius end)
     local ents = {}
     for i=1, math.min(#all_bubbles, BGSHADER_MAX_ELEMS) do 
-        ents[i] = all_bubbles[i].C
+        ents[i] = all_bubbles[i]:c_bubble()
     end
     return ents
 end
 
 local start_transition = function (bubble, other)
-    bubble:start_transformation(other:color(), ffi.C.get_time(),
-        (other:position() - bubble:position()):normalize())
+    bubble:start_transformation(other.color, ffi.C.get_time(),
+        (other.position - bubble.position):normalize())
     bubble.in_transition = true
 end
 local stop_transition = function (bubble)
     bubble.in_transition = false
-    bubble:color(bubble:transformation_color())
+    bubble.color = bubble:transformation_color()
     bubble.last_transition = ffi.C.get_time();
 end
 
 local move_bubble = function (bubble, dt)
-    local next = bubble:position() + bubble:velocity():scale(dt)
-    local max_y = window_height - bubble:radius()
-    local max_x = window_width - bubble:radius()
-    if next.x < bubble:radius() or next.x > max_x then
-        bubble:x_velocity(-bubble:x_velocity())
-        bubble:y_velocity(-bubble:y_velocity())
+    local next = bubble.position + bubble.velocity:scale(dt)
+    local max_y = window_height - bubble.radius
+    local max_x = window_width - bubble.radius
+    if next.x < bubble.radius or next.x > max_x then
+        bubble.velocity.x = -bubble.velocity.x
+        bubble.velocity.y = -bubble.velocity.y
     end
-    if next.y < bubble:radius() or next.y > max_y then
-        bubble:y_velocity(-bubble:y_velocity())
+    if next.y < bubble.radius or next.y > max_y then
+        bubble.velocity.y = -bubble.velocity.y
     end
-    bubble:position(next)
+    bubble.position = next
 end
 
 on_update = function(dt)
@@ -136,11 +136,11 @@ on_update = function(dt)
 
     -- Grow bubble under mouse
     if cursor_bubble then
-        local percent_complete = cursor_bubble:radius() / ELASTICBUBBLES.MAX_GROWTH
+        local percent_complete = cursor_bubble.radius / ELASTICBUBBLES.MAX_GROWTH
         local growth_rate = percent_complete * (ELASTICBUBBLES.MAX_GROWTH_RATE - ELASTICBUBBLES.MIN_GROWTH_RATE) + ELASTICBUBBLES.MIN_GROWTH_RATE
         cursor_bubble:delta_radius(growth_rate * dt)
         ensure_bubble_in_bounds(cursor_bubble)
-        if cursor_bubble:radius() > ELASTICBUBBLES.MAX_GROWTH then
+        if cursor_bubble.radius > ELASTICBUBBLES.MAX_GROWTH then
             pop_effect_from_bubble(cursor_bubble)
             cursor_bubble = false
         end
@@ -151,7 +151,7 @@ on_update = function(dt)
         if movement_enabled and not bubble.in_transition then
             move_bubble(bubble, dt)
         end
-        if bubble.in_transition and time - bubble.C.trans_starttime > ELASTICBUBBLES.TRANS_TIME then
+        if bubble.in_transition and time - bubble.trans_starttime > ELASTICBUBBLES.TRANS_TIME then
             stop_transition(bubble)
         end
         ensure_bubble_in_bounds(bubble)
@@ -209,7 +209,7 @@ end
 
 local bubble_at_point = function (pos)
     for i, b in pairs(bubbles) do
-        if pos:dist(b:position()) < b:radius() then
+        if pos:dist(b.position) < b.radius then
             return i, b
         end
     end
@@ -234,7 +234,7 @@ end
 
 on_mouse_move = function(x, y)
     if cursor_bubble then
-        cursor_bubble:position(Vector2(x, y))
+        cursor_bubble.position = Vector2(x, y)
     end
 end
 

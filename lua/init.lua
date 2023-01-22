@@ -119,73 +119,38 @@ Bubble = {}
 Bubble.__index = Bubble
 function Bubble:new(color, pos, velocity, radius)
     local bubble = setmetatable({}, self)
-    bubble.C = BubbleEntity()
-    bubble.C.pos = pos
-    bubble.C.color = color
-    bubble.C.v = velocity
-    bubble.C.rad = radius
-    bubble.C.trans_color = color
-    bubble.C.trans_angle = Vector2(0,0)
-    bubble.C.trans_starttime = -1
-    
+    bubble.position = pos
+    bubble.color = color
+    bubble.velocity = velocity
+    bubble.radius = radius
+    bubble.trans_color = color
+    bubble.trans_angle = Vector2(0,0)
+    bubble.trans_starttime = -1
     bubble.in_transition = false
     return bubble
 end
 function Bubble:delta_radius(dr)
-    self.C.rad = self.C.rad + dr
-end
-function Bubble:position(set)
-    if set then self.C.pos = set end
-    return Vector2(self.C.pos)
-end
-function Bubble:color(set)
-    if set then self.C.color = set end
-    return Color(self.C.color)
-end
-function Bubble:radius(set)
-    if set then self.C.rad = set end
-    return tonumber(self.C.rad)
-end
-function Bubble:velocity(set)
-    if set then self.C.v = set end
-    return Vector2(self.C.v)
-end
-function Bubble:x_velocity(set)
-    if set then self.C.v.x = set end
-    return tonumber(self.C.v.x)
-end
-function Bubble:y_velocity(set)
-    if set then self.C.v.y = set end
-    return tonumber(self.C.v.y)
-end
-function Bubble:x_position(set)
-    if set then self.C.pos.x = set end
-    return tonumber(self.C.pos.x)
-end
-function Bubble:y_position(set)
-    if set then self.C.pos.y = set end
-    return tonumber(self.C.pos.y)
-end
-function Bubble:red(set)
-    if set then self.C.color.r = set end
-    return tonumber(self.C.color.r)
-end
-function Bubble:green(set)
-    if set then self.C.color.g = set end
-    return tonumber(self.C.color.g)
-end
-function Bubble:blue(set)
-    if set then self.C.color.b = set end
-    return tonumber(self.C.color.b)
+    self.radius = self.radius + dr
 end
 function Bubble:transformation_color(set)
-    if set then self.C.trans_color = set end
-    return Color(self.C.trans_color)
+    if set then self.trans_color = set end
+    return Color(self.trans_color)
 end
 function Bubble:start_transformation(color, start_time, angle)
-    self.C.trans_color = color
-    self.C.trans_starttime = start_time
-    self.C.trans_angle = angle
+    self.trans_color = color
+    self.trans_starttime = start_time
+    self.trans_angle = angle
+end
+function Bubble:c_bubble()
+    return BubbleEntity {
+        pos = self.position,
+        color = self.color,
+        v = self.velocity,
+        rad = self.radius,
+        trans_color = self.trans_color,
+        trans_angle = self.trans_angle,
+        trans_starttime = self.trans_starttime,
+    }
 end
 
 local mt = {
@@ -198,7 +163,7 @@ local mt = {
     end;
 
     render = function (shader, bubble)
-        C.render_bubble(shader, bubble.C)
+        C.render_bubble(shader, bubble:c_bubble())
     end;
 
     draw = function (shader)
