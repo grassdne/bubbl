@@ -62,6 +62,7 @@ void render_particle(PoppingShader *sh, Particle particle)
 void poppingInit(PoppingShader *sh) {
     shaderBuildProgram(sh, POP_SHADER_DATAS, POP_UNIFORMS);
 
+    glBindVertexArray(sh->shader.vao);
     glGenBuffers(1, &sh->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
     glBufferData(GL_ARRAY_BUFFER, PARTICLES_BUFFER_SIZE * sizeof(Particle), sh->particle_buffer, GL_DYNAMIC_DRAW);
