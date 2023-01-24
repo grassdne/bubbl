@@ -2,9 +2,6 @@
 #define SHADER_UTIL_H
 #include <GL/glew.h>
 
-//const char* malloc_shader_source(const char* fname);
-//GLuint loadShader(GLenum shaderType, const char* source, const char *from);
-
 #define UNI_DECL($n) GLint $n;
 #define UNI_GETS($name) sh->uniforms.$name = glGetUniformLocation(sh->shader.program, #$name);
 
