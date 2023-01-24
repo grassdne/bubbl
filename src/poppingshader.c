@@ -18,22 +18,39 @@ typedef enum {
     ATTRIB_AGE,
 } VertAttribLocs;
 
-#define PARTICLES_INIT_CAPACITY 1024
+void flush_particles(PoppingShader *sh)
+{
+    // Bind
+    glUseProgram(sh->shader.program);
+    glBindVertexArray(sh->shader.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
 
-static void grow_particlepool(ParticlePool *pool) {
-    pool->capacity = pool->capacity == 0
-                   ? PARTICLES_INIT_CAPACITY
-                   : pool->capacity * 2;
-    pool->buf = realloc(pool->buf, pool->capacity * sizeof(Particle));
-    assert(pool->buf && "not enough memory");
+    double time = get_time();
+
+    // Update buffer
+    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLES_BUFFER_SIZE * sizeof(Particle), sh->particle_buffer);
+
+    CHECK_GL_ERROR();
+    glUniform2f(sh->uniforms.resolution, window_width, window_height);
+    glUniform1f(sh->uniforms.time, time);
+
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->nparticles);
+
+    // Unbind
+    glUseProgram(0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Reset pool
+    sh->nparticles = 0;
 }
 
 void render_particle(PoppingShader *sh, Particle particle)
 {
-    if (sh->particles.count >= sh->particles.capacity) {
-        grow_particlepool(&sh->particles);
+    if (sh->nparticles >= PARTICLES_BUFFER_SIZE) {
+        flush_particles(sh);
     }
-    sh->particles.buf[sh->particles.count++] = particle;
+    sh->particle_buffer[sh->nparticles++] = particle;
 }
 
 #define POP_ATTRIB(loc, count, type, field) do{                         \
@@ -46,8 +63,9 @@ void render_particle(PoppingShader *sh, Particle particle)
 void poppingInit(PoppingShader *sh) {
     shaderBuildProgram(sh, POP_SHADER_DATAS, POP_UNIFORMS);
 
-    glGenBuffers(1, &sh->particles.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, sh->particles.vbo);
+    glGenBuffers(1, &sh->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
+    glBufferData(GL_ARRAY_BUFFER, PARTICLES_BUFFER_SIZE * sizeof(Particle), sh->particle_buffer, GL_DYNAMIC_DRAW);
 
     POP_ATTRIB(ATTRIB_POSITION, 2, GL_FLOAT, pos);
     POP_ATTRIB(ATTRIB_COLOR   , 3, GL_FLOAT, color);
@@ -58,32 +76,4 @@ void poppingInit(PoppingShader *sh) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     CHECK_GL_ERROR();
-}
-
-void flush_particles(PoppingShader *sh) {
-    // Bind
-    glUseProgram(sh->shader.program);
-    glBindVertexArray(sh->shader.vao);
-	glBindBuffer(GL_ARRAY_BUFFER, sh->particles.vbo);
-
-    double time = get_time();
-
-    // Update buffer
-	glBufferData(GL_ARRAY_BUFFER, sh->particles.capacity * sizeof(Particle), sh->particles.buf, GL_STATIC_DRAW);
-    CHECK_GL_ERROR();
-
-    glUniform2f(sh->uniforms.resolution, window_width, window_height);
-    glUniform1f(sh->uniforms.time, time);
-
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->particles.count);
-
-    glUseProgram(0);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Clear pool
-    free(sh->particles.buf);
-    sh->particles.buf = NULL;
-    sh->particles.count = 0;
-    sh->particles.capacity = 0;
 }

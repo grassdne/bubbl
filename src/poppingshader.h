@@ -4,13 +4,10 @@
 #include "common.h"
 #include "shaderutil.h"
 
+// should be enough for everybody
+#define PARTICLES_MEMORY_USAGE (640000)
+#define PARTICLES_BUFFER_SIZE (PARTICLES_MEMORY_USAGE / sizeof(Particle))
 #define POP_UNIFORMS(_) _(resolution) _(time)
-
-typedef struct {
-    // Relative position
-    Vector2 pos;
-    Vector2 v;
-} PopParticle;
 
 typedef struct { POP_UNIFORMS(UNI_DECL) } PopUniforms;
 
@@ -22,15 +19,11 @@ typedef struct {
 } Particle;
 
 typedef struct {
-    Particle *buf;
-    size_t count, capacity;
-    GLuint vbo;
-} ParticlePool;
-
-typedef struct {
     Shader shader;
-    ParticlePool particles;
     PopUniforms uniforms;
+    Particle particle_buffer[PARTICLES_BUFFER_SIZE];
+    size_t nparticles;
+    GLuint vbo;
 } PoppingShader;
 
 void poppingInit(PoppingShader *sh);
