@@ -45,6 +45,6 @@ SVGEDITOR = {
 -----------------
 --- Rainbow 1 ---
 -----------------
---require "rainbow"
+require "rainbow"
 
-require "svgeditor"
+--require "svgeditor"

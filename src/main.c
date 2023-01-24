@@ -39,6 +39,21 @@ int window_height = SCREEN_HEIGHT;
 float scale;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
 
+static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+    (void)type;
+    (void)id;
+    (void)severity;
+    (void)userParam;
+    (void)source;
+    (void)length;
+    if (type == GL_DEBUG_TYPE_ERROR) {
+        fprintf(stderr, "OpenGL ERROR: %s\n", message);
+        exit(1);
+    } else {
+        fprintf(stderr, "OpenGL Message: %s\n", message);
+    }
+}
+
 static void error(lua_State *L, const char *fmt, ...) {
     va_list argp;
     va_start(argp, fmt);
@@ -188,6 +203,12 @@ int main(int argc, char **argv) {
     //    fprintf(stderr, "Shaders not available\n");
     //    exit(1);
 	//}
+
+    if (GL_ARB_debug_output) {
+        // OpenGL 4 extension
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback(message_callback, NULL);
+    }
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -119,7 +119,6 @@ void shaderInit(Shader *sh) {
 
     // Cleanup
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    CHECK_GL_ERROR();
 }
 
 void shaderLinkProgram(Shader *sh) {

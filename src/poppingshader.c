@@ -24,25 +24,24 @@ void flush_particles(PoppingShader *sh)
     glUseProgram(sh->shader.program);
     glBindVertexArray(sh->shader.vao);
 	glBindBuffer(GL_ARRAY_BUFFER, sh->vbo);
+    {
+        double time = get_time();
 
-    double time = get_time();
+        // Update buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLES_BUFFER_SIZE * sizeof(Particle), sh->particle_buffer);
 
-    // Update buffer
-    glBufferSubData(GL_ARRAY_BUFFER, 0, PARTICLES_BUFFER_SIZE * sizeof(Particle), sh->particle_buffer);
+        glUniform2f(sh->uniforms.resolution, window_width, window_height);
+        glUniform1f(sh->uniforms.time, time);
 
-    CHECK_GL_ERROR();
-    glUniform2f(sh->uniforms.resolution, window_width, window_height);
-    glUniform1f(sh->uniforms.time, time);
+        glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->nparticles);
 
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->nparticles);
-
+        // Reset pool
+        sh->nparticles = 0;
+    }
     // Unbind
     glUseProgram(0);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Reset pool
-    sh->nparticles = 0;
 }
 
 void render_particle(PoppingShader *sh, Particle particle)
@@ -75,5 +74,4 @@ void poppingInit(PoppingShader *sh) {
     // Unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    CHECK_GL_ERROR();
 }
