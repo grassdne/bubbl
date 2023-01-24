@@ -6,6 +6,8 @@ circles = {}
 local circle_dragging
 local BASE_SIZE = 15
 
+require "textrenderer"
+
 local Particle = {
     new = function (Self, pos, color, radius, focused)
         local p = setmetatable({}, Self)
@@ -26,6 +28,10 @@ on_update = function(dt)
             pop:render_particle(pt.pos, pt.color, pt.radius, 0)
         end
     end
+
+    --put_char(pop, Vector2(window_width/2, window_height/2), 'A', 100)
+    put_string(pop, Vector2(window_width/2, window_height/2), 'AAAAAAAAA???', 48)
+
     pop:draw(dt)
     bubblerenderer:draw()
 end

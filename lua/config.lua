@@ -32,7 +32,7 @@ RAINBOW = {
 }
 
 SVGEDITOR = {
-    FILE = "img.svg",
+    FILE = arg[1] or "img.svg",
     COLOR = WEBCOLORS.RED,
 }
 
@@ -42,7 +42,6 @@ SVGEDITOR = {
 -- Click and hold to create a bubble
 -- Click a bubble to pop it
 --require "elasticbubbles"
-
 -----------------
 --- Rainbow 1 ---
 -----------------

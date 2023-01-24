@@ -55,6 +55,16 @@ static int error_traceback(lua_State *L) {
     return 1;
 }
 
+static void createargtable (lua_State *L, char **argv, int argc) {
+  lua_createtable(L, argc-1, 1);
+  for (int i = 0; i < argc; i++) {
+    lua_pushstring(L, argv[i]);
+    lua_rawseti(L, -2, i);
+  }
+  lua_setglobal(L, "arg");
+}
+
+
 static void call_lua_callback(lua_State *L, int nargs) {
     lua_pcall(L, nargs, 0, 1);
 }
@@ -137,6 +147,7 @@ int main(int argc, char **argv) {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
     lua_pushcfunction(L, error_traceback);
+    createargtable(L, argv, argc);
 
     SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11,wayland");
 
