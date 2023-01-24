@@ -211,7 +211,6 @@ int main(int argc, char **argv) {
                 should_quit = true;
                 break;
             case SDL_KEYDOWN:
-                // TODO: fullscreen
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
                     should_quit = true;
                     break;
