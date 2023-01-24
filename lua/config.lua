@@ -41,10 +41,10 @@ SVGEDITOR = {
 -----------------------
 -- Click and hold to create a bubble
 -- Click a bubble to pop it
---require "elasticbubbles"
+require "elasticbubbles"
 -----------------
 --- Rainbow 1 ---
 -----------------
-require "rainbow"
+--require "rainbow"
 
 --require "svgeditor"

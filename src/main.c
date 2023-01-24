@@ -19,6 +19,10 @@
 #include "poppingshader.h"
 #include "bgshader.h"
 
+BubbleShader bubble_shader = {0};
+PoppingShader pop_shader = {0};
+BgShader bg_shader = {0};
+
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
 
@@ -99,21 +103,15 @@ void reload_config(lua_State *L, SDL_Window *W, bool err) {
     }
 }
 
-BubbleShader* create_bubble_shader(void) {
-    BubbleShader *sh = calloc(sizeof(BubbleShader), 1);
-    bubbleInit(sh);
-    return sh;
+BubbleShader* get_bubble_shader(void) {
+    return &bubble_shader;
 }
-PoppingShader* create_pop_shader(void) {
-    PoppingShader *sh = calloc(sizeof(PoppingShader), 1);
-    poppingInit(sh);
-    return sh;
+PoppingShader* get_pop_shader(void) {
+    return &pop_shader;
 }
-BgShader* create_bg_shader(BubbleShader *bubble_shader)
+BgShader* get_bg_shader(void)
 {
-    BgShader *sh = calloc(sizeof(BgShader), 1);
-    bgInit(sh, bubble_shader->bubbles, &bubble_shader->num_bubbles);
-    return sh;
+    return &bg_shader;
 }
 
 int get_window_width(void) { return window_width; }
@@ -213,6 +211,10 @@ int main(int argc, char **argv) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
+
+    bubbleInit(&bubble_shader);
+    poppingInit(&pop_shader);
+    bgInit(&bg_shader, bubble_shader.bubbles, &bubble_shader.num_bubbles);
 
     if (luaL_dofile(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));

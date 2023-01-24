@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 
-const ShaderDatas POP_SHADER_DATAS = {
+static const ShaderDatas POP_SHADER_DATAS = {
     .vert = "shaders/popbubble_quad.vert",
     .frag = "shaders/popbubble.frag",
 };

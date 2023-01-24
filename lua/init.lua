@@ -32,9 +32,9 @@ typedef struct {} BubbleShader;
 typedef struct {} PoppingShader;
 typedef struct {} BgShader;
 
-BubbleShader* create_bubble_shader(void);
-PoppingShader* create_pop_shader(void);
-BgShader* create_bg_shader(BubbleShader *s);
+BubbleShader* get_bubble_shader(void);
+PoppingShader* get_pop_shader(void);
+BgShader* get_bg_shader(void);
 
 enum{ MAX_ELEMS=10 };
 
@@ -151,7 +151,7 @@ ParticleEntity = ffi.metatype("Particle", mt)
 
 local mt = {
     new = function (Self)
-        return ffi.gc(C.create_bubble_shader(), C.free)
+        return C.get_bubble_shader()
     end;
 
     render = function (shader, bubble)
@@ -182,7 +182,7 @@ BubbleShader = ffi.metatype("BubbleShader", mt)
 
 local mt = {
     new = function (Self)
-        return ffi.gc(C.create_pop_shader(), C.free)
+        return C.get_pop_shader()
     end;
     draw = function (shader, dt)
         C.flush_particles(shader, dt)
@@ -195,8 +195,8 @@ mt.__index = mt
 PoppingShader = ffi.metatype("PoppingShader", mt)
 
 local mt = {
-    new = function (Self, bubbleshader)
-        return ffi.gc(C.create_bg_shader(bubbleshader), C.free)
+    new = function (Self)
+        return C.get_bg_shader()
     end;
     draw = function (shader, bubbles)
         assert(#bubbles == 0 or ffi.istype(BubbleEntity, bubbles[1]), "expected bubble entity")
