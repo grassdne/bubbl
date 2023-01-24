@@ -32,7 +32,6 @@ typedef struct {
 
 void bubbleInit(BubbleShader *sh);
 void bubbleCreate(BubbleShader *sh, Vector2 pos);
-size_t create_open_bubble_slot(BubbleShader *sh);
 int bubble_at_point(BubbleShader *sh, Vector2 mouse);
 
 #endif

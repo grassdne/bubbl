@@ -39,7 +39,7 @@ enum{ MAX_ELEMS=10 };
 
 void free(void *p);
 void render_bubble(BubbleShader *sh, Bubble bubble);
-void bubbleshader_draw(BubbleShader *s);
+void flush_bubbles(BubbleShader *s);
 void flush_pops(void);
 void render_pop(Particle particle);
 void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
@@ -170,7 +170,7 @@ local mt = {
     end;
 
     draw = function (shader)
-        C.bubbleshader_draw(shader)
+        C.flush_bubbles(shader)
     end;
 
     __tostring = function() return "BubbleShader" end
