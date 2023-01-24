@@ -38,6 +38,7 @@ size_t create_open_bubble_slot(BubbleShader *sh)
     glVertexAttribDivisor(loc, 1); }while(0)
 
 static void init_bubble_vbo(BubbleShader *sh) {
+    glBindVertexArray(sh->shader.vao);
     glGenBuffers(1, &sh->bubble_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
 
