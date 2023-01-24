@@ -20,7 +20,6 @@
 #include "bgshader.h"
 
 BubbleShader bubble_shader = {0};
-PoppingShader pop_shader = {0};
 BgShader bg_shader = {0};
 
 #define SCREEN_WIDTH 1600
@@ -106,9 +105,6 @@ void reload_config(lua_State *L, SDL_Window *W, bool err) {
 BubbleShader* get_bubble_shader(void) {
     return &bubble_shader;
 }
-PoppingShader* get_pop_shader(void) {
-    return &pop_shader;
-}
 BgShader* get_bg_shader(void)
 {
     return &bg_shader;
@@ -132,6 +128,7 @@ static void frame(SDL_Window *W) {
     lua_pushnumber(L, dt);
     call_lua_callback(L, 1);
 
+    flush_pops();
     SDL_GL_SwapWindow(W);
 }
 
@@ -213,7 +210,7 @@ int main(int argc, char **argv) {
     glBlendEquation(GL_FUNC_ADD);
 
     bubbleInit(&bubble_shader);
-    poppingInit(&pop_shader);
+    poppingInit();
     bgInit(&bg_shader, bubble_shader.bubbles, &bubble_shader.num_bubbles);
 
     if (luaL_dofile(L, "lua/init.lua")) {

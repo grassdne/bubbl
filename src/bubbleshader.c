@@ -71,6 +71,7 @@ void render_bubble(BubbleShader *sh, Bubble bubble)
 
 void bubbleInit(BubbleShader *sh) {
     shaderBuildProgram(sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
+    BUBBLE_UNIFORMS(UNI_GETS);
     init_bubble_vbo(sh);
 }
 

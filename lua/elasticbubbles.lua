@@ -192,7 +192,7 @@ on_update = function(dt)
         pop.age = time - pop.start_time
         for _, pt in ipairs(pop) do
             pt.pos = pt.pos + pt.velocity * dt
-            shaders.pop:render_particle(pt.pos, pop.color, pop.pt_radius, pop.age)
+            render_pop(pt.pos, pop.color, pop.pt_radius, pop.age)
         end
     end
     -- Pop effects should be in chronological order
@@ -205,7 +205,6 @@ on_update = function(dt)
 
     -- Draw bubbles!
     shaders.bg:draw(get_bubbles_for_bgshader())
-    shaders.pop:draw(dt)
     shaders.bubble:draw()
 end
 
@@ -262,7 +261,6 @@ if not initialized then
     -- Any more globals is an error!
     lock_global_table()
 
-    shaders.pop = PoppingShader:new()
     shaders.bubble = BubbleShader:new()
     shaders.bg = BgShader:new(shaders.bubble)
 

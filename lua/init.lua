@@ -33,7 +33,6 @@ typedef struct {} PoppingShader;
 typedef struct {} BgShader;
 
 BubbleShader* get_bubble_shader(void);
-PoppingShader* get_pop_shader(void);
 BgShader* get_bg_shader(void);
 
 enum{ MAX_ELEMS=10 };
@@ -41,8 +40,8 @@ enum{ MAX_ELEMS=10 };
 void free(void *p);
 void render_bubble(BubbleShader *sh, Bubble bubble);
 void bubbleshader_draw(BubbleShader *s);
-void flush_particles(PoppingShader *s, double dt);
-void render_particle(PoppingShader *s, Particle particle);
+void flush_pops(void);
+void render_pop(Particle particle);
 void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 uint32_t SDL_GetMouseState(int *x, int *y);
@@ -180,19 +179,9 @@ local mt = {
 mt.__index = mt
 BubbleShader = ffi.metatype("BubbleShader", mt)
 
-local mt = {
-    new = function (Self)
-        return C.get_pop_shader()
-    end;
-    draw = function (shader, dt)
-        C.flush_particles(shader, dt)
-    end;
-    render_particle = function (shader, pos, color, radius, age)
-        C.render_particle(shader, ParticleEntity(pos, color, radius, age))
-    end;
-}
-mt.__index = mt
-PoppingShader = ffi.metatype("PoppingShader", mt)
+render_pop = function (pos, color, radius, age)
+    C.render_pop(ParticleEntity(pos, color, radius, age))
+end
 
 local mt = {
     new = function (Self)

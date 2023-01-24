@@ -17,6 +17,7 @@ void bgInit(BgShader* restrict sh, Bubble *bubbles, size_t *numbbls) {
     sh->numbbls = numbbls;
 
    shaderBuildProgram(sh, BG_SHADER_DATAS, BG_UNIFORMS); 
+   BG_UNIFORMS(UNI_GETS);
 }
 
 Color color_mix(Color a, Color b, float f) {
