@@ -15,7 +15,7 @@
 #include <assert.h>
 
 #include "common.h"
-#include "entity_renderer.h"
+#include "entity_renderers.h"
 #include "bgshader.h"
 
 BgShader bg_shader = {0};
