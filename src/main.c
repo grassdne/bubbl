@@ -202,8 +202,11 @@ int main(int argc, char **argv) {
         // OpenGL 4 extension
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(message_callback, NULL);
+        glDebugMessageControl(/*source*/GL_DONT_CARE,
+                              /*type*/GL_DEBUG_TYPE_OTHER,
+                              /* severity */GL_DONT_CARE,
+                              0, NULL, false);
     }
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
