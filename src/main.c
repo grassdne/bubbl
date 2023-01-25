@@ -15,8 +15,7 @@
 #include <assert.h>
 
 #include "common.h"
-#include "bubbleshader.h"
-#include "poppingshader.h"
+#include "entity_renderer.h"
 #include "bgshader.h"
 
 BgShader bg_shader = {0};
@@ -86,6 +85,13 @@ static void call_lua_callback(lua_State *L, int nargs) {
     lua_pcall(L, nargs, 0, 1);
 }
 
+static bool try_get_lua_callback(lua_State *L, const char *name) {
+    lua_getglobal(L, name);
+    if (lua_isfunction(L, -1)) return true;
+    lua_pop(L, 1);
+    return false;
+}
+
 #define CONFIG_FILE_NAME "lua/config.lua"
 void reload_config(lua_State *L, SDL_Window *W, bool err) {
     if (luaL_dofile(L, "lua/config.lua")) {
@@ -118,14 +124,12 @@ static void frame(SDL_Window *W) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     lua_State *L = SDL_GetWindowData(W, "L");
-    lua_getglobal(L, "on_update");
-    if (!lua_isfunction(L, -1))
-        error(L, "expected `on_update` function in Lua config");
-    lua_pushnumber(L, dt);
-    call_lua_callback(L, 1);
+    if (try_get_lua_callback(L, "on_update")) {
+        lua_pushnumber(L, dt);
+        call_lua_callback(L, 1);
+    }
 
-    flush_pops();
-    flush_bubbles();
+    flush_renderers();
     SDL_GL_SwapWindow(W);
 }
 
@@ -139,8 +143,7 @@ static void on_window_resize(SDL_Window *W) {
     lua_pushinteger(L, window_height);
     lua_setglobal(L, "window_height");
 
-    lua_getglobal(L, "on_window_resize");
-    if (lua_isfunction(L, -1)) {
+    if (try_get_lua_callback(L, "on_window_resize")) {
         lua_pushnumber(L, window_width);
         lua_pushnumber(L, window_height);
         call_lua_callback(L, 2);
@@ -206,8 +209,7 @@ int main(int argc, char **argv) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendEquation(GL_FUNC_ADD);
 
-    bubbleInit();
-    poppingInit();
+    init_renderers();
     bgInit(&bg_shader);
 
     if (luaL_dofile(L, "lua/init.lua")) {
@@ -250,35 +252,30 @@ int main(int argc, char **argv) {
                 }
                 /* fallthrough */
             case SDL_KEYUP:
-                lua_getglobal(L, "on_key");
-                lua_pushstring(L, SDL_GetKeyName(e.key.keysym.sym));
-                lua_pushboolean(L, e.type == SDL_KEYDOWN);
-                call_lua_callback(L, 2);
+                if (try_get_lua_callback(L, "on_key")) {
+                    lua_pushstring(L, SDL_GetKeyName(e.key.keysym.sym));
+                    lua_pushboolean(L, e.type == SDL_KEYDOWN);
+                    call_lua_callback(L, 2);
+                }
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     const char *name = e.type == SDL_MOUSEBUTTONUP ? "on_mouse_up" : "on_mouse_down";
-                    lua_getglobal(L, name);
-                    if (lua_isfunction(L, -1)) {
+                    if (try_get_lua_callback(L, name)) {
                         lua_pushnumber(L, e.button.x);
                         lua_pushnumber(L, window_height - e.button.y);
                         call_lua_callback(L, 2);
-                    } else {
-                        fprintf(stderr, "WARNING: missing `%s` Lua global function\n", name);
                     }
                 }
                 break;
 
             case SDL_MOUSEMOTION:
-                lua_getglobal(L, "on_mouse_move");
-                if (lua_isfunction(L, -1)) {
+                if (try_get_lua_callback(L, "on_mouse_move")) {
                     lua_pushnumber(L, e.motion.x);
                     lua_pushnumber(L, window_height - e.motion.y);
                     call_lua_callback(L, 2);
-                } else {
-                    fprintf(stderr, "WARNING: missing `on_mouse_move` Lua global function\n");
                 }
                 break;
 

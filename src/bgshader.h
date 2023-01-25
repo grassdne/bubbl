@@ -4,7 +4,6 @@
 #include <GL/glew.h>
 #include "common.h"
 #include "shaderutil.h"
-#include "bubbleshader.h"
 
 #define BG_UNIFORMS(_) _(positions) _(colors) _(num_elements) _(resolution)
 

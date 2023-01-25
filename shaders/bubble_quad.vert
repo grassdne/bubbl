@@ -3,10 +3,10 @@
 layout(location = 0) in vec2 vertpos;
 
 layout(location = 1) in vec2 in_bubble;
-layout(location = 3) in float in_radius;
-layout(location = 2) in vec3 in_color_a;
-layout(location = 5) in vec3 in_color_b;
-layout(location = 4) in vec2 in_trans_angle;
+layout(location = 2) in float in_radius;
+layout(location = 3) in vec3 in_color_a;
+layout(location = 4) in vec3 in_color_b;
+layout(location = 5) in vec2 in_trans_angle;
 layout(location = 6) in float in_trans_percent;
 
 out vec2 bubble_pos;
