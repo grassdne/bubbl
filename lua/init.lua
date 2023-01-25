@@ -65,7 +65,9 @@ local vec2_mt = {
     distsq     = function (a, b)    return (a - b):lengthsq() end,
     dist       = function (a, b)    return math.sqrt(a:distsq(b)) end,
     normalize  = function (v)       return v / v:length() end,
-    unpack = function(v) return v.x, v.y end
+    delta_x    = function (v, dx) v.x = v.x + dx end,
+    delta_y    = function (v, dy) v.y = v.y + dy end,
+    unpack = function(v) return v.x, v.y end,
 }
 vec2_mt.__index = vec2_mt
 Vector2 = ffi.metatype("Vector2", vec2_mt)

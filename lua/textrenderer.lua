@@ -24,11 +24,11 @@ for char, file in pairs(glpyh_files) do
     f:close()
 end
 
-put_char = function(popshader, pos, char, size)
+put_char = function(pos, char, size)
     local circles = glyphs[char] or glyphs[' ']
     local scale = size / SIZE
     for _,circle in ipairs(circles) do
-        popshader:render_particle(
+        render_pop(
             circle.pos:scale(scale) + pos,
             circle.color,
             circle.radius * scale,
@@ -37,9 +37,9 @@ put_char = function(popshader, pos, char, size)
     end
 end
 
-put_string = function(popshader, pos, str, fontsize)
+put_string = function(pos, str, fontsize)
     for i=1, #str do
         local x = pos.x + (i-1) * fontsize
-        put_char(popshader, Vector2(x, pos.y), str:sub(i,i), fontsize)
+        put_char(Vector2(x, pos.y), str:sub(i,i), fontsize)
     end
 end

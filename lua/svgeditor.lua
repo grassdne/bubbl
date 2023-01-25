@@ -1,7 +1,5 @@
 title = "SVG Editor"
 
-pop = PoppingShader:new()
-bubblerenderer = BubbleShader:new()
 circles = {}
 local circle_dragging
 local BASE_SIZE = 15
@@ -23,17 +21,11 @@ on_update = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
         if pt == circle_dragging then
-            bubblerenderer:render_simple(pt.pos, pt.color, pt.radius)
+            render_simple(pt.pos, pt.color, pt.radius)
         else
-            pop:render_particle(pt.pos, pt.color, pt.radius, 0)
+            render_pop(pt.pos, pt.color, pt.radius, 0)
         end
     end
-
-    --put_char(pop, Vector2(window_width/2, window_height/2), 'A', 100)
-    put_string(pop, Vector2(window_width/2, window_height/2), 'AAAAAAAAA???', 48)
-
-    pop:draw(dt)
-    bubblerenderer:draw()
 end
 
 on_mouse_move = function(x, y)
