@@ -1,6 +1,5 @@
 #include "entity_renderer.h"
 #include <stdio.h>
-#include <math.h>
 #include <assert.h>
 #include <GLFW/glfw3.h>
 #include <stdlib.h>

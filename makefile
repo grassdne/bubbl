@@ -3,7 +3,7 @@ CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension `pkg-config -
 CLIBS = `pkg-config --libs $(PKGS)` -lm -rdynamic
 
 CMAIN=src/main.c
-CSRC=src/*.c
+CSRC=src/shaderutil.c src/bgshader.c src/entity_renderer.c src/entity_renderers.c src/main.c
 EXE=bubbles
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
