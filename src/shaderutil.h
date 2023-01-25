@@ -4,7 +4,6 @@
 
 #define UNI_DECL($n) GLint $n;
 #define UNI_GETS($name) (sh)->uniforms.$name = glGetUniformLocation((sh)->shader.program, #$name);
-#define UNI_GETS2($name) (sh).uniforms.$name = glGetUniformLocation((sh).shader.program, #$name);
 
 #define CHECK_GL_ERROR() checkGlError(__FILE__, __LINE__)
 #undef glGenBuffers
