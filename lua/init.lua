@@ -28,24 +28,23 @@ typedef struct {
 } Particle;
 
 // Opaque types
-typedef struct {} BubbleShader;
-typedef struct {} PoppingShader;
 typedef struct {} BgShader;
 
-BubbleShader* get_bubble_shader(void);
 BgShader* get_bg_shader(void);
 
 enum{ MAX_ELEMS=10 };
 
 void free(void *p);
-void render_bubble(BubbleShader *sh, Bubble bubble);
-void flush_bubbles(BubbleShader *s);
+void render_bubble(Bubble bubble);
+void flush_bubbles(void);
 void flush_pops(void);
 void render_pop(Particle particle);
 void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 uint32_t SDL_GetMouseState(int *x, int *y);
 ]]
+
+ParticleEntity = ffi.typeof("Particle")
 
 BGSHADER_MAX_ELEMS = 10
 
@@ -144,40 +143,21 @@ function Bubble:c_bubble()
     }
 end
 
-local mt = {
-}
-ParticleEntity = ffi.metatype("Particle", mt)
+render_bubble = function (bubble)
+    C.render_bubble(bubble:c_bubble())
+end
 
-local mt = {
-    new = function (Self)
-        return C.get_bubble_shader()
-    end;
-
-    render = function (shader, bubble)
-        C.render_bubble(shader, bubble:c_bubble())
-    end;
-
-    render_simple = function (shader, pos, color, rad,
-                              opt_color_b, opt_trans_angle, opt_trans_percent)
-        bubble = BubbleEntity()
-        bubble.pos = pos
-        bubble.rad = rad
-        bubble.color = color
-        bubble.color_b = opt_color_b or color
-        bubble.trans_angle = opt_trans_angle or Vector2(0,0)
-        bubble.trans_percent = opt_trans_percent or 0
-        C.render_bubble(shader, bubble)
-    end;
-
-    draw = function (shader)
-        C.flush_bubbles(shader)
-    end;
-
-    __tostring = function() return "BubbleShader" end
-}
-
-mt.__index = mt
-BubbleShader = ffi.metatype("BubbleShader", mt)
+render_simple = function (pos, color, rad,
+                          opt_color_b, opt_trans_angle, opt_trans_percent)
+    bubble = BubbleEntity()
+    bubble.pos = pos
+    bubble.rad = rad
+    bubble.color = color
+    bubble.color_b = opt_color_b or color
+    bubble.trans_angle = opt_trans_angle or Vector2(0,0)
+    bubble.trans_percent = opt_trans_percent or 0
+    C.render_bubble(bubble)
+end
 
 render_pop = function (pos, color, radius, age)
     C.render_pop(ParticleEntity(pos, color, radius, age))

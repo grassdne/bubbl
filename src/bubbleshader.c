@@ -1,9 +1,22 @@
 #include "bubbleshader.h"
 #include "common.h"
-
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <GLFW/glfw3.h>
+
+#define BUBBLE_CAPACITY 128
+#define BUBBLE_UNIFORMS(_) _(time) _(resolution)
+
+typedef struct {
+    Shader shader;
+    struct {BUBBLE_UNIFORMS(UNI_DECL)} uniforms;
+    Bubble bubbles[BUBBLE_CAPACITY];
+    size_t num_bubbles;
+    GLuint bubble_vbo;
+} BubbleShader;
+
+static BubbleShader sh = {0};
 
 const ShaderDatas BUBBLE_SHADER_DATAS = {
     .vert = "shaders/bubble_quad.vert",
@@ -21,28 +34,22 @@ typedef enum {
     ATTRIB_TRANS_PERCENT = 6,
 } AttributeLocations;
 
-Bubble *get_bubble(BubbleShader *sh, size_t id)
+void render_bubble(Bubble bubble)
 {
-    if (id < sh->num_bubbles+1) {
-        Bubble *bubble = &sh->bubbles[id];
-        return bubble;
+    if (sh.num_bubbles >= BUBBLE_CAPACITY) {
+        flush_bubbles();
     }
-    return NULL;
-}
-void render_bubble(BubbleShader *sh, Bubble bubble)
-{
-    assert(sh->num_bubbles < BUBBLE_CAPACITY && "more bubbles than capacity");
-    sh->bubbles[sh->num_bubbles++] = bubble;
+    sh.bubbles[sh.num_bubbles++] = bubble;
 }
 
-void bubbleInit(BubbleShader *sh) {
-    shaderBuildProgram(sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
-    BUBBLE_UNIFORMS(UNI_GETS);
+void bubbleInit(void) {
+    shaderBuildProgram(&sh, BUBBLE_SHADER_DATAS, BUBBLE_UNIFORMS);
+    BUBBLE_UNIFORMS(UNI_GETS2);
 
-    glBindVertexArray(sh->shader.vao);
-    glGenBuffers(1, &sh->bubble_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(sh->bubbles), sh->bubbles, GL_DYNAMIC_DRAW);
+    glBindVertexArray(sh.shader.vao);
+    glGenBuffers(1, &sh.bubble_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, sh.bubble_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sh.bubbles), sh.bubbles, GL_DYNAMIC_DRAW);
 
 #define BUBBLE_ATTRIB(loc, count, type, field) do{ \
     glEnableVertexAttribArray(loc); \
@@ -61,27 +68,28 @@ void bubbleInit(BubbleShader *sh) {
     glBindVertexArray(0);
 }
 
-void flush_bubbles(BubbleShader *sh) {
+void flush_bubbles(void)
+{
     const double time = get_time();
 
     // Bind
-	glUseProgram(sh->shader.program);
-    glBindVertexArray(sh->shader.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, sh->bubble_vbo);
+	glUseProgram(sh.shader.program);
+    glBindVertexArray(sh.shader.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, sh.bubble_vbo);
     // Update buffer
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh->bubbles), sh->bubbles);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(sh.bubbles), sh.bubbles);
 
     // Set uniforms
-    glUniform1f(sh->uniforms.time, time);
-    glUniform2f(sh->uniforms.resolution, window_width, window_height);
+    glUniform1f(sh.uniforms.time, time);
+    glUniform2f(sh.uniforms.resolution, window_width, window_height);
 
     // Draw
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh->num_bubbles);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, sh.num_bubbles);
 
     // Unbind
     glUseProgram(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    sh->num_bubbles = 0;
+    sh.num_bubbles = 0;
 }

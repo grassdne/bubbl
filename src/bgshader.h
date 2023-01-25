@@ -11,10 +11,8 @@
 typedef struct {
     Shader shader;
     struct {BG_UNIFORMS(UNI_DECL)} uniforms;
-    Bubble *bubbles;
-    size_t *numbbls;
 } BgShader;
 
-void bgInit(BgShader* restrict sh, Bubble *bubbles, size_t *numbbls);
+void bgInit(BgShader *sh);
 
 #endif

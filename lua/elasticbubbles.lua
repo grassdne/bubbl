@@ -182,9 +182,9 @@ on_update = function(dt)
         if bubble.trans_starttime then
             bubble.trans_percent = (time - bubble.trans_starttime) / ELASTICBUBBLES.TRANSFORM_TIME
         end
-        shaders.bubble:render(bubble)
+        render_bubble(bubble)
     end
-    if cursor_bubble then shaders.bubble:render(cursor_bubble) end
+    if cursor_bubble then render_bubble(cursor_bubble) end
 
     -- Update pop effect particles
     for _, pop in ipairs(pop_effects) do
@@ -205,7 +205,6 @@ on_update = function(dt)
 
     -- Draw bubbles!
     shaders.bg:draw(get_bubbles_for_bgshader())
-    shaders.bubble:draw()
 end
 
 local bubble_at_point = function (pos)
@@ -261,8 +260,7 @@ if not initialized then
     -- Any more globals is an error!
     lock_global_table()
 
-    shaders.bubble = BubbleShader:new()
-    shaders.bg = BgShader:new(shaders.bubble)
+    shaders.bg = BgShader:new()
 
     for i=1, ELASTICBUBBLES.STARTING_BUBBLE_COUNT do
         table.insert(bubbles, Bubble:new(random_color(), random_position(), random_velocity(), random_radius()))
