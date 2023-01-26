@@ -369,3 +369,9 @@ mouse_position = function ()
     ffi.C.SDL_GetMouseState(x, y);
     return Vector2(x[0], window_height - y[0])
 end
+
+array_find = function (item, array)
+    for i,v in ipairs(array) do
+        if v == item then return i end
+    end
+end

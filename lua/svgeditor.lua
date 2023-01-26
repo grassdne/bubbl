@@ -4,18 +4,16 @@ circles = {}
 local circle_dragging
 local BASE_SIZE = 15
 
-require "textrenderer"
+local TextRenderer = require "textrenderer"
 
-local Particle = {
-    new = function (Self, pos, color, radius, focused)
-        local p = setmetatable({}, Self)
-        p.pos = pos
-        p.radius = radius
-        p.color = color
-        p.focused = focused
-        return p
-    end;
-}
+local create_particle = function (pos, color, radius, is_focused)
+    return {
+        pos = pos,
+        radius = radius,
+        color = color,
+        focused = is_focused,
+    }
+end
 
 on_update = function(dt)
     -- Render circles
@@ -26,6 +24,9 @@ on_update = function(dt)
             render_pop(pt.pos, pt.color, pt.radius, 0)
         end
     end
+
+    -- Testing text
+    TextRenderer.put_string(Vector2(0,0), "AAAA??", 40)
 end
 
 on_mouse_move = function(x, y)
@@ -37,8 +38,6 @@ end
 on_mouse_up = function(x, y)
     circle_dragging = nil
 end
-
-local SVG_SIZE = 256
 
 local get_bounding_box = function ()
     -- Could be slow if we have 1 million+ circles
@@ -83,7 +82,6 @@ local save_to_svg = function(file_path)
     f:write("<?xml version=\"1.0\"?>\n")
     f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_SIZE, SVG_SIZE))
     
-    print(Color.hex("#FF00FF"):to_hex_string())
     local coords = get_svg_coords()
     for i,circle in ipairs(circles) do
         local x, y = coords[i]:unpack()
@@ -108,7 +106,7 @@ end
 on_mouse_down = function(x, y)
     circle_dragging = circle_at_position(Vector2(x, y))
     if not circle_dragging then
-        circle_dragging = Particle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
+        circle_dragging = create_particle(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
         table.insert(circles, circle_dragging)
     end
 end
@@ -132,7 +130,26 @@ on_key = function(key, is_down)
     elseif key == "Down" and is_down then
         local circle = circle_at_position(mouse_position())
         if circle then circle_delta_radius(circle, -KEY_DELTA_RADIUS) end
+    elseif key == "Backspace" and is_down and circle_dragging then
+        local i = assert(array_find(circle_dragging, circles))
+        table.remove(circles, i)
+        circle_dragging = nil
     end
 end
 
 on_window_resize = function(w, h) end
+
+try_load_file = function(path)
+    local f = io.open(path)
+    if not f then return false end
+    local center = Vector2(window_width/2, window_height/2);
+    local start_position = center - Vector2(SVG_SIZE/2, SVG_SIZE/2)
+    for pos, radius, color in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
+        table.insert(circles, create_particle(start_position + pos, color, radius))
+    end
+    f:close()
+    return true
+end
+
+TextRenderer.load_glyphs()
+try_load_file(SVGEDITOR.FILE)
