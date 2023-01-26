@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<svg width="256" height="256">
+  <circle cx="62" cy="31" r="20" fill="#ff0000" />
+  <circle cx="63" cy="81" r="20" fill="#ff0000" />
+  <circle cx="66" cy="124" r="20" fill="#ff0000" />
+  <circle cx="69" cy="160" r="20" fill="#ff0000" />
+  <circle cx="65" cy="195" r="20" fill="#ff0000" />
+  <circle cx="76" cy="232" r="20" fill="#ff0000" />
+  <circle cx="113" cy="237" r="20" fill="#ff0000" />
+  <circle cx="157" cy="232" r="20" fill="#ff0000" />
+  <circle cx="188" cy="208" r="20" fill="#ff0000" />
+  <circle cx="200" cy="174" r="20" fill="#ff0000" />
+  <circle cx="172" cy="152" r="20" fill="#ff0000" />
+  <circle cx="137" cy="136" r="20" fill="#ff0000" />
+  <circle cx="100" cy="139" r="20" fill="#ff0000" />
+  <circle cx="157" cy="106" r="20" fill="#ff0000" />
+  <circle cx="189" cy="96" r="20" fill="#ff0000" />
+  <circle cx="194" cy="58" r="20" fill="#ff0000" />
+  <circle cx="188" cy="26" r="20" fill="#ff0000" />
+  <circle cx="163" cy="24" r="20" fill="#ff0000" />
+  <circle cx="128" cy="14" r="20" fill="#ff0000" />
+  <circle cx="95" cy="21" r="20" fill="#ff0000" />
+</svg>

@@ -2,9 +2,10 @@ title = "SVG Editor"
 
 circles = {}
 local circle_dragging
-local BASE_SIZE = 15
+local BASE_SIZE = 20
 
 local TextRenderer = require "textrenderer"
+local Draw = require "draw"
 
 local create_particle = function (pos, color, radius, is_focused)
     return {
@@ -13,6 +14,11 @@ local create_particle = function (pos, color, radius, is_focused)
         color = color,
         focused = is_focused,
     }
+end
+
+local get_bottom_left_box = function ()
+    local center = Vector2(window_width/2, window_height/2)
+    return Vector2(center.x - SVG_SIZE/2, center.y - SVG_SIZE/2)
 end
 
 on_update = function(dt)
@@ -25,8 +31,13 @@ on_update = function(dt)
         end
     end
 
+    local center = Vector2(window_width/2, window_height/2)
+    local x, y = get_bottom_left_box():unpack()
+    Draw.rect_outline(x, y, SVG_SIZE, SVG_SIZE)
+
     -- Testing text
-    TextRenderer.put_string(Vector2(0,0), "AAAA??", 40)
+    TextRenderer.put_string(Vector2(0,45), "HELLO? HELLO? HELLO? HELLO? ", 20)
+    TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40)
 end
 
 on_mouse_move = function(x, y)
@@ -40,8 +51,6 @@ on_mouse_up = function(x, y)
 end
 
 local get_bounding_box = function ()
-    -- Could be slow if we have 1 million+ circles
-
     assert(#circles > 0)
     local circles = table.copy(circles)
 
@@ -82,11 +91,10 @@ local save_to_svg = function(file_path)
     f:write("<?xml version=\"1.0\"?>\n")
     f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_SIZE, SVG_SIZE))
     
-    local coords = get_svg_coords()
     for i,circle in ipairs(circles) do
-        local x, y = coords[i]:unpack()
+        local x, y = (circle.pos - get_bottom_left_box()):unpack()
         f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                x, y, circle.radius * coords.scale, circle.color:to_hex_string()))
+                x, SVG_SIZE - y, circle.radius, circle.color:to_hex_string()))
     end
 
     f:write("</svg>")

@@ -1,9 +1,12 @@
 SVG_SIZE = 256
 
-local glpyh_files = {
-    ['A'] = 'A.svg',
+local glyph_files = {
     ['?'] = 'qmark.svg',
 }
+for a = string.byte('A'), string.byte('Z') do
+    glyph_files[string.char(a)] = string.char(a)..'.svg'
+end
+
 local glyphs = {}
 glyphs[' '] = {}
 
@@ -23,19 +26,21 @@ TextRenderer.svg_iter_circles = function (contents)
 end
 
 TextRenderer.load_glyphs = function()
-    for char, file in pairs(glpyh_files) do
-        local f = assert(io.open("glyphs/"..file))
-        local contents = f:read("*a")
-        local circles = {}
-        for pos, radius, color in TextRenderer.svg_iter_circles(contents) do
-            table.insert(circles, {
-                pos=pos,
-                radius=radius,
-                color=color,
-            })
+    for char, file in pairs(glyph_files) do
+        local f = io.open("glyphs/"..file)
+        if f then
+            local contents = f:read("*a")
+            local circles = {}
+            for pos, radius, color in TextRenderer.svg_iter_circles(contents) do
+                table.insert(circles, {
+                    pos=pos,
+                    radius=radius,
+                    color=color,
+                })
+            end
+            glyphs[char] = circles
+            f:close()
         end
-        glyphs[char] = circles
-        f:close()
     end
 end
 

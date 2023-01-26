@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<svg width="256" height="256">
+  <circle cx="53" cy="36" r="20" fill="#ff0000" />
+  <circle cx="55" cy="74" r="20" fill="#ff0000" />
+  <circle cx="56" cy="110" r="20" fill="#ff0000" />
+  <circle cx="57" cy="147" r="20" fill="#ff0000" />
+  <circle cx="58" cy="181" r="20" fill="#ff0000" />
+  <circle cx="59" cy="216" r="20" fill="#ff0000" />
+  <circle cx="182" cy="35" r="20" fill="#ff0000" />
+  <circle cx="183" cy="70" r="20" fill="#ff0000" />
+  <circle cx="180" cy="103" r="20" fill="#ff0000" />
+  <circle cx="180" cy="140" r="20" fill="#ff0000" />
+  <circle cx="184" cy="175" r="20" fill="#ff0000" />
+  <circle cx="184" cy="214" r="20" fill="#ff0000" />
+  <circle cx="100" cy="124" r="20" fill="#ff0000" />
+  <circle cx="128" cy="123" r="20" fill="#ff0000" />
+  <circle cx="160" cy="121" r="20" fill="#ff0000" />
+  <circle cx="74" cy="128" r="20" fill="#ff0000" />
+</svg>

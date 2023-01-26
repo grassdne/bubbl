@@ -3,7 +3,7 @@ local POINT_SIZE=3
 local draw = {}
 
 draw.point = function(x, y)
-    pop:render_particle(Vector2(x, y), Color.hex "000000", POINT_SIZE, 0)
+    render_pop(Vector2(x, y), Color.hex "000000", POINT_SIZE, 0)
 end
 draw.horiz_line = function(x1, y1, w)
     for x=x1, x1+w, POINT_SIZE do draw.point(x,y1) end
