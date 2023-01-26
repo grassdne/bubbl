@@ -1,4 +1,4 @@
-ELASTICBUBBLES = {
+ELASTIC = {
     STARTING_BUBBLE_COUNT = 10,
     BUBBLE_SPEED_BASE = 200,
     BUBBLE_SPEED_VARY = 225,
@@ -41,10 +41,11 @@ SVGEDITOR = {
 -----------------------
 -- Click and hold to create a bubble
 -- Click a bubble to pop it
-require "elasticbubbles"
+--require "elasticbubbles"
 -----------------
 --- Rainbow 1 ---
 -----------------
 --require "rainbow"
 
---require "svgeditor"
+package.loaded.svgeditor = false
+require "svgeditor"
