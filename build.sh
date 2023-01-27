@@ -8,7 +8,7 @@ CFLAGS="-Wall -Wextra -std=c11 --pedantic $(pkg-config --cflags $DEPS)"
 CLIBS="$(pkg-config --libs $DEPS)"
 
 if [ `uname` = Darwin ]; then
-    CLIBS+="-framework OpenGL -framework IOKit"
+    CLIBS+=" -framework OpenGL -framework IOKit"
 else
     # Export symbols for LuaJIT FFI
     CFLAGS+=" -rdynamic"
