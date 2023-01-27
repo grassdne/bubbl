@@ -7,33 +7,40 @@ local BASE_SIZE = 20
 local TextRenderer = require "textrenderer"
 local Draw = require "draw"
 
-local create_particle = function (pos, color, radius, is_focused)
-    return {
-        pos = pos,
-        radius = radius,
-        color = color,
-        focused = is_focused,
-    }
-end
-
-local get_bottom_left_box = function ()
+local get_draw_box_base_position = function ()
     local center = Vector2(window_width/2, window_height/2)
     return Vector2(center.x - SVG_SIZE/2, center.y - SVG_SIZE/2)
 end
+
+local Circle = {
+    new = function (self, pos, color, radius, is_focused)
+        local c = setmetatable({}, self)
+        c:absolute_position(pos)
+        c.radius = radius
+        c.color = color
+        c.focused = is_focused
+        return c
+    end,
+    absolute_position = function (self, pos)
+        local base = get_draw_box_base_position()
+        if pos then self.pos = pos - base end
+        return base + self.pos
+    end
+}
+Circle.__index = Circle
 
 on_update = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
         if pt == circle_dragging then
-            render_simple(pt.pos, pt.color, pt.radius)
+            render_simple(pt:absolute_position(), pt.color, pt.radius)
         else
-            render_pop(pt.pos, pt.color, pt.radius, 0)
+            render_pop(pt:absolute_position(), pt.color, pt.radius, 0)
         end
     end
 
-    local center = Vector2(window_width/2, window_height/2)
-    local x, y = get_bottom_left_box():unpack()
-    Draw.rect_outline(x, y, SVG_SIZE, SVG_SIZE)
+    local base = get_draw_box_base_position()
+    Draw.rect_outline(base.x, base.y, SVG_SIZE, SVG_SIZE)
 
     -- Testing text
     TextRenderer.put_string(Vector2(0,45), "HELLO? HELLO? HELLO? HELLO? ", 20)
@@ -42,7 +49,7 @@ end
 
 on_mouse_move = function(x, y)
     if circle_dragging then
-        circle_dragging.pos = Vector2(x, y)
+        circle_dragging:absolute_position(Vector2(x, y))
     end
 end
 
@@ -92,7 +99,7 @@ local save_to_svg = function(file_path)
     f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_SIZE, SVG_SIZE))
     
     for i,circle in ipairs(circles) do
-        local x, y = (circle.pos - get_bottom_left_box()):unpack()
+        local x, y = circle.pos:unpack()
         f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
                 x, SVG_SIZE - y, circle.radius, circle.color:to_hex_string()))
     end
@@ -102,9 +109,10 @@ local save_to_svg = function(file_path)
 end
 
 local circle_at_position = function(pos)
+    local relative_pos = pos - get_draw_box_base_position()
     -- We iterate backwards to get the front circle
     for i = #circles, 1, -1 do
-        if circles[i].pos:dist(pos) < circles[i].radius then
+        if circles[i].pos:dist(relative_pos) < circles[i].radius then
             return circles[i]
         end
     end
@@ -114,7 +122,7 @@ end
 on_mouse_down = function(x, y)
     circle_dragging = circle_at_position(Vector2(x, y))
     if not circle_dragging then
-        circle_dragging = create_particle(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
+        circle_dragging = Circle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
         table.insert(circles, circle_dragging)
     end
 end
@@ -151,9 +159,8 @@ try_load_file = function(path)
     local f = io.open(path)
     if not f then return false end
     local center = Vector2(window_width/2, window_height/2);
-    local start_position = center - Vector2(SVG_SIZE/2, SVG_SIZE/2)
     for pos, radius, color in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
-        table.insert(circles, create_particle(start_position + pos, color, radius))
+        table.insert(circles, Circle:new(get_draw_box_base_position() + pos, color, radius))
     end
     f:close()
     return true
