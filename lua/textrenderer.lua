@@ -35,7 +35,6 @@ TextRenderer.load_glyphs = function()
                 table.insert(circles, {
                     pos=pos,
                     radius=radius,
-                    color=color,
                 })
             end
             glyphs[char] = circles
@@ -44,23 +43,31 @@ TextRenderer.load_glyphs = function()
     end
 end
 
-TextRenderer.put_char = function(pos, char, size)
+---@param pos Vector2 screen position of bottom left of rendered text
+---@param char string to render on screen
+---@param fontsize number
+---@param color Color|nil color of text, defaults to black
+TextRenderer.put_char = function(pos, char, size, color)
     local circles = glyphs[char] or glyphs[' ']
     local scale = size / SVG_SIZE
     for _,circle in ipairs(circles) do
         render_pop(
             circle.pos:scale(scale) + pos,
-            circle.color,
+            color or WEBCOLORS.BLACK,
             circle.radius * scale,
             0
         )
     end
 end
 
-TextRenderer.put_string = function(pos, str, fontsize)
+---@param pos Vector2 screen position of bottom left of rendered text
+---@param str string to render on screen
+---@param fontsize number
+---@param color Color|nil color of text, defaults to black
+TextRenderer.put_string = function(pos, str, fontsize, color)
     for i=1, #str do
         local x = pos.x + (i-1) * fontsize
-        TextRenderer.put_char(Vector2(x, pos.y), str:sub(i,i), fontsize)
+        TextRenderer.put_char(Vector2(x, pos.y), str:sub(i,i), fontsize, color)
     end
 end
 

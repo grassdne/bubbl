@@ -33,7 +33,7 @@ RAINBOW = {
 
 SVGEDITOR = {
     FILE = arg[1] or "img.svg",
-    COLOR = WEBCOLORS.RED,
+    COLOR = WEBCOLORS.BLACK,
 }
 
 -----------------------

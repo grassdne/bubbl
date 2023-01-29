@@ -13,11 +13,10 @@ local get_draw_box_base_position = function ()
 end
 
 local Circle = {
-    new = function (self, pos, color, radius, is_focused)
+    new = function (self, pos, radius, is_focused)
         local c = setmetatable({}, self)
         c:absolute_position(pos)
         c.radius = radius
-        c.color = color
         c.focused = is_focused
         return c
     end,
@@ -33,9 +32,9 @@ on_update = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
         if pt == circle_dragging then
-            render_simple(pt:absolute_position(), pt.color, pt.radius)
+            render_simple(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius)
         else
-            render_pop(pt:absolute_position(), pt.color, pt.radius, 0)
+            render_pop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius, 0)
         end
     end
 
@@ -66,7 +65,7 @@ local save_to_svg = function(file_path)
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:unpack()
         f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                x, SVG_SIZE - y, circle.radius, circle.color:to_hex_string()))
+                x, SVG_SIZE - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
     end
 
     f:write("</svg>")
@@ -87,7 +86,7 @@ end
 on_mouse_down = function(x, y)
     circle_dragging = circle_at_position(Vector2(x, y))
     if not circle_dragging then
-        circle_dragging = Circle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
+        circle_dragging = Circle:new(Vector2(x, y), BASE_SIZE, true)
         table.insert(circles, circle_dragging)
     end
 end
@@ -122,8 +121,8 @@ try_load_file = function(path)
     local f = io.open(path)
     if not f then return false end
     local center = Vector2(window_width/2, window_height/2);
-    for pos, radius, color in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
-        table.insert(circles, Circle:new(get_draw_box_base_position() + pos, color, radius))
+    for pos, radius in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
+        table.insert(circles, Circle:new(get_draw_box_base_position() + pos, radius))
     end
     f:close()
     return true
