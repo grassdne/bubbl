@@ -39,11 +39,11 @@ on_update = function(dt)
     end
 
     local base = get_draw_box_base_position()
-    Draw.rect_outline(base.x, base.y, SVG_SIZE, SVG_SIZE)
+    Draw.rect_outline(base.x, base.y, SVG_SIZE, SVG_SIZE, WEBCOLORS.BLACK)
 
     -- Testing text
-    TextRenderer.put_string(Vector2(0,45), "HELLO? HELLO? HELLO? HELLO? ", 20)
-    TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40)
+    TextRenderer.put_string(Vector2(0,45), "HELLO? HELLO? HELLO? HELLO? ", 20, SVGEDITOR.COLOR)
+    TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40, SVGEDITOR.COLOR)
 end
 
 on_mouse_move = function(x, y)
