@@ -40,6 +40,8 @@ on_update = function(dt)
 
     -- Grow particles in proximity to cursor
     local mouse = mouse_position()
+    -- TODO: We don't want to do anything if the mouse is outside the window
+    -- the following guard doesn't actually do any good
     if mouse.x > 0 and mouse.x < window_width and
        mouse.y > 0 and mouse.y < window_height
     then
