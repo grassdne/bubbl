@@ -22,13 +22,13 @@ ELASTIC = {
 
 RAINBOW = {
     PERIOD = 4.5, -- Time for one revolution
-    MIN_RADIUS = 13,
-    MAX_RADIUS = 26,
-    MAX_ATTAINED_RADIUS = 50,
-    SPACING = 30,
+    MIN_RADIUS = 10,
+    MAX_RADIUS = 20,
+    MAX_ATTAINED_RADIUS = 40,
+    SPACING = 24,
     WRAPAROUND_BUFFER = 3,
     MOUSE_EFFECT_RADIUS = 300,
-    SIZE_DELTA = 55,
+    SIZE_DELTA = 40,
 }
 
 SVGEDITOR = {
@@ -45,7 +45,8 @@ SVGEDITOR = {
 -----------------
 --- Rainbow 1 ---
 -----------------
---require "rainbow"
+require "rainbow"
+print(#particles)
 
-package.loaded.svgeditor = false
-require "svgeditor"
+--package.loaded.svgeditor = false
+--require "svgeditor"
