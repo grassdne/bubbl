@@ -33,7 +33,7 @@ on_update = function(dt)
         part.position:delta_x(-length / RAINBOW.PERIOD * dt)
         if part.position.x < END_POS_LEFT then
             -- Jump back to the other end
-            particles[i] = gen_particle(part.color, window_width+START_POS_RIGHT)
+            particles[i] = gen_particle(part.color, part.position.x + length)
         end
         render_pop(part.position, part.color, part.radius, 0)
     end
