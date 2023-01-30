@@ -46,7 +46,6 @@ SVGEDITOR = {
 --- Rainbow 1 ---
 -----------------
 require "rainbow"
-print(#particles)
 
 --package.loaded.svgeditor = false
 --require "svgeditor"
