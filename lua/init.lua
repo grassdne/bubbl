@@ -366,6 +366,10 @@ table.copy = function(tbl)
     return cpy
 end
 
+math.clamp = function(v, min, max)
+    return math.max(min, math.min(max, v))
+end
+
 mouse_position = function ()
     local x = ffi.new("int[1]")
     local y = ffi.new("int[1]")

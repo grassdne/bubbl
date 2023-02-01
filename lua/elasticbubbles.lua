@@ -90,12 +90,10 @@ local separate_bubbles = function (a, b)
     a.position = b.position + dir_b_to_a * mindist
 end
 
-minmax = function(x, min, max) return math.min(max, math.max(min, x)) end
-
 local ensure_bubble_in_bounds = function (bubble)
     local pos = bubble.position
-    pos.x = minmax(pos.x, bubble.radius, window_width  - bubble.radius)
-    pos.y = minmax(pos.y, bubble.radius, window_height - bubble.radius)
+    pos.x = math.clamp(pos.x, bubble.radius, window_width  - bubble.radius)
+    pos.y = math.clamp(pos.y, bubble.radius, window_height - bubble.radius)
     bubble.position = pos
 end
 
