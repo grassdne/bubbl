@@ -3,8 +3,9 @@ title = "SVG Editor"
 local scale = 1
 
 circles = {}
-local selected
-local is_dragging = false
+
+local selected = {}
+
 local BASE_SIZE = 20
 
 local TextRenderer = require "textrenderer"
@@ -43,7 +44,7 @@ Circle.__index = Circle
 on_update = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
-        local alpha = pt == selected and 0.5 or 0
+        local alpha = selected[pt] and 0.5 or 0
         render_pop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale, alpha)
     end
 
@@ -56,13 +57,14 @@ on_update = function(dt)
 end
 
 on_mouse_move = function(x, y)
-    if selected then
-        selected:absolute_position(Vector2(x, y))
+    local mouse = Vector2(x, y)
+    if drag_start then
+        for circle in pairs(selected) do
+            local diff = mouse - drag_start
+            circle:absolute_position(circle:absolute_position() + diff)
+        end
+        drag_start = mouse
     end
-end
-
-on_mouse_up = function(x, y)
-    selected = nil
 end
 
 local fmt = string.format
@@ -92,10 +94,26 @@ local circle_at_position = function(pos)
 end
 
 on_mouse_down = function(x, y)
-    selected = circle_at_position(Vector2(x, y))
-    if not selected then
-        selected = Circle:new(position_from_absolute(Vector2(x, y)), BASE_SIZE, true)
-        table.insert(circles, selected)
+    local found = circle_at_position(Vector2(x, y))
+    if found and not selected[found] then
+        -- Selecting circle
+        selected[found] = true
+    elseif next(selected) then
+        -- Starting dragging
+        drag_start = Vector2(x, y)
+    else
+        -- Creating new cicle
+        local circle = Circle:new(position_from_absolute(Vector2(x, y)), BASE_SIZE, true)
+        table.insert(circles, circle)
+        selected = {}
+    end
+end
+
+on_mouse_up = function(x, y)
+    if drag_start then
+        -- Finished dragging
+        selected = {}
+        drag_start = nil
     end
 end
 
@@ -104,9 +122,7 @@ local MIN_CIRCLE_RADIUS = 5
 
 local circle_delta_radius = function(circle, delta)
     local new_radius = circle.radius + delta
-    if new_radius > MIN_CIRCLE_RADIUS then
-        circle:absolute_radius(new_radius)
-    end
+    circle.radius = math.max(MIN_CIRCLE_RADIUS, new_radius)
 end
 
 on_key = function(key, is_down)
@@ -118,10 +134,14 @@ on_key = function(key, is_down)
     elseif key == "Down" and is_down then
         local circle = circle_at_position(mouse_position())
         if circle then circle_delta_radius(circle, -KEY_DELTA_RADIUS) end
-    elseif key == "Backspace" and is_down and selected then
-        local i = assert(array_find(selected, circles))
-        table.remove(circles, i)
-        selected = nil
+    elseif key == "Backspace" and is_down then
+        for v in pairs(selected) do
+            local i = assert(array_find(circles, v))
+            table.remove(circles, i)
+        end
+        selected = {}
+    elseif (key == "Left Alt" or key == "Right Alt") and is_down then
+        multiselect_mode = not multiselect_mode
     end
 end
 

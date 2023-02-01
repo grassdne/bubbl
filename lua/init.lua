@@ -377,7 +377,7 @@ mouse_position = function ()
     return Vector2(x[0], window_height - y[0])
 end
 
-array_find = function (item, array)
+array_find = function (array, item)
     for i,v in ipairs(array) do
         if v == item then return i end
     end
