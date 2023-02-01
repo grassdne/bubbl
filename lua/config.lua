@@ -45,7 +45,6 @@ SVGEDITOR = {
 -----------------
 --- Rainbow 1 ---
 -----------------
-require "rainbow"
+--require "rainbow"
 
---package.loaded.svgeditor = false
---require "svgeditor"
+require "svgeditor"

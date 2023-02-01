@@ -281,6 +281,14 @@ int main(int argc, char **argv) {
                 }
                 break;
 
+            case SDL_MOUSEWHEEL:
+                if (try_get_lua_callback(L, "on_mouse_wheel")) {
+                    lua_pushnumber(L, e.wheel.preciseX);
+                    lua_pushnumber(L, e.wheel.preciseY);
+                    call_lua_callback(L, 2);
+                }
+                break;
+
             case SDL_WINDOWEVENT:
                 if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
                     on_window_resize(window);
