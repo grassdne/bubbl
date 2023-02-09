@@ -1,4 +1,5 @@
-SVG_SIZE = 256
+SVG_WIDTH = 192
+SVG_HEIGHT = 256
 
 local glyph_files = {
     ['?'] = 'qmark.svg',
@@ -15,7 +16,7 @@ local TextRenderer = {}
 local next_svg_circle = function (get_match)
     local cx, cy, r, fill = get_match()
     if cx then
-        return Vector2(tonumber(cx), SVG_SIZE - tonumber(cy)),
+        return Vector2(tonumber(cx), SVG_HEIGHT - tonumber(cy)),
         tonumber(r),
         Color.hex(fill)
     end
@@ -49,7 +50,7 @@ end
 ---@param color Color|nil color of text, defaults to black
 TextRenderer.put_char = function(pos, char, size, color)
     local circles = glyphs[char] or glyphs[' ']
-    local scale = size / SVG_SIZE
+    local scale = size / SVG_WIDTH
     for _,circle in ipairs(circles) do
         render_pop(
             circle.pos:scale(scale) + pos,

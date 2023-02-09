@@ -15,8 +15,9 @@ local Draw = require "draw"
 
 local get_draw_box_base_position = function ()
     local center = Vector2(window_width/2, window_height/2)
-    local size = SVG_SIZE * scale
-    return Vector2(center.x - size/2, center.y - size/2)
+    local width = SVG_WIDTH * scale
+    local height = SVG_HEIGHT * scale
+    return Vector2(center.x - width/2, center.y - height/2)
 end
 
 local NormalPosition = function (pos)
@@ -67,7 +68,7 @@ on_update = function(dt)
     end
 
     local base = get_draw_box_base_position()
-    Draw.rect_outline(base.x, base.y, SVG_SIZE*scale, SVG_SIZE*scale, WEBCOLORS.BLACK)
+    Draw.rect_outline(base.x, base.y, SVG_WIDTH*scale, SVG_HEIGHT*scale, WEBCOLORS.BLACK)
 
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
@@ -77,7 +78,7 @@ on_update = function(dt)
     end
 
     -- Testing text
-    TextRenderer.put_string(Vector2(0,45), "HELLO? HELLO? HELLO? HELLO? ", 20, SVGEDITOR.COLOR)
+    TextRenderer.put_string(Vector2(0,60), "HELLO? HELLO? HELLO? HELLO? ", 20, SVGEDITOR.COLOR)
     TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40, SVGEDITOR.COLOR)
 end
 
@@ -106,12 +107,12 @@ local fmt = string.format
 local save_to_svg = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
-    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_SIZE, SVG_SIZE))
+    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_WIDTH, SVG_HEIGHT))
     
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:unpack()
         f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                x, SVG_SIZE - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
+                x, SVG_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
     end
 
     f:write("</svg>")
