@@ -123,7 +123,7 @@ static void frame(SDL_Window *W) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     lua_State *L = SDL_GetWindowData(W, "L");
-    if (try_get_lua_callback(L, "on_update")) {
+    if (try_get_lua_callback(L, "OnUpdate")) {
         lua_pushnumber(L, dt);
         call_lua_callback(L, 1);
     }
@@ -142,7 +142,7 @@ static void on_window_resize(SDL_Window *W) {
     lua_pushinteger(L, window_height);
     lua_setglobal(L, "window_height");
 
-    if (try_get_lua_callback(L, "on_window_resize")) {
+    if (try_get_lua_callback(L, "OnWindowResize")) {
         lua_pushnumber(L, window_width);
         lua_pushnumber(L, window_height);
         call_lua_callback(L, 2);
@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
                 }
                 /* fallthrough */
             case SDL_KEYUP:
-                if (try_get_lua_callback(L, "on_key")) {
+                if (try_get_lua_callback(L, "OnKey")) {
                     lua_pushstring(L, SDL_GetKeyName(e.key.keysym.sym));
                     lua_pushboolean(L, e.type == SDL_KEYDOWN);
                     call_lua_callback(L, 2);
@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
                 if (e.button.button == SDL_BUTTON_LEFT) {
-                    const char *name = e.type == SDL_MOUSEBUTTONUP ? "on_mouse_up" : "on_mouse_down";
+                    const char *name = e.type == SDL_MOUSEBUTTONUP ? "OnMouseUp" : "OnMouseDown";
                     if (try_get_lua_callback(L, name)) {
                         lua_pushnumber(L, e.button.x);
                         lua_pushnumber(L, window_height - e.button.y);
@@ -274,7 +274,7 @@ int main(int argc, char **argv) {
                 break;
 
             case SDL_MOUSEMOTION:
-                if (try_get_lua_callback(L, "on_mouse_move")) {
+                if (try_get_lua_callback(L, "OnMouseMove")) {
                     lua_pushnumber(L, e.motion.x);
                     lua_pushnumber(L, window_height - e.motion.y);
                     call_lua_callback(L, 2);
@@ -282,7 +282,7 @@ int main(int argc, char **argv) {
                 break;
 
             case SDL_MOUSEWHEEL:
-                if (try_get_lua_callback(L, "on_mouse_wheel")) {
+                if (try_get_lua_callback(L, "OnMouseWheel")) {
                     lua_pushnumber(L, e.wheel.preciseX);
                     lua_pushnumber(L, e.wheel.preciseY);
                     call_lua_callback(L, 2);

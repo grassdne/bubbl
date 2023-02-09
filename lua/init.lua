@@ -119,7 +119,7 @@ BubbleEntity = ffi.metatype("Bubble", mt)
 
 Bubble = {}
 Bubble.__index = Bubble
-function Bubble:new(color, pos, velocity, radius)
+function Bubble:New(color, pos, velocity, radius)
     local bubble = setmetatable({}, self)
     bubble.position = pos
     bubble.color = color
@@ -131,13 +131,13 @@ function Bubble:new(color, pos, velocity, radius)
     bubble.trans_starttime = nil
     return bubble
 end
-function Bubble:start_transformation(color, start_time, angle)
+function Bubble:StartTransformation(color, start_time, angle)
     self.color_b = color
     self.trans_percent = 0
     self.trans_starttime = start_time
     self.trans_angle = angle
 end
-function Bubble:c_bubble()
+function Bubble:CBubble()
     return BubbleEntity {
         pos = self.position,
         rad = self.radius,
@@ -148,11 +148,11 @@ function Bubble:c_bubble()
     }
 end
 
-render_bubble = function (bubble)
-    C.render_bubble(bubble:c_bubble())
+RenderBubble = function (bubble)
+    C.render_bubble(bubble:CBubble())
 end
 
-render_simple = function (pos, color, rad,
+RenderSimple = function (pos, color, rad,
                           opt_color_b, opt_trans_angle, opt_trans_percent)
     bubble = BubbleEntity()
     bubble.pos = pos
@@ -164,12 +164,12 @@ render_simple = function (pos, color, rad,
     C.render_bubble(bubble)
 end
 
-render_pop = function (pos, color, radius, age)
+RenderPop = function (pos, color, radius, age)
     C.render_pop(ParticleEntity(pos, color, radius, age))
 end
 
 local mt = {
-    new = function (Self)
+    New = function (Self)
         return C.get_bg_shader()
     end;
     draw = function (shader, bubbles)
@@ -184,7 +184,7 @@ math.randomseed(os.time())
 
 dbg = function(...) print(...) return ... end
 
-lock_global_table = function()
+LockGlobalTable = function()
     setmetatable(_G, {
         __newindex = function(t, k, v)
             error("attempt to set undeclared global \""..k.."\"", 2)
@@ -370,14 +370,14 @@ math.clamp = function(v, min, max)
     return math.max(min, math.min(max, v))
 end
 
-mouse_position = function ()
+MousePosition = function ()
     local x = ffi.new("int[1]")
     local y = ffi.new("int[1]")
     ffi.C.SDL_GetMouseState(x, y);
     return Vector2(x[0], window_height - y[0])
 end
 
-array_find = function (array, item)
+ArrayFind = function (array, item)
     for i,v in ipairs(array) do
         if v == item then return i end
     end

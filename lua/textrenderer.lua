@@ -52,7 +52,7 @@ TextRenderer.put_char = function(pos, char, size, color)
     local circles = glyphs[char] or glyphs[' ']
     local scale = size / SVG_WIDTH
     for _,circle in ipairs(circles) do
-        render_pop(
+        RenderPop(
             circle.pos:scale(scale) + pos,
             color or WEBCOLORS.BLACK,
             circle.radius * scale,

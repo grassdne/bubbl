@@ -47,4 +47,4 @@ SVGEDITOR = {
 -----------------
 --require "rainbow"
 
-require "svgeditor"
+require "elasticbubbles"

@@ -31,7 +31,7 @@ local AbsolutePosition = function (pos)
 end
 
 local Circle = {
-    new = function (self, pos, radius, is_focused)
+    New = function (self, pos, radius, is_focused)
         local c = setmetatable({}, self)
         c.pos = pos
         c.radius = radius
@@ -60,11 +60,11 @@ local GetSelection = function()
     return x1, y1, x2, y2
 end
 
-on_update = function(dt)
+OnUpdate = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
         local alpha = selected[pt] and 0.5 or 0
-        render_pop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale, alpha)
+        RenderPop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale, alpha)
     end
 
     local base = get_draw_box_base_position()
@@ -82,7 +82,7 @@ on_update = function(dt)
     TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40, SVGEDITOR.COLOR)
 end
 
-on_mouse_move = function(x, y)
+OnMouseMove = function(x, y)
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
         selected = {}
@@ -129,7 +129,7 @@ local circle_at_position = function(pos)
     return nil
 end
 
-on_mouse_down = function(x, y)
+OnMouseDown = function(x, y)
     local pos = NormalPosition(Vector2(x, y))
     if is_shift_down then
         selection_start = pos
@@ -143,7 +143,7 @@ on_mouse_down = function(x, y)
             selected[found] = true
         elseif not next(selected) then
             -- Creating new cicle
-            local circle = Circle:new(pos, BASE_SIZE, true)
+            local circle = Circle:New(pos, BASE_SIZE, true)
             table.insert(circles, circle)
             selected = {}
         else
@@ -152,7 +152,7 @@ on_mouse_down = function(x, y)
     end
 end
 
-on_mouse_up = function(x, y)
+OnMouseUp = function(x, y)
     if selection_start then
         selection_start = nil
     elseif drag_start then
@@ -169,7 +169,7 @@ local circle_delta_radius = function(circle, delta)
     circle.radius = math.max(MIN_CIRCLE_RADIUS, new_radius)
 end
 
-on_key = function(key, is_down)
+OnKey = function(key, is_down)
     if key == "Return" and is_down then
         save_to_svg(SVGEDITOR.FILE)
     elseif key == "Up" and is_down then
@@ -196,7 +196,7 @@ end
 local ZOOM_SPEED = 0.2
 local ZOOM_MIN = 0.1
 local ZOOM_MAX = 10
-on_mouse_wheel = function(x_scroll, y_scroll)
+OnMouseWheel = function(x_scroll, y_scroll)
     scale = math.clamp(scale + ZOOM_SPEED * y_scroll, ZOOM_MIN, ZOOM_MAX)
 end
 
@@ -205,7 +205,7 @@ try_load_file = function(path)
     if not f then return false end
     local center = Vector2(window_width/2, window_height/2);
     for pos, radius in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
-        table.insert(circles, Circle:new(pos, radius))
+        table.insert(circles, Circle:New(pos, radius))
     end
     f:close()
     return true

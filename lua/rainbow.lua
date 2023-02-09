@@ -26,7 +26,7 @@ local gen_particle_field = function ()
     end
 end
 
-on_update = function(dt)
+OnUpdate = function(dt)
     -- Update and draw particles
     for i,part in ipairs(particles) do
         local length = window_width + START_POS_RIGHT - END_POS_LEFT
@@ -35,7 +35,7 @@ on_update = function(dt)
             -- Jump back to the other end
             particles[i] = gen_particle(part.color, part.position.x + length)
         end
-        render_pop(part.position, part.color, part.radius, 0)
+        RenderPop(part.position, part.color, part.radius, 0)
     end
 
     -- Grow particles in proximity to cursor
@@ -56,7 +56,7 @@ on_update = function(dt)
 
 end
 
-on_window_resize = function(w, h)
+OnWindowResize = function(w, h)
     -- Clear particles
     particles = {}
     gen_particle_field()
