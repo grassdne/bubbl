@@ -1,3 +1,22 @@
+local DEFAULT = "elastic"
+local CLI_OPTIONS = {
+    ["elastic"] = "elasticbubbles",
+    ["rainbow"] = "rainbow",
+    ["svg"] = "svgeditor",
+}
+
+local nextarg
+do
+    local i = 0
+    nextarg = function()
+        i = i + 1
+        return arg[i]
+    end
+end
+
+local program = CLI_OPTIONS[nextarg() or DEFAULT]
+assert(program)
+
 ELASTIC = {
     STARTING_BUBBLE_COUNT = 10,
     BUBBLE_SPEED_BASE = 200,
@@ -32,19 +51,8 @@ RAINBOW = {
 }
 
 SVGEDITOR = {
-    FILE = arg[1] or "img.svg",
+    FILE = nextarg() or "img.svg",
     COLOR = WEBCOLORS.PURPLE,
 }
 
------------------------
---- Elastic Bubbles ---
------------------------
--- Click and hold to create a bubble
--- Click a bubble to pop it
---require "elasticbubbles"
------------------
---- Rainbow 1 ---
------------------
---require "rainbow"
-
-require "elasticbubbles"
+require(program)
