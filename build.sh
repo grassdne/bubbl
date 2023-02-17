@@ -21,4 +21,4 @@ else
 fi
 
 set -x # Echo commmand
-${CC:=cc} -o bubbles src/all.c $CFLAGS $CLIBS 
+${CC:=cc} -o bubbl src/all.c $CFLAGS $CLIBS 
