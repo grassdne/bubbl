@@ -50,7 +50,7 @@ local Circle = {
 Circle.__index = Circle
 
 local GetSelection = function()
-    local mouse = NormalPosition(mouse_position())
+    local mouse = NormalPosition(MousePosition())
     local x1, y1 = selection_start:unpack()
     local x2, y2 = mouse:unpack()
     if x1 > x2 then x1, x2 = x2, x1 end
