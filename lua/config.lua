@@ -15,7 +15,10 @@ do
 end
 
 local program = CLI_OPTIONS[nextarg() or DEFAULT]
-assert(program)
+if not program then
+    print(string.format("usage: %s elastic|rainbow|svg", arg[0]))
+    program = CLI_OPTIONS[DEFAULT]
+end
 
 ELASTIC = {
     STARTING_BUBBLE_COUNT = 10,
