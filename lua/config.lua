@@ -5,16 +5,13 @@ local CLI_OPTIONS = {
     ["svg"] = "svgeditor",
 }
 
-local nextarg
-do
-    local i = 0
-    nextarg = function()
-        i = i + 1
-        return arg[i]
-    end
+local i = 0
+local NextArg = function()
+    i = i + 1
+    return arg[i]
 end
 
-local program = CLI_OPTIONS[nextarg() or DEFAULT]
+local program = CLI_OPTIONS[NextArg() or DEFAULT]
 if not program then
     print(string.format("usage: %s elastic|rainbow|svg", arg[0]))
     program = CLI_OPTIONS[DEFAULT]
@@ -54,7 +51,7 @@ RAINBOW = {
 }
 
 SVGEDITOR = {
-    FILE = nextarg() or "img.svg",
+    FILE = NextArg() or "img.svg",
     COLOR = WEBCOLORS.PURPLE,
 }
 
