@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
     lua_pushcfunction(L, error_traceback);
     createargtable(L, argv, argc);
 
-    SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11,wayland");
+    //SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11,wayland");
 
     srand(time(NULL));
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -203,7 +203,7 @@ int main(int argc, char **argv) {
     //    exit(1);
 	//}
 
-    if (GL_ARB_debug_output) {
+    if (false && GL_ARB_debug_output) {
         // OpenGL 4 extension
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(message_callback, NULL);
