@@ -5,7 +5,7 @@ set -e # Quit on error
 DEPS="luajit sdl2 glew"
 
 CFLAGS="-Wall -Wextra -std=c11 --pedantic $(pkg-config --cflags $DEPS)"
-CLIBS="$(pkg-config --libs $DEPS)"
+CLIBS="$(pkg-config --libs $DEPS) -lm"
 
 if [ `uname` = Darwin ]; then
     CLIBS+="-framework OpenGL -framework IOKit"
@@ -21,4 +21,4 @@ else
 fi
 
 set -x # Echo commmand
-${CC:=cc} -o bubbl src/all.c $CFLAGS $CLIBS 
+${CC:=cc} -o bubbl -Ideps src/all.c $CFLAGS $CLIBS 
