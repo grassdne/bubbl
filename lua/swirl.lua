@@ -30,7 +30,7 @@ local Render = function(theta)
 
         local pos = center + Vector2(cos(theta), sin(theta)):scale(radius)
         local color = Color.hsl(math.deg(theta), SATURATION, LIGHTNESS)
-        RenderPop(pos, color, size, 0)
+        RenderSimple(pos, color, size)
     end
 end
 
