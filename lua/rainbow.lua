@@ -26,20 +26,22 @@ local gen_particle_field = function ()
     end
 end
 
-on_update = function(dt)
+OnUpdate = function(dt)
     -- Update and draw particles
     for i,part in ipairs(particles) do
         local length = window_width + START_POS_RIGHT - END_POS_LEFT
         part.position:delta_x(-length / RAINBOW.PERIOD * dt)
         if part.position.x < END_POS_LEFT then
             -- Jump back to the other end
-            particles[i] = gen_particle(part.color, window_width+START_POS_RIGHT)
+            particles[i] = gen_particle(part.color, part.position.x + length)
         end
-        render_pop(part.position, part.color, part.radius, 0)
+        RenderPop(part.position, part.color, part.radius, 0)
     end
 
     -- Grow particles in proximity to cursor
-    local mouse = mouse_position()
+    local mouse = MousePosition()
+    -- TODO: We don't want to do anything if the mouse is outside the window
+    -- the following guard doesn't actually do any good
     if mouse.x > 0 and mouse.x < window_width and
        mouse.y > 0 and mouse.y < window_height
     then
@@ -54,7 +56,7 @@ on_update = function(dt)
 
 end
 
-on_window_resize = function(w, h)
+OnWindowResize = function(w, h)
     -- Clear particles
     particles = {}
     gen_particle_field()

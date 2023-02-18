@@ -1,7 +1,13 @@
 title = "SVG Editor"
 
+local scale = 1
+
 circles = {}
-local circle_dragging
+local is_shift_down = false
+local selection_start
+
+local selected = {}
+
 local BASE_SIZE = 20
 
 local TextRenderer = require "textrenderer"
@@ -9,64 +15,104 @@ local Draw = require "draw"
 
 local get_draw_box_base_position = function ()
     local center = Vector2(window_width/2, window_height/2)
-    return Vector2(center.x - SVG_SIZE/2, center.y - SVG_SIZE/2)
+    local width = SVG_WIDTH * scale
+    local height = SVG_HEIGHT * scale
+    return Vector2(center.x - width/2, center.y - height/2)
+end
+
+local NormalPosition = function (pos)
+    local base = get_draw_box_base_position()
+    return (pos - base):scale(1/scale)
+end
+
+local AbsolutePosition = function (pos)
+    local base = get_draw_box_base_position()
+    return base + pos * scale
 end
 
 local Circle = {
-    new = function (self, pos, color, radius, is_focused)
+    New = function (self, pos, radius, is_focused)
         local c = setmetatable({}, self)
-        c:absolute_position(pos)
+        c.pos = pos
         c.radius = radius
-        c.color = color
         c.focused = is_focused
         return c
     end,
-    absolute_position = function (self, pos)
-        local base = get_draw_box_base_position()
-        if pos then self.pos = pos - base end
-        return base + self.pos
-    end
+    absolute_position = function (self, absolute)
+        if absolute then self.pos = NormalPosition(absolute) end
+        return AbsolutePosition(self.pos)
+    end,
+    absolute_radius = function (self, absolute)
+        if absolute then self.radius = absolute / scale end
+        return self.radius * scale
+    end,
 }
 Circle.__index = Circle
 
-on_update = function(dt)
+local GetSelection = function()
+    local mouse = NormalPosition(MousePosition())
+    local x1, y1 = selection_start:unpack()
+    local x2, y2 = mouse:unpack()
+    if x1 > x2 then x1, x2 = x2, x1 end
+    if y1 > y2 then y1, y2 = y2, y1 end
+    -- x1, y1 is bottom right
+    -- x2, y2 is top left
+    return x1, y1, x2, y2
+end
+
+OnUpdate = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
-        if pt == circle_dragging then
-            render_simple(pt:absolute_position(), pt.color, pt.radius)
-        else
-            render_pop(pt:absolute_position(), pt.color, pt.radius, 0)
-        end
+        local alpha = selected[pt] and 0.5 or 0
+        RenderPop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale, alpha)
     end
 
     local base = get_draw_box_base_position()
-    Draw.rect_outline(base.x, base.y, SVG_SIZE, SVG_SIZE)
+    Draw.rect_outline(base.x, base.y, SVG_WIDTH*scale, SVG_HEIGHT*scale, WEBCOLORS.BLACK)
+
+    if selection_start then
+        local x1, y1, x2, y2 = GetSelection()
+        local botleft = AbsolutePosition(Vector2(x1, y1))
+        local topright = AbsolutePosition(Vector2(x2, y2))
+        Draw.rect_outline(botleft.x, botleft.y, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
+    end
 
     -- Testing text
-    TextRenderer.put_string(Vector2(0,45), "HELLO? HELLO? HELLO? HELLO? ", 20)
-    TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40)
+    TextRenderer.put_string(Vector2(0,60), "HELLO? HELLO? HELLO? HELLO? ", 20, SVGEDITOR.COLOR)
+    TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40, SVGEDITOR.COLOR)
 end
 
-on_mouse_move = function(x, y)
-    if circle_dragging then
-        circle_dragging:absolute_position(Vector2(x, y))
+OnMouseMove = function(x, y)
+    if selection_start then
+        local x1, y1, x2, y2 = GetSelection()
+        selected = {}
+        for _,circle in ipairs(circles) do
+            local x, y = circle.pos:unpack()
+            local r = circle.radius
+            if x1 < x + r and x - r < x2 and y1 < y + r and y - r < y2 then
+                selected[circle] = true
+            end
+        end
+    elseif drag_start then
+        local mouse = NormalPosition(Vector2(x, y))
+        for circle in pairs(selected) do
+            local diff = mouse - drag_start
+            circle.pos = circle.pos + diff
+        end
+        drag_start = mouse
     end
-end
-
-on_mouse_up = function(x, y)
-    circle_dragging = nil
 end
 
 local fmt = string.format
 local save_to_svg = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
-    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_SIZE, SVG_SIZE))
+    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_WIDTH, SVG_HEIGHT))
     
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:unpack()
         f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                x, SVG_SIZE - y, circle.radius, circle.color:to_hex_string()))
+                x, SVG_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
     end
 
     f:write("</svg>")
@@ -74,21 +120,44 @@ local save_to_svg = function(file_path)
 end
 
 local circle_at_position = function(pos)
-    local relative_pos = pos - get_draw_box_base_position()
     -- We iterate backwards to get the front circle
     for i = #circles, 1, -1 do
-        if circles[i].pos:dist(relative_pos) < circles[i].radius then
+        if circles[i].pos:dist(pos) < circles[i].radius then
             return circles[i]
         end
     end
     return nil
 end
 
-on_mouse_down = function(x, y)
-    circle_dragging = circle_at_position(Vector2(x, y))
-    if not circle_dragging then
-        circle_dragging = Circle:new(Vector2(x, y), SVGEDITOR.COLOR, BASE_SIZE, true)
-        table.insert(circles, circle_dragging)
+OnMouseDown = function(x, y)
+    local pos = NormalPosition(Vector2(x, y))
+    if is_shift_down then
+        selection_start = pos
+    else
+        local found = circle_at_position(pos)
+        if found and selected[found] then
+            -- Start dragging selected circles
+            drag_start = pos
+        elseif found then
+            -- Select circle
+            selected[found] = true
+        elseif not next(selected) then
+            -- Creating new cicle
+            local circle = Circle:New(pos, BASE_SIZE, true)
+            table.insert(circles, circle)
+            selected = {}
+        else
+            selected = {}
+        end
+    end
+end
+
+OnMouseUp = function(x, y)
+    if selection_start then
+        selection_start = nil
+    elseif drag_start then
+        -- Finished dragging
+        drag_start = nil
     end
 end
 
@@ -97,33 +166,46 @@ local MIN_CIRCLE_RADIUS = 5
 
 local circle_delta_radius = function(circle, delta)
     local new_radius = circle.radius + delta
-    if new_radius > MIN_CIRCLE_RADIUS then
-        circle.radius = new_radius
-    end
+    circle.radius = math.max(MIN_CIRCLE_RADIUS, new_radius)
 end
 
-on_key = function(key, is_down)
+OnKey = function(key, is_down)
     if key == "Return" and is_down then
         save_to_svg(SVGEDITOR.FILE)
     elseif key == "Up" and is_down then
-        local circle = circle_at_position(mouse_position())
-        if circle then circle_delta_radius(circle, KEY_DELTA_RADIUS) end
+        for v in pairs(selected) do
+            circle_delta_radius(v, KEY_DELTA_RADIUS)
+        end
     elseif key == "Down" and is_down then
-        local circle = circle_at_position(mouse_position())
-        if circle then circle_delta_radius(circle, -KEY_DELTA_RADIUS) end
-    elseif key == "Backspace" and is_down and circle_dragging then
-        local i = assert(array_find(circle_dragging, circles))
-        table.remove(circles, i)
-        circle_dragging = nil
+        for v in pairs(selected) do
+            circle_delta_radius(v, -KEY_DELTA_RADIUS)
+        end
+    elseif key == "Backspace" and is_down then
+        for v in pairs(selected) do
+            local i = assert(array_find(circles, v))
+            table.remove(circles, i)
+        end
+        selected = {}
+    elseif (key == "Left Alt" or key == "Right Alt") and is_down then
+        multiselect_mode = not multiselect_mode
+    elseif key == "Left Shift" or key == "Right Shift" then
+        is_shift_down = is_down
     end
+end
+
+local ZOOM_SPEED = 0.2
+local ZOOM_MIN = 0.1
+local ZOOM_MAX = 10
+OnMouseWheel = function(x_scroll, y_scroll)
+    scale = math.clamp(scale + ZOOM_SPEED * y_scroll, ZOOM_MIN, ZOOM_MAX)
 end
 
 try_load_file = function(path)
     local f = io.open(path)
     if not f then return false end
     local center = Vector2(window_width/2, window_height/2);
-    for pos, radius, color in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
-        table.insert(circles, Circle:new(get_draw_box_base_position() + pos, color, radius))
+    for pos, radius in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
+        table.insert(circles, Circle:New(pos, radius))
     end
     f:close()
     return true
@@ -131,3 +213,4 @@ end
 
 TextRenderer.load_glyphs()
 try_load_file(SVGEDITOR.FILE)
+package.loaded.svgeditor = false
