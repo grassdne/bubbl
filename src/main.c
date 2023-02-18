@@ -1,3 +1,4 @@
+#include "lua.h"
 #define _CRT_SECURE_NO_WARNINGS
 #include <GL/glew.h>
 
@@ -96,16 +97,10 @@ static bool try_get_lua_callback(lua_State *L, const char *name) {
 
 #define CONFIG_FILE_NAME "lua/config.lua"
 void reload_config(lua_State *L, SDL_Window *W, bool err) {
+    (void)W;
     if (luaL_dofile(L, "lua/config.lua")) {
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
         if (err) exit(1);
-    }
-
-    lua_getglobal(L, "title");
-    if (!lua_isstring(L, -1)) {
-        fprintf(stderr, "expected `title` string in Lua config\n");
-    } else {
-        SDL_SetWindowTitle(W, lua_tostring(L, -1));
     }
 }
 
@@ -176,6 +171,9 @@ int main(int argc, char **argv) {
     SDL_Window *window = SDL_CreateWindow("bubbl", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
     if (window == NULL)
         return fprintf(stderr, "error opening window: %s\n", SDL_GetError()), 1;
+
+    lua_pushlightuserdata(L, window);
+    lua_setglobal(L, "window");
 
     lua_pushinteger(L, window_width);
     lua_setglobal(L, "window_width");

@@ -1,4 +1,4 @@
-title = "Swirl"
+Title "Swirl"
 
 local PI = math.pi
 local sin, cos = math.sin, math.cos

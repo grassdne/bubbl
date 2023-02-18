@@ -42,6 +42,7 @@ void render_pop(Particle particle);
 void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 uint32_t SDL_GetMouseState(int *x, int *y);
+void SDL_SetWindowTitle(void *window, const char *title);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -384,3 +385,8 @@ ArrayFind = function (array, item)
 end
 
 Seconds = function() return C.get_time() end
+
+Title = function(name)
+    assert(name, "expected string `name` for Title")
+    C.SDL_SetWindowTitle(window, name)
+end

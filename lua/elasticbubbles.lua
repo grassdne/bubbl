@@ -1,4 +1,4 @@
-title = "Elastic Bubbles (Press to create or pop a bubble!)"
+Title "Elastic Bubbles (Press to create or pop a bubble!)"
 
 -- Globals initialized here!
 bubbles = {}

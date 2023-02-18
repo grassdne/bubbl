@@ -1,4 +1,4 @@
-title = "SVG Editor"
+Title "SVG Editor"
 
 local scale = 1
 

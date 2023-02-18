@@ -1,4 +1,4 @@
-title = "CHANGE ME"
+Title "CHANGE ME"
 
 OnUpdate = function(dt) end
 
