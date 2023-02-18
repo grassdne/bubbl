@@ -1,28 +1,34 @@
 title = "Swirl"
 
 local SIZE = 13
-local PERIOD = 5
-local DELTA_RADIUS = 1
-local DELTA_THETA = 0.07
+local PERIOD = 2
+local RING_SPACING = 180
+local COUNT_PER_RING = 90
+local DELTA_SIZE = 0.007
 local LIGHTNESS = 0.4
 local SATURATION = 1.0
+
 local PI = math.pi
+local delta_theta = 2*PI / COUNT_PER_RING
+local delta_radius = RING_SPACING / COUNT_PER_RING
 
 local sin, cos = math.sin, math.cos
-OnUpdate = function()
+OnUpdate = function(dt)
     local theta = Seconds() * 2*PI / PERIOD
     local radius = 0
     local center = Vector2(window_width / 2, window_height / 2)
     local max_dist = Vector2(window_width, window_height):length() / 2
-    local count = max_dist / DELTA_RADIUS
+    local count = max_dist / delta_radius
     local size = SIZE
     for i=1, count do
-        radius = radius + DELTA_RADIUS
-        theta = theta + DELTA_THETA
-        size = size + 0.01
+        radius = radius + delta_radius
+        theta = theta + delta_theta
+        size = size + DELTA_SIZE
 
         local pos = center + Vector2(cos(theta), sin(theta)):scale(radius)
         local color = Color.hsl(math.deg(theta), SATURATION, LIGHTNESS)
-        RenderSimple(pos, color, size, nil)
+        RenderSimple(pos, color, size)
     end
 end
+
+package.loaded.swirl = nil
