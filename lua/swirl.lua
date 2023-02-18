@@ -1,5 +1,7 @@
 Title "Swirl"
 
+local GENERATE_FRAMES = false
+
 local PI = math.pi
 local sin, cos = math.sin, math.cos
 
@@ -14,8 +16,7 @@ local SATURATION = 1.0
 local delta_theta = 2*PI / COUNT_PER_RING
 local delta_radius = RING_SPACING / COUNT_PER_RING
 
-OnUpdate = function(dt)
-    local theta = Seconds() * 2*PI / PERIOD
+local Render = function(theta)
     local radius = 0
     local center = Vector2(window_width / 2, window_height / 2)
     -- greatest distance from center on the screen
@@ -29,6 +30,24 @@ OnUpdate = function(dt)
 
         local pos = center + Vector2(cos(theta), sin(theta)):scale(radius)
         local color = Color.hsl(math.deg(theta), SATURATION, LIGHTNESS)
-        RenderSimple(pos, color, size)
+        RenderPop(pos, color, size, 0)
+    end
+end
+
+if GENERATE_FRAMES then
+    local FPS = 45
+    local frames_count = FPS * PERIOD
+    local i = 0
+    OnUpdate = function()
+        Render(i/frames_count * 2*PI)
+        if i < frames_count then
+            FlushRenderers()
+            Screenshot(string.format("frame_%003d.png", i))
+            i = i + 1
+        end
+    end
+else
+    OnUpdate = function()
+        Render(Seconds() * 2*PI / PERIOD)
     end
 end
