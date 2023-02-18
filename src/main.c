@@ -17,6 +17,9 @@
 #include "entity_renderers.h"
 #include "bgshader.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 BgShader bg_shader = {0};
 
 #define SCREEN_WIDTH 1600
@@ -149,6 +152,8 @@ static void on_window_resize(SDL_Window *W) {
     }
 }
 
+uint8_t frame_counter = 0;
+
 int main(int argc, char **argv) {
     (void)argc;
     verbose = argv[1] && argv[1][0] == '-' && argv[1][1] == 'v';
@@ -248,6 +253,19 @@ int main(int argc, char **argv) {
                     }
                     on_window_resize(window);
                     break;
+                }
+                else if (e.key.keysym.sym == SDLK_F2) {
+                    int ncomps = 4;
+                    void *pixeldata = malloc(window_width * window_height * ncomps);
+                    glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
+                    char fname[] = "frame000.png";
+                    sprintf(fname, "frame%03d.png", frame_counter++);
+                    int ok = stbi_write_png(fname, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
+                    if (! ok) {
+                        fprintf(stderr, "unable to write png file\n");
+                        return 1;
+                    }
+                    free(pixeldata);
                 }
                 else if (e.key.keysym.sym == SDLK_r) {
                     reload_config(L, window, false);
