@@ -13,4 +13,4 @@ sudo dnf install SDL2-devel glew-devel luajit-devel
 ![elastic](images/elastic.png)
 ![rainbow](images/rainbow.png)
 ![svgeditor](images/svgeditor.png)
-![swirl](images/swirl.png)
+![swirl](images/swirl.gif)
