@@ -2,7 +2,6 @@ Title "Swirl"
 
 local GENERATE_FRAMES = false
 
-local PI = math.pi
 local sin, cos = math.sin, math.cos
 
 local SIZE = 13
