@@ -1,8 +1,9 @@
-local DEFAULT = "elastic"
+local DEFAULT = "swirl"
 local CLI_OPTIONS = {
     ["elastic"] = "elasticbubbles",
     ["rainbow"] = "rainbow",
     ["svg"] = "svgeditor",
+    ["swirl"] = "swirl"
 }
 
 local i = 0
