@@ -43,6 +43,9 @@ void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 uint32_t SDL_GetMouseState(int *x, int *y);
 void SDL_SetWindowTitle(void *window, const char *title);
+bool screenshot(const char *file_name);
+void flush_renderers(void);
+void clear_screen(void);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -387,6 +390,18 @@ end
 Seconds = function() return C.get_time() end
 
 Title = function(name)
-    assert(name, "expected string `name` for Title")
+    assert(type(name) == "string", "expected string `name` for Title")
     C.SDL_SetWindowTitle(window, name)
+end
+
+Screenshot = function(name)
+    assert(type(name) == "string", "expected string file name for Screenshot")
+    return C.screenshot(name);
+end
+
+FlushRenderers = function()
+    C.flush_renderers()
+end
+ClearScreen = function()
+    C.clear_screen()
 end

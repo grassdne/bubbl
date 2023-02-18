@@ -112,13 +112,17 @@ BgShader* get_bg_shader(void)
 int get_window_width(void) { return window_width; }
 int get_window_height(void) { return window_height; }
 
+void clear_screen(void) {
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
 static void frame(SDL_Window *W) {
     double now = get_time();
     double dt = now - lasttime;
     lasttime = now;
 
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    clear_screen();
 
     lua_State *L = SDL_GetWindowData(W, "L");
     if (try_get_lua_callback(L, "OnUpdate")) {
@@ -147,7 +151,16 @@ static void on_window_resize(SDL_Window *W) {
     }
 }
 
-uint8_t frame_counter = 0;
+bool screenshot(const char *file_name)
+{
+    const int ncomps = 4;
+    void *pixeldata = malloc(window_width * window_height * ncomps);
+    glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
+    int ok = stbi_write_png(file_name, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
+    if (!ok) return false;
+    free(pixeldata);
+    return true;
+}
 
 int main(int argc, char **argv) {
     (void)argc;
@@ -251,19 +264,6 @@ int main(int argc, char **argv) {
                     }
                     on_window_resize(window);
                     break;
-                }
-                else if (e.key.keysym.sym == SDLK_F2) {
-                    int ncomps = 4;
-                    void *pixeldata = malloc(window_width * window_height * ncomps);
-                    glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
-                    char fname[] = "frame000.png";
-                    sprintf(fname, "frame%03d.png", frame_counter++);
-                    int ok = stbi_write_png(fname, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
-                    if (! ok) {
-                        fprintf(stderr, "unable to write png file\n");
-                        return 1;
-                    }
-                    free(pixeldata);
                 }
                 else if (e.key.keysym.sym == SDLK_r) {
                     reload_config(L, window, false);
