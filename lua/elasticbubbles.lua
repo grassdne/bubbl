@@ -8,8 +8,6 @@ shaders = {}
 cursor_bubble = false
 shaders.bg = BgShader:New()
 
-local ffi = require "ffi"
-
 local RandomVelocity = function()
     local Dimension = function()
         return random.sign() * random.vary(ELASTIC.BUBBLE_SPEED_BASE, ELASTIC.BUBBLE_SPEED_VARY)
@@ -59,7 +57,7 @@ local CreatePopEffect = function (center, color, size)
             table.insert(pop, Particle:New(velocity, dir * distance + center))
         end
     end
-    pop.start_time = ffi.C.get_time()
+    pop.start_time = Seconds()
     return pop
 end
 
@@ -113,13 +111,13 @@ local GetBubblesForBgshader = function ()
 end
 
 local StartTransition = function (bubble, other)
-    bubble:StartTransformation(other.color, ffi.C.get_time(),
+    bubble:StartTransformation(other.color, Seconds(),
         (other.position - bubble.position):normalize())
 end
 local StopTransition = function (bubble)
     bubble.trans_starttime = nil
     bubble.color = bubble.color_b
-    bubble.last_transition = ffi.C.get_time();
+    bubble.last_transition = Seconds();
 end
 
 local MoveBubble = function (bubble, dt)
@@ -137,7 +135,7 @@ local MoveBubble = function (bubble, dt)
 end
 
 OnUpdate = function(dt)
-    local time = ffi.C.get_time()
+    local time = Seconds()
 
     -- Grow bubble under mouse
     if cursor_bubble then

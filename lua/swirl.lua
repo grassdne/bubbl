@@ -1,5 +1,4 @@
 title = "Swirl"
-local ffi = require 'ffi'
 
 local SIZE = 13
 local PERIOD = 5
@@ -11,7 +10,7 @@ local PI = math.pi
 
 local sin, cos = math.sin, math.cos
 OnUpdate = function()
-    local theta = ffi.C.get_time() * 2*PI / PERIOD
+    local theta = Seconds() * 2*PI / PERIOD
     local radius = 0
     local center = Vector2(window_width / 2, window_height / 2)
     local max_dist = Vector2(window_width, window_height):length() / 2

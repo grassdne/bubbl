@@ -382,3 +382,5 @@ ArrayFind = function (array, item)
         if v == item then return i end
     end
 end
+
+Seconds = function() return C.get_time() end
