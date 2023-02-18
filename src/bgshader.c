@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "entity_renderers.h"
+#include "renderer_defs.h"
 
 #define MAX_ELEMS 10
 

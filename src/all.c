@@ -4,5 +4,5 @@
 #include "shaderutil.c"
 #include "bgshader.c"
 #include "entity_renderer.c"
-#include "entity_renderers.c"
+#include "renderer_defs.c"
 #include "main.c"

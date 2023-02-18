@@ -1,5 +1,5 @@
 #include "entity_renderer.h"
-#include "entity_renderers.h"
+#include "renderer_defs.h"
 
 static EntityRenderer renderers[COUNT_ENTITY_TYPES] = { 0 };
 static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {

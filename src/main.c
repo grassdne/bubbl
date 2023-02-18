@@ -15,7 +15,7 @@
 #include <assert.h>
 
 #include "common.h"
-#include "entity_renderers.h"
+#include "renderer_defs.h"
 #include "bgshader.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
