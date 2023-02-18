@@ -2,8 +2,8 @@
 #define SHADER_UTIL_H
 #include <GL/glew.h>
 
-#define UNI_DECL($n) GLint $n;
-#define UNI_GETS($name) (sh)->uniforms.$name = glGetUniformLocation((sh)->shader.program, #$name);
+#define UNI_DECL(N) GLint N;
+#define UNI_GETS(NAME) (sh)->uniforms.NAME = glGetUniformLocation((sh)->shader.program, #NAME);
 
 #define CHECK_GL_ERROR() checkGlError(__FILE__, __LINE__)
 #undef glGenBuffers
