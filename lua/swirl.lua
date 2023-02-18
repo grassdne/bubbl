@@ -5,8 +5,8 @@ local sin, cos = math.sin, math.cos
 
 local SIZE = 13
 local PERIOD = 2
-local RING_SPACING = 180
-local COUNT_PER_RING = 90
+local RING_SPACING = 120
+local COUNT_PER_RING = 100
 local DELTA_SIZE = 0.007
 local LIGHTNESS = 0.4
 local SATURATION = 1.0
