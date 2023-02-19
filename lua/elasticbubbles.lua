@@ -1,6 +1,5 @@
 Title "Elastic Bubbles (Press to create or pop a bubble!)"
 
--- Globals initialized here!
 bubbles = {}
 pop_effects = {}
 movement_enabled = true
@@ -96,7 +95,7 @@ end
 local CollectAllBubbles = function ()
     local all_bubbles = {}
     if cursor_bubble then table.insert(all_bubbles, cursor_bubble) end
-    for _, b in pairs(bubbles) do table.insert(all_bubbles, b) end
+    for _, b in ipairs(bubbles) do table.insert(all_bubbles, b) end
     return all_bubbles
 end
 
@@ -149,7 +148,7 @@ OnUpdate = function(dt)
         end
     end
     -- Move bubbles
-    for _, bubble in pairs(bubbles) do
+    for _, bubble in ipairs(bubbles) do
         assert(bubble ~= cursor_bubble)
         if movement_enabled and not bubble.trans_starttime then
             MoveBubble(bubble, dt)
@@ -160,8 +159,8 @@ OnUpdate = function(dt)
         EnsureBubbleInBounds(bubble)
     end
     -- Handle collisions
-    for _, a in pairs(bubbles) do
-        for _, b in pairs(bubbles) do
+    for _, a in ipairs(bubbles) do
+        for _, b in ipairs(bubbles) do
             if IsCollision(a, b) then
                 SwapVelocities(a, b)
                 SeparateBubbles(a, b)
@@ -212,7 +211,7 @@ OnUpdate = function(dt)
 end
 
 local BubbleAtPoint = function (pos)
-    for i, b in pairs(bubbles) do
+    for i, b in ipairs(bubbles) do
         if pos:dist(b.position) < b.radius then
             return i, b
         end
