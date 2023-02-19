@@ -153,6 +153,7 @@ static void on_window_resize(SDL_Window *W) {
 
 bool screenshot(const char *file_name)
 {
+    flush_renderers();
     const int ncomps = 4;
     void *pixeldata = malloc(window_width * window_height * ncomps);
     glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);

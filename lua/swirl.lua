@@ -40,7 +40,6 @@ if GENERATE_FRAMES then
     OnUpdate = function()
         Render(i/frames_count * 2*PI)
         if i < frames_count then
-            FlushRenderers()
             Screenshot(string.format("frame_%003d.png", i))
             i = i + 1
         end
