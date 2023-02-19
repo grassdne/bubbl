@@ -17,6 +17,7 @@
 #include "common.h"
 #include "renderer_defs.h"
 #include "bgshader.h"
+#include "bg.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -138,13 +139,8 @@ static void on_window_resize(SDL_Window *W) {
     SDL_GL_GetDrawableSize(W, &window_width, &window_height);
     glViewport(0, 0, window_width, window_height);
     lua_State *L = SDL_GetWindowData(W, "L");
-    // Currently we set Lua globals and call callback function
-    lua_pushinteger(L, window_width);
-    lua_setglobal(L, "window_width");
-    lua_pushinteger(L, window_height);
-    lua_setglobal(L, "window_height");
 
-    if (try_get_lua_callback(L, "OnWindowResize")) {
+    if (try_get_lua_callback(L, "_OnWindowResize")) {
         lua_pushnumber(L, window_width);
         lua_pushnumber(L, window_height);
         call_lua_callback(L, 2);
@@ -189,11 +185,6 @@ int main(int argc, char **argv) {
     lua_pushlightuserdata(L, window);
     lua_setglobal(L, "window");
 
-    lua_pushinteger(L, window_width);
-    lua_setglobal(L, "window_width");
-    lua_pushinteger(L, window_height);
-    lua_setglobal(L, "window_height");
-
     if (SDL_GL_CreateContext(window) == NULL)
         return fprintf(stderr, "error creating OpenGL context: %s\n", SDL_GetError()), 1;
 
@@ -230,10 +221,14 @@ int main(int argc, char **argv) {
 
     init_renderers();
     bgInit(&bg_shader);
+    bg_init();
 
     if (luaL_dofile(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
+
+    on_window_resize(window);
+
     reload_config(L, window, true);
 
     started = true;

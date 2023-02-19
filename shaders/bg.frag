@@ -4,7 +4,7 @@
 layout(location = 0) out vec4 outcolor;
 
 uniform vec2 positions[MAX_ELEMENTS];
-uniform vec3 colors[MAX_ELEMENTS];
+uniform vec4 colors[MAX_ELEMENTS];
 uniform int num_elements;
 uniform vec2 resolution;
 const float TRANSPARENCY = 0.33;
@@ -26,10 +26,10 @@ void main() {
             closest_dist = dist;
         }
 
-        color += colors[i] * (1 - dist / LENGTH);
+        color += colors[i].rgb * (1 - dist / LENGTH);
 
     }
 
     color /= num_elements;
-    outcolor = vec4(mix(colors[closest], color, smoothstep(0.0, LENGTH * EFFECTIVENESS_FACTOR, closest_dist)), TRANSPARENCY);
+    outcolor = vec4(mix(colors[closest].rgb, color, smoothstep(0.0, LENGTH * EFFECTIVENESS_FACTOR, closest_dist)), TRANSPARENCY);
 }

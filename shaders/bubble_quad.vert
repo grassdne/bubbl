@@ -18,8 +18,6 @@ out float trans_percent;
 
 uniform vec2 resolution;
 
-#define TRANS_TIME 1.0
-
 void main() {
     // radius in [0, 2] scale
     vec2 radius_normalized = in_radius / resolution * 2;

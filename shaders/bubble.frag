@@ -5,6 +5,8 @@ layout(location = 0) out vec4 outcolor;
 uniform vec2 resolution;
 uniform float time;
 
+// TODO: should color_a and color_b accept alpha?
+
 in float rad;
 in vec2 bubble_pos;
 in vec3 color_a;

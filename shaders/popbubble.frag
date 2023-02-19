@@ -5,6 +5,7 @@ precision highp float;
 layout(location = 0) out vec4 outcolor;
 
 in vec2 pos;
+// TODO: should color include alpha?
 in vec3 color;
 in float radius;
 in float age;

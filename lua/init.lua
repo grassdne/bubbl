@@ -6,7 +6,7 @@ typedef struct {
 } Vector2;
 
 typedef struct {
-    float r, g, b;
+    float r, g, b, a;
 } Color;
 
 typedef char GLbyte;
@@ -19,6 +19,10 @@ typedef struct  {
     Vector2 trans_angle;
     float trans_percent;
 } Bubble;
+
+typedef struct {
+    uint8_t r, g, b, a;
+} Pixel;
 
 typedef struct {
     Vector2 pos;
@@ -46,6 +50,7 @@ void SDL_SetWindowTitle(void *window, const char *title);
 bool screenshot(const char *file_name);
 void flush_renderers(void);
 void clear_screen(void);
+void bg_draw(void *data, int width, int height);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -86,7 +91,8 @@ local color_mt = {
         local r = tonumber(hex:sub(1, 2), 16) / 0xFF
         local g = tonumber(hex:sub(3, 4), 16) / 0xFF
         local b = tonumber(hex:sub(5, 6), 16) / 0xFF
-        return Color(r, g, b)
+        -- TODO: alpha
+        return Color(r, g, b, 1)
     end,
     random = function()
         return Color(math.random(), math.random(), math.random())
@@ -94,24 +100,35 @@ local color_mt = {
     __add = function(a, b) return Color(a.r+b.r, a.g+b.g, a.b+b.b) end,
     __div = function(a, x) return Color(a.r/x, a.g/x, a.b/x) end,
 
-    -- Translated directly from
+    -- Translated from
     -- https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
     ---@param hue        number in range [0, 360]
     ---@param saturation number in range [0, 1]
     ---@param lightness  number in range [0, 1]
-    hsl = function(hue, saturation, lightness)
-        local function magic(n)
-            local k = (n + hue / 30) % 12
-            local a = saturation * math.min(lightness, 1 - lightness)
-            return lightness - a * math.max(-1, math.min(k - 3, 9 - k, 1))
-        end
-        return Color(magic(0), magic(8), magic(4))
+    ---@param alpha      number|nil (default 1)
+    hsl = function(hue, saturation, lightness, alpha)
+            local a = saturation * min(lightness, 1 - lightness)
+
+            local k = (0 + hue / 30) % 12
+            local red = lightness - a * max(-1, min(k - 3, 9 - k, 1))
+
+            local k = (8 + hue / 30) % 12
+            local green = lightness - a * max(-1, min(k - 3, 9 - k, 1))
+
+            local k = (4 + hue / 30) % 12
+            local blue = lightness - a * max(-1, min(k - 3, 9 - k, 1))
+
+            -- TODO: alpha
+            return Color(red, green, blue, alpha or 1)
     end,
     to_hex_string = function(c)
         return "#"..string.format("%.2x", c.r*255)
                   ..string.format("%.2x", c.g*255)
                   ..string.format("%.2x", c.b*255)
     end,
+    Pixel = function(c)
+        return ffi.new("Pixel", math.floor(c.r*255), math.floor(c.g*255), math.floor(c.b*255), math.floor(c.a*255))
+    end
 }
 color_mt.__index = color_mt
 Color = ffi.metatype("Color", color_mt)
@@ -407,4 +424,16 @@ FlushRenderers = function()
 end
 ClearScreen = function()
     C.clear_screen()
+end
+
+DrawCanvas = function(canvas, width, height)
+    assert(type(width) == "number" and type(height) == "number", "DrawCanvas requires numbers `width` and `height`")
+    C.bg_draw(canvas, width, height)
+end
+
+_OnWindowResize = function(width, height)
+    window_width = width
+    window_height = height
+    canvas = ffi.new("Pixel[".. height .."][".. width .."]")
+    if OnWindowResize then OnWindowResize(width, height) end
 end

@@ -21,8 +21,11 @@ extern const float QUAD[8];
 double get_time(void);
 
 typedef struct {
-    float r, g, b;
+    float r, g, b, a;
 } Color;
+typedef struct {
+    uint8_t r, g, b, a;
+} Pixel;
 
 typedef struct { float x, y; } Vector2;
 

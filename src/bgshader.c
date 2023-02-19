@@ -22,6 +22,7 @@ Color color_mix(Color a, Color b, float f) {
     c.r = a.r * (1 - f) + b.r * f;
     c.g = a.g * (1 - f) + b.g * f;
     c.b = a.b * (1 - f) + b.b * f;
+    c.a = a.a * (1 - f) + a.a * f;
     return c;
 }
 
@@ -44,7 +45,7 @@ void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems)
     if (num_elems) {
         glUniform2f(sh->uniforms.resolution, window_width, window_height);
         glUniform1i(sh->uniforms.num_elements, num_elems);
-        glUniform3fv(sh->uniforms.colors, num_elems, (float*)colors);
+        glUniform4fv(sh->uniforms.colors, num_elems, (float*)colors);
         glUniform2fv(sh->uniforms.positions, num_elems, (float*)positions);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

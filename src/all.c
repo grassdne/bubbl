@@ -3,6 +3,7 @@
 
 #include "shaderutil.c"
 #include "bgshader.c"
+#include "bg.c"
 #include "entity_renderer.c"
 #include "renderer_defs.c"
 #include "main.c"
