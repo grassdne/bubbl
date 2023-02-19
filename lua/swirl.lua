@@ -2,12 +2,10 @@ Title "Swirl"
 
 local GENERATE_FRAMES = false
 
-local sin, cos = math.sin, math.cos
+local sin, cos, deg, atan2 = math.sin, math.cos, math.deg, math.atan2
 
 local SIZE = 13
-local PERIOD = 2
-local RING_SPACING = 120
-local COUNT_PER_RING = 100
+local PERIOD = 2 local RING_SPACING = 120 local COUNT_PER_RING = 100
 local DELTA_SIZE = 0.01
 local LIGHTNESS = 0.4
 local SATURATION = 1.0
@@ -33,6 +31,16 @@ local Render = function(theta)
     end
 end
 
+local bg_width, bg_height = window_width, window_height
+local background = CreateCanvas(bg_width, bg_height)
+
+for y=0, bg_height-1 do
+    for x=0, bg_width-1 do
+        local theta = x == 0 and 0 or atan2(y - bg_height/2, x - bg_width/2)
+        background:set(x, y, Color.hsl(deg(theta), 1, 0.5, 0.5))
+    end
+end
+
 if GENERATE_FRAMES then
     local FPS = 45
     local frames_count = FPS * PERIOD
@@ -46,6 +54,9 @@ if GENERATE_FRAMES then
     end
 else
     OnUpdate = function()
+        DrawCanvas(background, bg_width, bg_height)
         Render(Seconds() * 2*PI / PERIOD)
     end
 end
+
+package.loaded.swirl = nil

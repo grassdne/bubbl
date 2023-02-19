@@ -431,9 +431,21 @@ DrawCanvas = function(canvas, width, height)
     C.bg_draw(canvas, width, height)
 end
 
+local canvas_mt = {
+    set = function(canvas, x, y, color)
+        assert(y < canvas.height, "canvas:set y argument out of range")
+        assert(x < canvas.width, "canvas:set x argument out of range")
+        canvas.data[y * canvas.width + x] = color:Pixel()
+    end
+}
+canvas_mt.__index = canvas_mt
+local canvas_ct = ffi.metatype("struct { int width; int height; Pixel data[?]; }", canvas_mt)
+CreateCanvas = function(width, height)
+    return canvas_ct(width*height, width, height)
+end
+
 _OnWindowResize = function(width, height)
     window_width = width
     window_height = height
-    canvas = ffi.new("Pixel[".. height .."][".. width .."]")
     if OnWindowResize then OnWindowResize(width, height) end
 end
