@@ -3,7 +3,8 @@ local CLI_OPTIONS = {
     ["elastic"] = "elasticbubbles",
     ["rainbow"] = "rainbow",
     ["svg"] = "svgeditor",
-    ["swirl"] = "swirl"
+    ["swirl"] = "swirl",
+    ["rainbow2"] = "rainbow2",
 }
 
 local i = 0

@@ -163,7 +163,10 @@ RenderSimple = function (pos, color, rad,
     bubble.rad = rad
     bubble.color = color
     bubble.color_b = opt_color_b or color
-    bubble.trans_angle = opt_trans_angle or Vector2(0,0)
+    -- If number, convert to vector
+    bubble.trans_angle = type(opt_trans_angle) == "number"
+                         and Vector2(math.cos(opt_trans_angle, math.sin(opt_trans_angle)))
+                         or opt_trans_angle or Vector2(0,0)
     bubble.trans_percent = opt_trans_percent or 0
     C.render_bubble(bubble)
 end
