@@ -107,16 +107,16 @@ local color_mt = {
     ---@param lightness  number in range [0, 1]
     ---@param alpha      number|nil (default 1)
     hsl = function(hue, saturation, lightness, alpha)
-            local a = saturation * min(lightness, 1 - lightness)
+            local a = saturation * math.min(lightness, 1 - lightness)
 
             local k = (0 + hue / 30) % 12
-            local red = lightness - a * max(-1, min(k - 3, 9 - k, 1))
+            local red = lightness - a * math.max(-1, math.min(k - 3, 9 - k, 1))
 
             local k = (8 + hue / 30) % 12
-            local green = lightness - a * max(-1, min(k - 3, 9 - k, 1))
+            local green = lightness - a * math.max(-1, math.min(k - 3, 9 - k, 1))
 
             local k = (4 + hue / 30) % 12
-            local blue = lightness - a * max(-1, min(k - 3, 9 - k, 1))
+            local blue = lightness - a * math.max(-1, math.min(k - 3, 9 - k, 1))
 
             -- TODO: alpha
             return Color(red, green, blue, alpha or 1)
