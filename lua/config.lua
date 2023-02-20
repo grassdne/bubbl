@@ -1,11 +1,4 @@
 local DEFAULT = "swirl"
-local CLI_OPTIONS = {
-    ["elastic"] = "elasticbubbles",
-    ["rainbow"] = "rainbow",
-    ["svg"] = "svgeditor",
-    ["swirl"] = "swirl",
-    ["rainbow2"] = "rainbow2",
-}
 
 local i = 0
 local NextArg = function()
@@ -13,10 +6,10 @@ local NextArg = function()
     return arg[i]
 end
 
-local program = CLI_OPTIONS[NextArg() or DEFAULT]
+local program = NextArg()
 if not program then
-    print(string.format("usage: %s elastic|rainbow|svg", arg[0]))
-    program = CLI_OPTIONS[DEFAULT]
+    print(string.format("usage: %s elastic|rainbow|svg|swirl", arg[0]))
+    program = DEFAULT
 end
 
 ELASTIC = {
@@ -57,4 +50,8 @@ SVGEDITOR = {
     COLOR = WEBCOLORS.PURPLE,
 }
 
-require(program)
+local ok = pcall(require, program)
+if not ok then
+    print("unable to find module "..program)
+    os.exit(1)
+end
