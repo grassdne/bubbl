@@ -34,6 +34,38 @@ typedef struct {
 // Opaque types
 typedef struct {} BgShader;
 
+typedef struct SDL_Window SDL_Window;
+
+typedef enum {
+    EVENT_NONE=0,
+    EVENT_KEY, EVENT_MOUSEBUTTON,
+    EVENT_MOUSEMOTION, EVENT_MOUSEWHEEL,
+    EVENT_RESIZE,
+} EventType;
+
+typedef struct {
+    EventType type;
+    union {
+        struct {
+            const char *name;
+            bool is_down;
+        } key;
+        struct {
+            Vector2 position;
+            bool is_down;
+        } mousebutton;
+        struct {
+            Vector2 position;
+        } mousemotion;
+        struct {
+            Vector2 scroll;
+        } mousewheel;
+        struct {
+            int width, height;
+        } resize;
+    };
+} Event;
+
 BgShader* get_bg_shader(void);
 
 enum{ MAX_ELEMS=10 };
@@ -51,6 +83,11 @@ bool screenshot(const char *file_name);
 void flush_renderers(void);
 void clear_screen(void);
 void bg_draw(void *data, int width, int height);
+
+bool should_quit(void);
+void SDL_GL_SwapWindow(SDL_Window *window);
+
+Event poll_event(SDL_Window *window);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -444,8 +481,13 @@ CreateCanvas = function(width, height)
     return canvas_ct(width*height, width, height)
 end
 
-_OnWindowResize = function(width, height)
-    window_width = width
-    window_height = height
-    if OnWindowResize then OnWindowResize(width, height) end
+NextEvent = function()
+    local event = C.poll_event(window)
+    if event.type ~= "EVENT_NONE" then
+        return event
+    end
 end
+
+window_width = 1600
+window_height = 900
+--window = C.create_window("Bubble")

@@ -30,10 +30,6 @@ BgShader bg_shader = {0};
 bool verbose;
 #define VPRINTF(...) if (verbose) printf(__VA_ARGS__)
 
-static double lasttime;
-
-static bool started = false;
-
 // How about we just do everything in seconds please and thank you
 double get_time(void) { return SDL_GetTicks64() * 0.001; }
 
@@ -85,17 +81,6 @@ static void createargtable (lua_State *L, char **argv, int argc) {
 }
 
 
-static void call_lua_callback(lua_State *L, int nargs) {
-    lua_pcall(L, nargs, 0, 1);
-}
-
-static bool try_get_lua_callback(lua_State *L, const char *name) {
-    lua_getglobal(L, name);
-    if (lua_isfunction(L, -1)) return true;
-    lua_pop(L, 1);
-    return false;
-}
-
 #define CONFIG_FILE_NAME "lua/config.lua"
 void reload_config(lua_State *L, SDL_Window *W, bool err) {
     (void)W;
@@ -118,33 +103,121 @@ void clear_screen(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-static void frame(SDL_Window *W) {
-    double now = get_time();
-    double dt = now - lasttime;
-    lasttime = now;
-
-    clear_screen();
-
-    lua_State *L = SDL_GetWindowData(W, "L");
-    if (try_get_lua_callback(L, "OnUpdate")) {
-        lua_pushnumber(L, dt);
-        call_lua_callback(L, 1);
-    }
-
-    flush_renderers();
-    SDL_GL_SwapWindow(W);
+bool quit = false;
+bool should_quit(void) {
+    return quit;
 }
 
-static void on_window_resize(SDL_Window *W) {
-    SDL_GL_GetDrawableSize(W, &window_width, &window_height);
-    glViewport(0, 0, window_width, window_height);
-    lua_State *L = SDL_GetWindowData(W, "L");
+bool is_fullscreen = false;
 
-    if (try_get_lua_callback(L, "_OnWindowResize")) {
-        lua_pushnumber(L, window_width);
-        lua_pushnumber(L, window_height);
-        call_lua_callback(L, 2);
+typedef enum {
+    EVENT_NONE=0,
+    EVENT_KEY, EVENT_MOUSEBUTTON,
+    EVENT_MOUSEMOTION, EVENT_MOUSEWHEEL,
+    EVENT_RESIZE,
+} EventType;
+
+typedef struct {
+    EventType type;
+    union {
+        struct {
+            const char *name;
+            bool is_down;
+        } key;
+        struct {
+            Vector2 position;
+            bool is_down;
+        } mousebutton;
+        struct {
+            Vector2 position;
+        } mousemotion;
+        struct {
+            Vector2 scroll;
+        } mousewheel;
+        struct {
+            int width, height;
+        } resize;
+    };
+} Event;
+
+// Handles and/or return event
+Event poll_event(SDL_Window *window)
+{
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        switch (e.type) {
+        case SDL_QUIT:
+            quit = true;
+            break;
+        case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                quit = true;
+                break;
+            }
+            else if (e.key.keysym.sym == SDLK_F11) {
+                if (is_fullscreen) {
+                    is_fullscreen = false;
+                    SDL_SetWindowFullscreen(window, 0);
+                    SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+                }
+                else {
+                    is_fullscreen = true;
+                    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+                }
+                break;
+            }
+            /* fallthrough */
+        case SDL_KEYUP:
+            return (Event) {
+                .type = EVENT_KEY,
+                .key.name = SDL_GetKeyName(e.key.keysym.sym),
+                .key.is_down = e.type == SDL_KEYDOWN,
+            };
+            break;
+
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+            if (e.button.button == SDL_BUTTON_LEFT) {
+                return (Event) {
+                    .type = EVENT_MOUSEBUTTON,
+                        .mousebutton.is_down = e.type == SDL_MOUSEBUTTONDOWN,
+                        .mousebutton.position = (Vector2){ e.button.x, window_height - e.button.y },
+                };
+            }
+            break;
+
+        case SDL_MOUSEMOTION:
+            return (Event) {
+                .type = EVENT_MOUSEMOTION,
+                .mousemotion.position = (Vector2){ e.button.x, window_height - e.button.y },
+            };
+            break;
+
+        case SDL_MOUSEWHEEL:
+            return (Event) {
+                .type = EVENT_MOUSEWHEEL,
+                .mousewheel.scroll = (Vector2){ e.wheel.preciseX, e.wheel.preciseY },
+            };
+            break;
+
+        case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                SDL_GL_GetDrawableSize(window, &window_width, &window_height);
+                glViewport(0, 0, window_width, window_height);
+                return (Event) {
+                    .type = EVENT_RESIZE,
+                    .resize.width = window_width,
+                    .resize.height = window_height,
+                };
+            }
+            break;
+        }
     }
+    return (Event){ .type = EVENT_NONE };
+}
+void process_events(SDL_Window *window) {
+    (void)window;
+    assert(false && "process_events unused");
 }
 
 bool screenshot(const char *file_name)
@@ -157,6 +230,20 @@ bool screenshot(const char *file_name)
     if (!ok) return false;
     free(pixeldata);
     return true;
+}
+
+SDL_Window *create_window(const char *window_name, int width, int height) {
+    SDL_Window *window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+    if (window == NULL) {
+        fprintf(stderr, "error opening window: %s\n", SDL_GetError());
+        return NULL;
+    }
+    SDL_GLContext *context = SDL_GL_CreateContext(window);
+    if (context == NULL) {
+        fprintf(stderr, "error creating OpenGL context: %s\n", SDL_GetError());
+        return NULL;
+    }
+    return window;
 }
 
 int main(int argc, char **argv) {
@@ -178,21 +265,15 @@ int main(int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-    SDL_Window *window = SDL_CreateWindow("bubbl", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
-    if (window == NULL)
-        return fprintf(stderr, "error opening window: %s\n", SDL_GetError()), 1;
+    if (luaL_dofile(L, "lua/init.lua")) {
+        error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
+    }
 
-    lua_pushlightuserdata(L, window);
-    lua_setglobal(L, "window");
-
-    if (SDL_GL_CreateContext(window) == NULL)
-        return fprintf(stderr, "error creating OpenGL context: %s\n", SDL_GetError()), 1;
-
-    SDL_SetWindowData(window, "L", L);
+    SDL_Window *window = create_window("Bubbl", SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (window == NULL) return 1;
 
     GLenum err = glewInit();
-	if (err)
-		return fprintf(stderr, "error initializing GLEW: %s\n", glewGetErrorString(err)), 1;
+	if (err) return fprintf(stderr, "error initializing GLEW: %s\n", glewGetErrorString(err)), 1;
 
     if (SDL_GL_SetSwapInterval(-1) < 0) {
         VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
@@ -201,12 +282,17 @@ int main(int argc, char **argv) {
         }
 
     }
+
+    lua_pushlightuserdata(L, window);
+    lua_setglobal(L, "window");
+    SDL_SetWindowData(window, "L", L);
+
 	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
     //    fprintf(stderr, "Shaders not available\n");
     //    exit(1);
 	//}
 
-    if (false && GL_ARB_debug_output) {
+    if (GL_ARB_debug_output) {
         // OpenGL 4 extension
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(message_callback, NULL);
@@ -223,92 +309,11 @@ int main(int argc, char **argv) {
     bgInit(&bg_shader);
     bg_init();
 
-    if (luaL_dofile(L, "lua/init.lua")) {
-        error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
-    }
-
-    on_window_resize(window);
-
     reload_config(L, window, true);
 
-    started = true;
-    lasttime = get_time();
-    bool is_fullscreen = false;
-    bool should_quit = false;
-	while (!should_quit) {
-        frame(window);
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            switch (e.type) {
-            case SDL_QUIT:
-                should_quit = true;
-                break;
-            case SDL_KEYDOWN:
-                if (e.key.keysym.sym == SDLK_ESCAPE) {
-                    should_quit = true;
-                    break;
-                }
-                else if (e.key.keysym.sym == SDLK_F11) {
-                    if (is_fullscreen) {
-                        is_fullscreen = false;
-                        SDL_SetWindowFullscreen(window, 0);
-                        SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
-                    }
-                    else {
-                        is_fullscreen = true;
-                        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
-                    }
-                    on_window_resize(window);
-                    break;
-                }
-                else if (e.key.keysym.sym == SDLK_r) {
-                    reload_config(L, window, false);
-                }
-                /* fallthrough */
-            case SDL_KEYUP:
-                if (try_get_lua_callback(L, "OnKey")) {
-                    lua_pushstring(L, SDL_GetKeyName(e.key.keysym.sym));
-                    lua_pushboolean(L, e.type == SDL_KEYDOWN);
-                    call_lua_callback(L, 2);
-                }
-                break;
-
-            case SDL_MOUSEBUTTONDOWN:
-            case SDL_MOUSEBUTTONUP:
-                if (e.button.button == SDL_BUTTON_LEFT) {
-                    const char *name = e.type == SDL_MOUSEBUTTONUP ? "OnMouseUp" : "OnMouseDown";
-                    if (try_get_lua_callback(L, name)) {
-                        lua_pushnumber(L, e.button.x);
-                        lua_pushnumber(L, window_height - e.button.y);
-                        call_lua_callback(L, 2);
-                    }
-                }
-                break;
-
-            case SDL_MOUSEMOTION:
-                if (try_get_lua_callback(L, "OnMouseMove")) {
-                    lua_pushnumber(L, e.motion.x);
-                    lua_pushnumber(L, window_height - e.motion.y);
-                    call_lua_callback(L, 2);
-                }
-                break;
-
-            case SDL_MOUSEWHEEL:
-                if (try_get_lua_callback(L, "OnMouseWheel")) {
-                    lua_pushnumber(L, e.wheel.preciseX);
-                    lua_pushnumber(L, e.wheel.preciseY);
-                    call_lua_callback(L, 2);
-                }
-                break;
-
-            case SDL_WINDOWEVENT:
-                if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-                    on_window_resize(window);
-                }
-                break;
-            }
-        }
-	}
+    if (luaL_dofile(L, "lua/eventloop.lua")) {
+        error(L, "error loading eventloop.lua:\n%s", lua_tostring(L, -1));
+    }
 
     SDL_DestroyWindow(window);
     SDL_Quit();
