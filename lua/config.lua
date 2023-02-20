@@ -7,10 +7,6 @@ local NextArg = function()
 end
 
 local program = NextArg()
-if not program then
-    print(string.format("usage: %s elastic|rainbow|svg|swirl", arg[0]))
-    program = DEFAULT
-end
 
 ELASTIC = {
     STARTING_BUBBLE_COUNT = 10,
@@ -52,6 +48,6 @@ SVGEDITOR = {
 
 local ok = pcall(require, "modules/"..program)
 if not ok then
-    print("unable to find module "..program)
-    os.exit(1)
+    print("failed to find module "..program)
+    print(string.format("usage: %s elastic|rainbow|svg|swirl", arg[0]))
 end
