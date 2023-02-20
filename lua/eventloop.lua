@@ -1,4 +1,5 @@
-local C = require("ffi").C
+local ffi = require "ffi"
+local C = ffi.C
 
 local TICK_TIME = 1/30
 
@@ -23,7 +24,7 @@ while not C.should_quit() do
 
     for event in NextEvent do
         if event.type == "EVENT_KEY" then
-            OptionalCallback(OnKey, tostring(event.key.name), event.key.is_down)
+            OptionalCallback(OnKey, ffi.string(event.key.name), event.key.is_down)
 
         elseif event.type == "EVENT_MOUSEBUTTON" then
             if event.mousebutton.is_down then
