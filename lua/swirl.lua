@@ -31,13 +31,15 @@ local Render = function(theta)
     end
 end
 
+
 local bg_width, bg_height = 512, 512
 local background = CreateCanvas(bg_width, bg_height)
-
-for y=0, bg_height-1 do
-    for x=0, bg_width-1 do
-        local theta = x == 0 and 0 or atan2(y - bg_height/2, x - bg_width/2)
-        background:set(x, y, Color.hsl(deg(theta), 1, 0.5, 0.5))
+OnStart = function()
+    for y=0, bg_height-1 do
+        for x=0, bg_width-1 do
+            local theta = atan2(y - bg_height/2, x - bg_width/2)
+            background:set(x, y, Color.hsl(deg(theta), 1, 0.5, 0.5))
+        end
     end
 end
 

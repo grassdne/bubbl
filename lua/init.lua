@@ -488,6 +488,8 @@ NextEvent = function()
     end
 end
 
+require "scheduler"
+
 window_width = 1600
 window_height = 900
 --window = C.create_window("Bubble")

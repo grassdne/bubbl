@@ -1,19 +1,25 @@
 local ffi = require "ffi"
 local C = ffi.C
 
-local TICK_TIME = 1/30
-
 local OptionalCallback = function(fn, ...)
-    if fn then fn(...) end
+    if fn then
+        local co = coroutine.create(fn)
+        local _, result = assert(coroutine.resume(co, ...))
+        if coroutine.status(co) == "suspended" then
+            ScheduleCo(co, result or 0)
+        end
+    end
 end
 
-local last_tick = math.floor(Seconds() / TICK_TIME)
+UpdateCurrentTick()
 local last_time = Seconds()
+
+OptionalCallback(OnStart)
+
 while not C.should_quit() do
     local now = Seconds()
     local dt = now - last_time
-    local tick = math.floor(now / TICK_TIME)
-    last_tick = tick
+    UpdateCurrentTick()
     last_time = now
 
     assert(OnUpdate, "missing OnUpdate callback")
@@ -45,4 +51,6 @@ while not C.should_quit() do
             OptionalCallback(OnWindowResize, window_width, window_height)
         end
     end
+
+    RunScheduler()
 end
