@@ -50,7 +50,7 @@ SVGEDITOR = {
     COLOR = WEBCOLORS.PURPLE,
 }
 
-local ok = pcall(require, program)
+local ok = pcall(require, "modules/"..program)
 if not ok then
     print("unable to find module "..program)
     os.exit(1)
