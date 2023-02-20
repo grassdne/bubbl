@@ -1,10 +1,10 @@
 PKGS = luajit sdl2 glew
-CFLAGS=-pedantic -Wall -Wextra -Wno-dollar-in-identifier-extension `pkg-config --cflags $(PKGS)`
+CFLAGS=-pedantic -Wall -Wextra `pkg-config --cflags $(PKGS)` -Ideps
 CLIBS = `pkg-config --libs $(PKGS)` -lm -rdynamic
 
 CMAIN=src/main.c
-CSRC=src/shaderutil.c src/bgshader.c src/entity_renderer.c src/entity_renderers.c src/main.c
-EXE=bubbles
+CSRC=src/bg.c src/bgshader.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c
+EXE=bubbl
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
 LIBRARY_DIRS_WIN = -LC:\mingw_dev\lib
