@@ -1,3 +1,5 @@
+-- Draw lines and shapes with a bunch o' circles!
+
 local POINT_SIZE=3
 
 local draw = {}

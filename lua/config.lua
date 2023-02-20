@@ -1,3 +1,7 @@
+-- I'm not sure what this is right now
+-- but it loads the module and maybe provides its constants
+-- and interprets command-line arguments
+
 local DEFAULT = "swirl"
 
 local i = 0

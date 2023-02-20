@@ -1,3 +1,12 @@
+-- Coroutine-based scheduler
+-- tasks table maps tick number to task coroutine.
+-- All tasks are kept as Lua coroutines.
+-- To yield from a task and resume 5 seconds later:
+--     coroutine.yield(5)
+-- To yield from a task and resume the next tick:
+--     coroutine.yield()
+
+
 TICK_TIME = 1/30
 
 local tasks = {}

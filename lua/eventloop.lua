@@ -1,6 +1,8 @@
 local ffi = require "ffi"
 local C = ffi.C
 
+-- OnStart, OnKey, OnMouseDown, etc callbacks are asyncronous coroutines!
+-- You can yield to pause for a certain amount of time or the next frame
 local OptionalCallback = function(fn, ...)
     if fn then
         local co = coroutine.create(fn)

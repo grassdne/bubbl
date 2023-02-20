@@ -1,3 +1,5 @@
+-- Render text with a bunch of circles!
+
 SVG_WIDTH = 192
 SVG_HEIGHT = 256
 
@@ -46,7 +48,7 @@ end
 
 ---@param pos Vector2 screen position of bottom left of rendered text
 ---@param char string to render on screen
----@param fontsize number
+---@param size number
 ---@param color Color|nil color of text, defaults to black
 TextRenderer.put_char = function(pos, char, size, color)
     local circles = glyphs[char] or glyphs[' ']

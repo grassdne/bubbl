@@ -1,3 +1,5 @@
+-- This is where all the C bindings and API functions are located
+
 local ffi = require "ffi"
 local C = ffi.C
 ffi.cdef[[
