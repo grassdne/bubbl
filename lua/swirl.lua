@@ -31,7 +31,7 @@ local Render = function(theta)
     end
 end
 
-local bg_width, bg_height = window_width, window_height
+local bg_width, bg_height = 512, 512
 local background = CreateCanvas(bg_width, bg_height)
 
 for y=0, bg_height-1 do
