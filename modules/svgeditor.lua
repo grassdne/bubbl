@@ -182,7 +182,7 @@ OnKey = function(key, is_down)
         end
     elseif key == "Backspace" and is_down then
         for v in pairs(selected) do
-            local i = assert(array_find(circles, v))
+            local i = assert(ArrayFind(circles, v))
             table.remove(circles, i)
         end
         selected = {}
@@ -213,4 +213,4 @@ end
 
 TextRenderer.load_glyphs()
 try_load_file(SVGEDITOR.FILE)
-package.loaded.svgeditor = false
+package.loaded["modules/svgeditor"] = nil
