@@ -10,7 +10,7 @@ local NextArg = function()
     return arg[i]
 end
 
-local program = NextArg()
+local program = NextArg() or DEFAULT
 
 ELASTIC = {
     STARTING_BUBBLE_COUNT = 10,
