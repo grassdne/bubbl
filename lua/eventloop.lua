@@ -18,6 +18,14 @@ local last_time = Seconds()
 
 OptionalCallback(OnStart)
 
+local OnKey = function(key, is_down)
+    if key == 'R' and is_down then
+        package.loaded['config'] = false
+        require 'config'
+    end
+    OptionalCallback(_G.OnKey, key, is_down)
+end
+
 while not C.should_quit() do
     local now = Seconds()
     local dt = now - last_time
@@ -32,7 +40,7 @@ while not C.should_quit() do
 
     for event in NextEvent do
         if event.type == "EVENT_KEY" then
-            OptionalCallback(OnKey, ffi.string(event.key.name), event.key.is_down)
+            OnKey(ffi.string(event.key.name), event.key.is_down)
 
         elseif event.type == "EVENT_MOUSEBUTTON" then
             if event.mousebutton.is_down then
