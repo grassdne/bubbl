@@ -2,7 +2,7 @@
 -- but it loads the module and maybe provides its constants
 -- and interprets command-line arguments
 
-local DEFAULT = "swirl"
+local DEFAULT_MODULE = "swirl"
 
 local i = 0
 local NextArg = function()
@@ -10,7 +10,7 @@ local NextArg = function()
     return arg[i]
 end
 
-local program = NextArg() or DEFAULT
+local module = NextArg() or DEFAULT_MODULE
 
 ELASTIC = {
     STARTING_BUBBLE_COUNT = 10,
@@ -50,8 +50,8 @@ SVGEDITOR = {
     COLOR = WEBCOLORS.PURPLE,
 }
 
-local ok = pcall(require, "modules/"..program)
+local ok = pcall(require, "modules/"..module)
 if not ok then
-    print("failed to find module "..program)
+    print("failed to find module "..module)
     print(string.format("usage: %s elastic|rainbow|svg|swirl", arg[0]))
 end
