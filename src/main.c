@@ -1,3 +1,5 @@
+#include "SDL_mouse.h"
+#include "SDL_video.h"
 #include "lua.h"
 #define _CRT_SECURE_NO_WARNINGS
 #include <GL/glew.h>
@@ -82,8 +84,7 @@ static void createargtable (lua_State *L, char **argv, int argc) {
 
 
 #define CONFIG_FILE_NAME "lua/config.lua"
-void reload_config(lua_State *L, SDL_Window *W, bool err) {
-    (void)W;
+void reload_config(lua_State *L, bool err) {
     if (luaL_dofile(L, "lua/config.lua")) {
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
         if (err) exit(1);
@@ -232,7 +233,8 @@ bool screenshot(const char *file_name)
     return true;
 }
 
-SDL_Window *create_window(const char *window_name, int width, int height) {
+SDL_Window *create_window(const char *window_name, int width, int height)
+{
     SDL_Window *window = SDL_CreateWindow(window_name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
     if (window == NULL) {
         fprintf(stderr, "error opening window: %s\n", SDL_GetError());
@@ -244,6 +246,28 @@ SDL_Window *create_window(const char *window_name, int width, int height) {
         return NULL;
     }
     return window;
+}
+
+void destroy_window(SDL_Window *window) 
+{
+    SDL_DestroyWindow(window);
+}
+
+void set_window_title(SDL_Window *window, const char *title) {
+    SDL_SetWindowTitle(window, title);
+}
+
+Vector2 get_mouse_position(SDL_Window *window)
+{
+    int height, x, y;
+    (void)SDL_GetWindowSize(window, NULL, &height);
+    (void)SDL_GetMouseState(&x, &y);
+    return (Vector2){ x, height - y };
+}
+
+void update_screen(SDL_Window *window)
+{
+    SDL_GL_SwapWindow(window);
 }
 
 int main(int argc, char **argv) {
@@ -269,9 +293,6 @@ int main(int argc, char **argv) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
 
-    SDL_Window *window = create_window("Bubbl", SCREEN_WIDTH, SCREEN_HEIGHT);
-    if (window == NULL) return 1;
-
     GLenum err = glewInit();
 	if (err) return fprintf(stderr, "error initializing GLEW: %s\n", glewGetErrorString(err)), 1;
 
@@ -282,10 +303,6 @@ int main(int argc, char **argv) {
         }
 
     }
-
-    lua_pushlightuserdata(L, window);
-    lua_setglobal(L, "window");
-    SDL_SetWindowData(window, "L", L);
 
 	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
     //    fprintf(stderr, "Shaders not available\n");
@@ -309,13 +326,12 @@ int main(int argc, char **argv) {
     bgInit(&bg_shader);
     bg_init();
 
-    reload_config(L, window, true);
+    reload_config(L, true);
 
     if (luaL_dofile(L, "lua/eventloop.lua")) {
         error(L, "error loading eventloop.lua:\n%s", lua_tostring(L, -1));
     }
 
-    SDL_DestroyWindow(window);
     SDL_Quit();
     lua_close(L);
     return 0;

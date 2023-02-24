@@ -36,7 +36,7 @@ while not C.should_quit() do
     ClearScreen()
     OnUpdate(dt)
     FlushRenderers()
-    C.SDL_GL_SwapWindow(window)
+    UpdateScreen(window)
 
     for event in NextEvent do
         if event.type == "EVENT_KEY" then

@@ -36,7 +36,7 @@ typedef struct {
 // Opaque types
 typedef struct {} BgShader;
 
-typedef struct SDL_Window SDL_Window;
+typedef struct Window Window;
 
 typedef enum {
     EVENT_NONE=0,
@@ -79,17 +79,19 @@ void flush_pops(void);
 void render_pop(Particle particle);
 void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
-uint32_t SDL_GetMouseState(int *x, int *y);
-void SDL_SetWindowTitle(void *window, const char *title);
 bool screenshot(const char *file_name);
 void flush_renderers(void);
 void clear_screen(void);
 void bg_draw(void *data, int width, int height);
 
 bool should_quit(void);
-void SDL_GL_SwapWindow(SDL_Window *window);
+Window *create_window(const char *window_name, int width, int height);
+void destroy_window(Window *window);
+void set_window_title(Window *window, const char *title);
+void SDL_GL_SwapWindow(Window *window);
 
-Event poll_event(SDL_Window *window);
+Event poll_event(Window *window);
+void update_screen(Window *window);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -434,10 +436,7 @@ math.clamp = function(v, min, max)
 end
 
 MousePosition = function ()
-    local x = ffi.new("int[1]")
-    local y = ffi.new("int[1]")
-    ffi.C.SDL_GetMouseState(x, y);
-    return Vector2(x[0], window_height - y[0])
+    return C.get_mouse_position(window)
 end
 
 ArrayFind = function (array, item)
@@ -450,7 +449,7 @@ Seconds = function() return C.get_time() end
 
 Title = function(name)
     assert(type(name) == "string", "expected string `name` for Title")
-    C.SDL_SetWindowTitle(window, name)
+    C.set_window_title(window, name)
 end
 
 Screenshot = function(name)
@@ -468,6 +467,17 @@ end
 DrawCanvas = function(canvas, width, height)
     assert(type(width) == "number" and type(height) == "number", "DrawCanvas requires numbers `width` and `height`")
     C.bg_draw(canvas, width, height)
+end
+
+UpdateScreen = function (window)
+    C.update_screen(window);
+end
+
+CreateWindow = function(name, width, height)
+    assert(type(name) == "string", "expected string `name`")
+    assert(type(width) == "number", "expected number `width`")
+    assert(type(height) == "number", "expected height `height`")
+    return ffi.gc(C.create_window(name, width, height), C.destroy_window)
 end
 
 local canvas_mt = {
@@ -494,4 +504,4 @@ require "scheduler"
 
 window_width = 1600
 window_height = 900
---window = C.create_window("Bubble")
+window = CreateWindow("Bubble", window_width, window_height)
