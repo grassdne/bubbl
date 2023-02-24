@@ -117,7 +117,7 @@ local vec2_mt = {
     normalize  = function (v)       return v / v:length() end,
     delta_x    = function (v, dx) v.x = v.x + dx end,
     delta_y    = function (v, dy) v.y = v.y + dy end,
-    unpack = function(v) return v.x, v.y end,
+    unpack     = function(v) return tonumber(v.x), tonumber(v.y) end,
 }
 vec2_mt.__index = vec2_mt
 Vector2 = ffi.metatype("Vector2", vec2_mt)
