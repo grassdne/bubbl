@@ -14,6 +14,17 @@ draw.vert_line = function(x1, y1, w, c)
     for y=y1, y1+w, POINT_SIZE do draw.point(x1, y, c) end
 end
 
+draw.line = function(x1, y1, x2, y2, color)
+    local vector = Vector2(x2-x1, y2-y1)
+    local angle = vector:normalize()
+    local count = vector:length() / POINT_SIZE
+    for i = 0, count-1 do
+        local pos = Vector2(x1, y1) + angle:scale(i * POINT_SIZE)
+        draw.point(pos.x, pos.y, color)
+    end
+    local diff_x = (x2 - x1) / POINT_SIZE
+end
+
 draw.rect_outline = function(x1, y1, w, h, c)
     -- Bottom
     draw.horiz_line(x1, y1, w, c)

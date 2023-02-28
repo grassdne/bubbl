@@ -4,11 +4,15 @@ local scale = 1
 
 circles = {}
 local is_shift_down = false
+local is_ctrl_down = false
 local selection_start
+local rotate = nil
 
 local selected = {}
 
 local BASE_SIZE = 20
+local KEY_MOVEMENT = 20
+local KEY_LITTLE_MOVEMENT = 5
 
 local TextRenderer = require "textrenderer"
 local Draw = require "draw"
@@ -77,12 +81,19 @@ OnUpdate = function(dt)
         Draw.rect_outline(botleft.x, botleft.y, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
     end
 
+     if rotate then
+         local axis = AbsolutePosition(rotate.axis_position)
+         local mouse = MousePosition()
+         Draw.line(axis.x, axis.y, mouse.x, mouse.y, SVGEDITOR.COLOR)
+     end
+
     -- Testing text
     TextRenderer.put_string(Vector2(0,60), "HELLO? HELLO? HELLO? HELLO? ", 20, SVGEDITOR.COLOR)
     TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40, SVGEDITOR.COLOR)
 end
 
 OnMouseMove = function(x, y)
+    local mouse = NormalPosition(Vector2(x, y))
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
         selected = {}
@@ -94,12 +105,25 @@ OnMouseMove = function(x, y)
             end
         end
     elseif drag_start then
-        local mouse = NormalPosition(Vector2(x, y))
         for circle in pairs(selected) do
             local diff = mouse - drag_start
             circle.pos = circle.pos + diff
         end
         drag_start = mouse
+    elseif rotate then
+        local relative_start = rotate.start_position - rotate.axis_position
+        local start_angle = math.atan2(relative_start.y, relative_start.x)
+        local relative_cur = mouse - rotate.axis_position
+        local new_angle = math.atan2(relative_cur.y, relative_cur.x)
+        local angle_delta = new_angle - start_angle
+        rotate.start_position = mouse
+        for circle in pairs(selected) do
+            local pos = circle.pos - rotate.axis_position
+            local mag = pos:length()
+            local theta = math.atan2(pos.y, pos.x)
+            local new_theta = theta + angle_delta
+            circle.pos = Vector2(math.cos(new_theta), math.sin(new_theta)):scale(mag) + rotate.axis_position
+        end
     end
 end
 
@@ -129,10 +153,30 @@ local circle_at_position = function(pos)
     return nil
 end
 
+FindSelectionCenterPoint = function()
+    local right = 0
+    local left = window_width
+    local top = 0
+    local bottom = window_height
+    for circle in pairs(selected) do
+        local pos = circle:absolute_position()
+        left = math.min(left, pos.x)
+        right = math.max(right, pos.x)
+        top = math.max(top, pos.y)
+        bottom = math.min(bottom, pos.y)
+    end
+    local x = (left + right) / 2
+    local y = (bottom + top) / 2
+    return NormalPosition(Vector2(x, y))
+end
+
 OnMouseDown = function(x, y)
     local pos = NormalPosition(Vector2(x, y))
     if is_shift_down then
         selection_start = pos
+    elseif is_ctrl_down and next(selected) then
+        -- Start rotation
+        rotate = { start_position = pos, axis_position = FindSelectionCenterPoint() }
     else
         local found = circle_at_position(pos)
         if found and selected[found] then
@@ -158,10 +202,11 @@ OnMouseUp = function(x, y)
     elseif drag_start then
         -- Finished dragging
         drag_start = nil
+    elseif rotate then
+        rotate = nil
     end
 end
 
-local KEY_DELTA_RADIUS = 2
 local MIN_CIRCLE_RADIUS = 5
 
 local circle_delta_radius = function(circle, delta)
@@ -172,14 +217,6 @@ end
 OnKey = function(key, is_down)
     if key == "Return" and is_down then
         save_to_svg(SVGEDITOR.FILE)
-    elseif key == "Up" and is_down then
-        for v in pairs(selected) do
-            circle_delta_radius(v, KEY_DELTA_RADIUS)
-        end
-    elseif key == "Down" and is_down then
-        for v in pairs(selected) do
-            circle_delta_radius(v, -KEY_DELTA_RADIUS)
-        end
     elseif key == "Backspace" and is_down then
         for v in pairs(selected) do
             local i = assert(ArrayFind(circles, v))
@@ -190,6 +227,33 @@ OnKey = function(key, is_down)
         multiselect_mode = not multiselect_mode
     elseif key == "Left Shift" or key == "Right Shift" then
         is_shift_down = is_down
+    elseif key == "Left Ctrl" or key == "Right Ctrl" then
+        is_ctrl_down = is_down
+    elseif key == "C" and is_down then
+        local new_selected = {}
+        local OFFSET = Vector2(BASE_SIZE, BASE_SIZE)
+        for v in pairs(selected) do
+            local new_circle = Circle:New(v.pos + OFFSET, v.radius, true)
+            table.insert(circles, new_circle)
+            new_selected[new_circle] = true
+        end
+        selected = new_selected
+    elseif is_down and next(selected) and key == "Up" then
+        for circle in pairs(selected) do
+            circle.pos.y = circle.pos.y + KEY_MOVEMENT
+        end
+    elseif is_down and next(selected) and key == "Down" then
+        for circle in pairs(selected) do
+            circle.pos.y = circle.pos.y - KEY_MOVEMENT
+        end
+    elseif is_down and next(selected) and key == "Left" then
+        for circle in pairs(selected) do
+            circle.pos.x = circle.pos.x - KEY_MOVEMENT
+        end
+    elseif is_down and next(selected) and key == "Right" then
+        for circle in pairs(selected) do
+            circle.pos.x = circle.pos.x + KEY_MOVEMENT
+        end
     end
 end
 

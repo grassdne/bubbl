@@ -137,14 +137,13 @@ local color_mt = {
     __tostring = function(c)
         return ("Color(%.2f, %.2f, %.2f)"):format(c.r, c.g, c.b)
     end,
-    hex = function(hex)
+    hex = function(hex, a)
         if hex:sub(1, 1) == '#' then hex = hex:sub(2) end
         assert(#hex == 6 and "hex string should be an optional '#' plus six hexadecimal digits")
         local r = tonumber(hex:sub(1, 2), 16) / 0xFF
         local g = tonumber(hex:sub(3, 4), 16) / 0xFF
         local b = tonumber(hex:sub(5, 6), 16) / 0xFF
-        -- TODO: alpha
-        return Color(r, g, b, 1)
+        return Color(r, g, b, a or 1)
     end,
     random = function()
         return Color(math.random(), math.random(), math.random())
