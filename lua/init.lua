@@ -505,12 +505,19 @@ local canvas_mt = {
         assert(y < canvas.height, "canvas:set y argument out of range")
         assert(x < canvas.width, "canvas:set x argument out of range")
         canvas.data[y * canvas.width + x] = color:Pixel()
+    end,
+    new = function(self, width, height)
+        return Canvas(width * height, width, height)
+    end,
+    draw = function(canvas)
+        C.bg_draw(canvas.data, canvas.width, canvas.height)
     end
+
 }
 canvas_mt.__index = canvas_mt
-local canvas_ct = ffi.metatype("struct { int width; int height; Pixel data[?]; }", canvas_mt)
+Canvas = ffi.metatype("struct { int width; int height; Pixel data[?]; }", canvas_mt)
 CreateCanvas = function(width, height)
-    return canvas_ct(width*height, width, height)
+    return Canvas(width*height, width, height)
 end
 
 -- Pending event iterator for event loop

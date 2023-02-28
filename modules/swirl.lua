@@ -33,7 +33,7 @@ end
 
 
 local bg_width, bg_height = 512, 512
-local background = CreateCanvas(bg_width, bg_height)
+local background = Canvas:new(bg_width, bg_height)
 OnStart = function()
     for y=0, bg_height-1 do
         for x=0, bg_width-1 do
@@ -56,10 +56,9 @@ if GENERATE_FRAMES then
     end
 else
     OnUpdate = function()
-        DrawCanvas(background, bg_width, bg_height)
+        background:draw()
         Render(Seconds() * 2*PI / PERIOD)
     end
 end
 
-package.loaded.swirl = nil
 LockTable(_G)
