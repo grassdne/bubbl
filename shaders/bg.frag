@@ -5,7 +5,7 @@ layout(location = 0) out vec4 outcolor;
 
 uniform vec2 positions[MAX_ELEMENTS];
 uniform vec4 colors[MAX_ELEMENTS];
-uniform int num_elements;
+uniform float num_elements;
 uniform vec2 resolution;
 const float TRANSPARENCY = 0.33;
 in float LENGTH;     // Length of resolution (distance botoom left -> top right)

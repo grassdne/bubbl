@@ -6,7 +6,7 @@ DEPS="luajit sdl2 glew"
 
 CFLAGS="-Wall -Wextra -std=c11 --pedantic -Ideps $(pkg-config --cflags $DEPS)"
 CLIBS="$(pkg-config --libs $DEPS) -lm"
-CSRC="src/bg.c src/bgshader.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c"
+CSRC="src/bg.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c"
 
 if [ `uname` = Darwin ]; then
     CLIBS+=" -framework OpenGL -framework IOKit"

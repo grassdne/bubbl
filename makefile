@@ -3,7 +3,7 @@ CFLAGS=-pedantic -Wall -Wextra `pkg-config --cflags $(PKGS)` -Ideps
 CLIBS = `pkg-config --libs $(PKGS)` -lm -rdynamic
 
 CMAIN=src/main.c
-CSRC=src/bg.c src/bgshader.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c
+CSRC=src/bg.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c
 EXE=bubbl
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include

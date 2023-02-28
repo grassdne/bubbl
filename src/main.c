@@ -18,13 +18,10 @@
 
 #include "common.h"
 #include "renderer_defs.h"
-#include "bgshader.h"
 #include "bg.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-
-BgShader bg_shader = {0};
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
@@ -89,11 +86,6 @@ void reload_config(lua_State *L, bool err) {
         fprintf(stderr, "ERROR loading configuration file:\n\t%s\n", lua_tostring(L, -1));
         if (err) exit(1);
     }
-}
-
-BgShader* get_bg_shader(void)
-{
-    return &bg_shader;
 }
 
 int get_window_width(void) { return window_width; }
@@ -323,7 +315,6 @@ int main(int argc, char **argv) {
     glBlendEquation(GL_FUNC_ADD);
 
     init_renderers();
-    bgInit(&bg_shader);
     bg_init();
 
     reload_config(L, true);

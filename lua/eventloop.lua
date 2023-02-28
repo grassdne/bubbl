@@ -6,10 +6,7 @@ local C = ffi.C
 local OptionalCallback = function(fn, ...)
     if fn then
         local co = coroutine.create(fn)
-        local _, result = assert(coroutine.resume(co, ...))
-        if coroutine.status(co) == "suspended" then
-            ScheduleCo(co, result or 0)
-        end
+        assert(coroutine.resume(co, ...))
     end
 end
 
@@ -38,7 +35,7 @@ while not C.should_quit() do
     FlushRenderers()
     UpdateScreen(window)
 
-    for event in NextEvent do
+    for event in PendingEvents() do
         if event.type == "EVENT_KEY" then
             OnKey(ffi.string(event.key.name), event.key.is_down)
 

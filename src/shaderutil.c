@@ -136,7 +136,7 @@ void shaderLinkProgram(Shader *sh) {
     }
 }
 
-void _shaderBuildProgram(Shader *sh, ShaderDatas shd) {
+void shaderBuildProgram(Shader *sh, ShaderDatas shd) {
     shaderInit(sh);
     sh->program = glCreateProgram();
     build_shaders(sh->program, shd);
@@ -145,5 +145,25 @@ void _shaderBuildProgram(Shader *sh, ShaderDatas shd) {
 
 double randreal(void) {
     return rand() / (double)RAND_MAX;
+}
+
+void create_shader_program(Shader *shader, const char *vert_path, const char *frag_path)
+{
+    shaderBuildProgram(shader, (ShaderDatas){ .vert=vert_path, .frag=frag_path });
+}
+
+void use_shader_program(Shader *shader)
+{
+    glUseProgram(shader->program);
+    glBindVertexArray(shader->vao);
+}
+
+void run_shader_program(Shader *shader)
+{
+    use_shader_program(shader);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 

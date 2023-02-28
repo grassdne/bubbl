@@ -26,6 +26,8 @@ local gen_particle_field = function ()
     end
 end
 
+local last_mouse_position = MousePosition()
+
 OnUpdate = function(dt)
     -- Update and draw particles
     for i,part in ipairs(particles) do
@@ -42,18 +44,19 @@ OnUpdate = function(dt)
     local mouse = MousePosition()
     -- TODO: We don't want to do anything if the mouse is outside the window
     -- the following guard doesn't actually do any good
-    if mouse.x > 0 and mouse.x < window_width and
-       mouse.y > 0 and mouse.y < window_height
+    if (mouse.x ~= last_mouse_position.x or mouse.y ~= last_mouse_position.y)
+        and mouse.x > 0 and mouse.x < window_width
+        and mouse.y > 0 and mouse.y < window_height
     then
         for _,part in ipairs(particles) do
             local dist = mouse:dist(part.position)
             if dist < RAINBOW.MOUSE_EFFECT_RADIUS then
                 local proximity = 1 - dist / RAINBOW.MOUSE_EFFECT_RADIUS
-                part.radius = math.min(RAINBOW.MAX_ATTAINED_RADIUS, part.radius + RAINBOW.SIZE_DELTA * proximity * dt)
+                part.radius = math.min(RAINBOW.MAX_ATTAINED_RADIUS, part.radius + RAINBOW.SIZE_DELTA * dt)
             end
         end
     end
-
+    last_mouse_position = mouse
 end
 
 OnWindowResize = function(w, h)

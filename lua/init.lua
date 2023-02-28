@@ -36,6 +36,8 @@ typedef struct {
 // Opaque types
 typedef struct {} BgShader;
 
+typedef struct { unsigned int program; unsigned int vao; } Shader;
+
 typedef struct Window Window;
 
 typedef enum {
@@ -92,6 +94,17 @@ void SDL_GL_SwapWindow(Window *window);
 
 Event poll_event(Window *window);
 void update_screen(Window *window);
+Vector2 get_mouse_position(Window *window);
+
+void create_shader_program(Shader *shader, const char *vert_path, const char *frag_path);
+void run_shader_program(Shader *shader);
+void use_shader_program(Shader *shader);
+int glGetUniformLocation(unsigned int program, const char *name);
+void glUniform4f(int uni, float r, float g, float b, float a);
+void glUniform2f(int uni, float x, float y);
+void glUniform1f(int uni, float f);
+void glUniform4fv(int uni, int count, Color *values);
+void glUniform2fv(int uni, int count, Vector2 *values);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -169,7 +182,14 @@ local color_mt = {
     end,
     Pixel = function(c)
         return ffi.new("Pixel", math.floor(c.r*255), math.floor(c.g*255), math.floor(c.b*255), math.floor(c.a*255))
-    end
+    end,
+    unpack = function(c) return c.r, c.g, c.b, c.a end,
+    mix = function(a, b, f)
+        return Color(a.r * (1 - f) + b.r * f,
+                     a.g * (1 - f) + b.g * f,
+                     a.b * (1 - f) + b.b * f,
+                     a.a * (1 - f) + a.a * f)
+    end,
 }
 color_mt.__index = color_mt
 Color = ffi.metatype("Color", color_mt)
@@ -465,7 +485,8 @@ ClearScreen = function()
 end
 
 DrawCanvas = function(canvas, width, height)
-    assert(type(width) == "number" and type(height) == "number", "DrawCanvas requires numbers `width` and `height`")
+    assert(type(width) == "number", "expected number `width`")
+    assert(type(height) == "number", "expected height `height`")
     C.bg_draw(canvas, width, height)
 end
 
@@ -493,11 +514,53 @@ CreateCanvas = function(width, height)
     return canvas_ct(width*height, width, height)
 end
 
-NextEvent = function()
+-- Pending event iterator for event loop
+local NextEvent = function()
     local event = C.poll_event(window)
     if event.type ~= "EVENT_NONE" then
         return event
     end
+end
+function PendingEvents() return NextEvent end
+
+local shaders = {}
+
+RunBackgroundShader = function(id, vert_path, frag_path, data)
+    if not shaders[id] then
+        local program = ffi.new("Shader")
+        C.create_shader_program(program, vert_path, frag_path)
+        shaders[id] = { program, {} }
+    end
+    local program, uniforms = unpack(shaders[id])
+    C.use_shader_program(program)
+    for name, arg in pairs(data) do
+        if not uniforms[name] then
+            uniforms[name] = C.glGetUniformLocation(program.program, name)
+        end
+        if ffi.istype(Color, arg) then
+            C.glUniform4f(uniforms[name], arg:unpack())
+
+        elseif ffi.istype(Vector2, arg) then
+            C.glUniform2f(uniforms[name], arg:unpack())
+
+        elseif type(arg) == "number" then
+            C.glUniform1f(uniforms[name], arg)
+
+        elseif type(arg) == "table" then
+            assert(arg[1], "array uniform must contain at least one value")
+            if ffi.istype(Color, arg[1]) then
+                C.glUniform4fv(uniforms[name], #arg, ffi.new("Color[?]", #arg, arg))
+            elseif ffi.istype(Vector2, arg[1]) then
+                C.glUniform2fv(uniforms[name], #arg, ffi.new("Vector2[?]", #arg, arg))
+            else
+                assert(false, "unknown uniform type")
+            end
+
+        else
+            assert(false, "unknown uniform type")
+        end
+    end
+    C.run_shader_program(program)
 end
 
 require "scheduler"

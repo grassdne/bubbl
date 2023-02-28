@@ -6,7 +6,7 @@
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
-    shaderBuildProgram(&r->shader, data.shaders, ENTITY_UNIFORMS);
+    shaderBuildProgram(&r->shader, data.shaders);
     r->uniforms.resolution = glGetUniformLocation(r->shader.program, "resolution");
     r->uniforms.time = glGetUniformLocation(r->shader.program, "time");
 

@@ -27,10 +27,6 @@ void checkGlError(const char *file, const int line);
 
 double randreal(void);
 
-#define shaderBuildProgram(sh, d, UNIFORMS) do{ \
-    _shaderBuildProgram((Shader*)(sh), (d)); \
-}while(0)
-
-void _shaderBuildProgram(Shader *sh, ShaderDatas d);
+void shaderBuildProgram(Shader *sh, ShaderDatas d);
 
 #endif

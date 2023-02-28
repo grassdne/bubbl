@@ -5,7 +5,6 @@ pop_effects = {}
 movement_enabled = true
 shaders = {}
 cursor_bubble = false
-shaders.bg = BgShader:New()
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -104,7 +103,7 @@ local GetBubblesForBgshader = function ()
     table.sort(all_bubbles, function(a, b) return a.radius > b.radius end)
     local ents = {}
     for i=1, math.min(#all_bubbles, BGSHADER_MAX_ELEMS) do 
-        ents[i] = all_bubbles[i]:CBubble()
+        ents[i] = all_bubbles[i]
     end
     return ents
 end
@@ -207,7 +206,22 @@ OnUpdate = function(dt)
     end
 
     -- Draw bubbles!
-    shaders.bg:draw(GetBubblesForBgshader())
+    --shaders.bg:draw(GetBubblesForBgshader())
+    ---[[
+    local bubbles = GetBubblesForBgshader()
+    if #bubbles > 0 then
+        local colors, positions = {}, {}
+        for i,bub in ipairs(bubbles) do
+            colors[i] = Color.mix(bub.color, bub.color_b, bub.trans_percent)
+            positions[i] = bub.position
+        end
+        RunBackgroundShader("elastic", "shaders/bg.vert", "shaders/bg.frag", {
+            resolution = Vector2(window_width, window_height),
+            num_elements = #bubbles,
+            colors = colors,
+            positions = positions,
+        })
+    end
 end
 
 local BubbleAtPoint = function (pos)

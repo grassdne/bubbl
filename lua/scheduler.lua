@@ -31,12 +31,16 @@ RunScheduler = function()
     for tick=last_tick+1, current_tick do
         if tasks[tick] then
             for _,co in ipairs(tasks[tick]) do
-                local _, result = assert(coroutine.resume(co))
-                if coroutine.status(co) == "suspended" then
-                    ScheduleCo(co, result or 0)
-                end
+                assert(coroutine.resume(co))
             end
             tasks[tick] = nil
         end
     end
+    last_tick = current_tick
+end
+
+Suspend = function(delay)
+    local co = assert(coroutine.running(), "must be called within running coroutine")
+    ScheduleCo(co, delay or 0)
+    coroutine.yield()
 end

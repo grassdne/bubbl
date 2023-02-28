@@ -9,7 +9,7 @@ static const ShaderDatas BG_SHADERS = {
     .frag = "shaders/blit.frag",
 };
 void bg_init(void) {
-   shaderBuildProgram(&shader, BG_SHADERS, _); 
+   shaderBuildProgram(&shader, BG_SHADERS); 
 }
 
 void bg_draw(void *data, int width, int height) {
