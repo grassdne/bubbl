@@ -526,10 +526,10 @@ function PendingEvents() return NextEvent end
 
 local shaders = {}
 
-RunBackgroundShader = function(id, vert_path, frag_path, data)
+RunBackgroundShader = function(id, frag_path, data)
     if not shaders[id] then
         local program = ffi.new("Shader")
-        C.create_shader_program(program, vert_path, frag_path)
+        C.create_shader_program(program, "shaders/bg.vert", frag_path)
         shaders[id] = { program, {} }
     end
     local program, uniforms = unpack(shaders[id])
