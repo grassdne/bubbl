@@ -96,13 +96,6 @@ local CollectAllBubbles = function ()
     return all_bubbles
 end
 
-local GetBubblesForBgshader = function ()
-    local bubbles = CollectAllBubbles()
-    table.sort(bubbles, function(a, b) return a.radius > b.radius end)
-    for i=BGSHADER_MAX_ELEMS, #bubbles do bubbles[i] = nil end
-    return bubbles
-end
-
 local StartTransition = function (bubble, other)
     bubble:StartTransformation(other.color, Seconds(),
         (other.position - bubble.position):normalize())
@@ -204,10 +197,12 @@ OnUpdate = function(dt)
     end
 
     --- Draw background ---
-    local bubbles = GetBubblesForBgshader()
     if #bubbles > 0 then
+        local bubbles = CollectAllBubbles()
+        table.sort(bubbles, function(a, b) return a.radius > b.radius end)
         local colors, positions = {}, {}
-        for i,bub in ipairs(bubbles) do
+        for i=1, math.min(BGSHADER_MAX_ELEMS, #bubbles) do
+            local bub = bubbles[i]
             colors[i] = Color.mix(bub.color, bub.color_b, bub.trans_percent)
             positions[i] = bub.position
         end
