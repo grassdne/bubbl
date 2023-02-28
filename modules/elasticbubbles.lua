@@ -215,7 +215,7 @@ OnUpdate = function(dt)
             colors[i] = Color.mix(bub.color, bub.color_b, bub.trans_percent)
             positions[i] = bub.position
         end
-        RunBackgroundShader("elastic", "shaders/bg.vert", "shaders/bg.frag", {
+        RunBackgroundShader("elastic", "shaders/bg.vert", "shaders/elasticbubbles_bg.frag", {
             resolution = Vector2(window_width, window_height),
             num_elements = #bubbles,
             colors = colors,
