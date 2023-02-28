@@ -260,5 +260,4 @@ for i=1, ELASTIC.STARTING_BUBBLE_COUNT do
     table.insert(bubbles, Bubble:New(RandomColor(), RandomPosition(), RandomVelocity(), RandomRadius()))
 end
 
--- Any more globals is an error!
-LockGlobalTable()
+LockTable(_G)

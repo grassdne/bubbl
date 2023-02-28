@@ -40,3 +40,5 @@ OnUpdate = function(dt)
             next_color, PI, percent_trans)
     end
 end
+
+LockTable(_G)

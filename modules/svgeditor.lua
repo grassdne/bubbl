@@ -6,6 +6,7 @@ circles = {}
 local is_shift_down = false
 local is_ctrl_down = false
 local selection_start
+local drag_start
 local rotate = nil
 
 local selected = {}
@@ -128,15 +129,17 @@ OnMouseMove = function(x, y)
 end
 
 local fmt = string.format
-local save_to_svg = function(file_path)
+local SaveToSVG = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
     f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_WIDTH, SVG_HEIGHT))
     
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:unpack()
-        f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                x, SVG_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
+        if x > 0 and x < SVG_WIDTH and y > 0 and y < SVG_HEIGHT then
+            f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
+                    x, SVG_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
+        end
     end
 
     f:write("</svg>")
@@ -216,7 +219,7 @@ end
 
 OnKey = function(key, is_down)
     if key == "Return" and is_down then
-        save_to_svg(SVGEDITOR.FILE)
+        SaveToSVG(SVGEDITOR.FILE)
     elseif key == "Backspace" and is_down then
         for v in pairs(selected) do
             local i = assert(ArrayFind(circles, v))
@@ -278,3 +281,5 @@ end
 TextRenderer.load_glyphs()
 try_load_file(SVGEDITOR.FILE)
 package.loaded["modules/svgeditor"] = nil
+
+LockTable(_G)

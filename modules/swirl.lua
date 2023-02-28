@@ -62,3 +62,4 @@ else
 end
 
 package.loaded.swirl = nil
+LockTable(_G)

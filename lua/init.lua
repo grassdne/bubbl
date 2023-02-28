@@ -233,7 +233,7 @@ end
 
 RenderSimple = function (pos, color, rad,
                           opt_color_b, opt_trans_angle, opt_trans_percent)
-    bubble = BubbleEntity()
+    local bubble = BubbleEntity()
     bubble.pos = pos
     bubble.rad = rad
     bubble.color = color
@@ -266,12 +266,16 @@ math.randomseed(os.time())
 
 dbg = function(...) print(...) return ... end
 
-LockGlobalTable = function()
-    setmetatable(_G, {
-        __newindex = function(t, k, v)
-            error("attempt to set undeclared global \""..k.."\"", 2)
-        end;
-    })
+local locked_mt = {
+    __newindex = function(t, k, v)
+        error("attempt to set undeclared global \""..k.."\"", 2)
+    end;
+    __index = function(t, k)
+        error("attempt to get undeclared global \""..k.."\"", 2)
+    end;
+}
+LockTable = function(t)
+    setmetatable(t, locked_mt)
 end
 
 package.path = "./lua/?.lua;" .. package.path
