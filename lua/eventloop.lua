@@ -22,6 +22,9 @@ OptionalCallback("OnStart")
 
 local OnKey = function(key, is_down)
     if key == 'R' and is_down then
+        ClearShaderCache()
+        -- Unlock global table
+        setmetatable(_G, nil)
         package.loaded['config'] = false
         require 'config'
     end

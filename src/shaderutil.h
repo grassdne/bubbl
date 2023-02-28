@@ -25,8 +25,6 @@ void shaderLinkProgram(Shader *sh);
 
 void checkGlError(const char *file, const int line);
 
-double randreal(void);
-
 void shaderBuildProgram(Shader *sh, ShaderDatas d);
 
 #endif

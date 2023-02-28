@@ -1,10 +1,10 @@
 Title "Elastic Bubbles (Press to create or pop a bubble!)"
 
-bubbles = {}
-pop_effects = {}
-cursor_bubble = false
-MOVEMENT_ENABLED = true
-BGSHADER_MAX_ELEMS = 10
+bubbles = bubbles or {}
+pop_effects = pop_effects or {}
+cursor_bubble = cursor_bubble or false
+local MOVEMENT_ENABLED = true
+local BGSHADER_MAX_ELEMS = 15
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -23,6 +23,11 @@ end
 
 local RandomColor = function()
     return Color.hsl(math.random()*360, ELASTIC.BUBBLE_HUE, ELASTIC.BUBBLE_LIGHTNESS)
+end
+
+local BgShaderLoader = function()
+    local contents = ReadEntireFile("shaders/elasticbubbles_bg.frag")
+    return string.format("#version 330\n#define MAX_ELEMENTS %d\n%s", BGSHADER_MAX_ELEMS, contents)
 end
 
 local Particle = {
@@ -206,7 +211,7 @@ OnUpdate = function(dt)
             colors[i] = Color.mix(bub.color, bub.color_b, bub.trans_percent)
             positions[i] = bub.position
         end
-        RunBackgroundShader("elastic", "shaders/elasticbubbles_bg.frag", {
+        RunBgShader("elastic", BgShaderLoader, {
             resolution = Vector2(window_width, window_height),
             num_elements = #bubbles,
             colors = colors,
@@ -256,8 +261,10 @@ OnKey = function(key, down)
     end
 end
 
-for i=1, ELASTIC.STARTING_BUBBLE_COUNT do
-    table.insert(bubbles, Bubble:New(RandomColor(), RandomPosition(), RandomVelocity(), RandomRadius()))
+OnStart = function()
+    for i=1, ELASTIC.STARTING_BUBBLE_COUNT do
+        table.insert(bubbles, Bubble:New(RandomColor(), RandomPosition(), RandomVelocity(), RandomRadius()))
+    end
 end
 
 LockTable(_G)

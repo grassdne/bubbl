@@ -62,21 +62,16 @@ GLint get_bound_array_buffer(void) {
     return id;
 }
 
-void build_shader(GLuint program, const char *file, GLenum type) {
-    char* src = malloc_file_source(file); 
-    GLuint shader = load_shader(type, src, file);
-    free(src);
+void build_shader(GLuint program, const char *source, GLenum type, const char *id) {
+    GLuint shader = load_shader(type, source, id);
     if (!shader) exit(1);
-
     glAttachShader(program, shader);
 }
 
-void build_shaders(GLuint prg, ShaderDatas shd) {
-    // Required shaders
-    assert(shd.vert);
-    assert(shd.frag);
-    build_shader(prg, shd.vert, GL_VERTEX_SHADER); 
-    build_shader(prg, shd.frag, GL_FRAGMENT_SHADER); 
+void build_shader_from_file(GLuint program, const char *file_name, GLenum type) {
+    char *source = malloc_file_source(file_name);
+    build_shader(program, source, type, file_name);
+    free(source);
 }
 
 #define VERT_POS_ATTRIB_INDEX 0
@@ -139,17 +134,22 @@ void shaderLinkProgram(Shader *sh) {
 void shaderBuildProgram(Shader *sh, ShaderDatas shd) {
     shaderInit(sh);
     sh->program = glCreateProgram();
-    build_shaders(sh->program, shd);
+    assert(shd.vert);
+    assert(shd.frag);
+    build_shader_from_file(sh->program, shd.vert, GL_VERTEX_SHADER); 
+    build_shader_from_file(sh->program, shd.frag, GL_FRAGMENT_SHADER); 
     shaderLinkProgram(sh);
 }
 
-double randreal(void) {
-    return rand() / (double)RAND_MAX;
-}
-
-void create_shader_program(Shader *shader, const char *vert_path, const char *frag_path)
+void create_shader_program(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source)
 {
-    shaderBuildProgram(shader, (ShaderDatas){ .vert=vert_path, .frag=frag_path });
+    shaderInit(shader);
+    shader->program = glCreateProgram();
+
+    build_shader(shader->program, fragment_source, GL_FRAGMENT_SHADER, id);
+    build_shader(shader->program, vertex_source, GL_VERTEX_SHADER, id);
+
+    shaderLinkProgram(shader);
 }
 
 void use_shader_program(Shader *shader)

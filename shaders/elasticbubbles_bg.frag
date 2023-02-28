@@ -1,6 +1,3 @@
-#version 330
-#define MAX_ELEMENTS 10
-
 layout(location = 0) out vec4 outcolor;
 
 uniform vec2 positions[MAX_ELEMENTS];

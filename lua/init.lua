@@ -96,7 +96,7 @@ Event poll_event(Window *window);
 void update_screen(Window *window);
 Vector2 get_mouse_position(Window *window);
 
-void create_shader_program(Shader *shader, const char *vert_path, const char *frag_path);
+void create_shader_program(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
 void run_shader_program(Shader *shader);
 void use_shader_program(Shader *shader);
 int glGetUniformLocation(unsigned int program, const char *name);
@@ -525,11 +525,38 @@ end
 function PendingEvents() return NextEvent end
 
 local shaders = {}
+ClearShaderCache = function()
+    -- TODO: free shit?
+    shaders = {}
+end
 
-RunBackgroundShader = function(id, frag_path, data)
+-- This should probably be put in some namespace, if at all global
+ReadEntireFile = function (file_name)
+    local file = assert(io.open(file_name))
+    local result = file:read("*a")
+    file:close()
+    return result
+end
+
+local bg_vertex_shader_source = ReadEntireFile("shaders/bg.vert")
+
+---@param id string used to cache program/uniforms and error messages
+---@param frag_shader string|function either file path or function that returns string
+---@param data table
+RunBgShader = function(id, frag_shader, data)
     if not shaders[id] then
         local program = ffi.new("Shader")
-        C.create_shader_program(program, "shaders/bg.vert", frag_path)
+        local frag_source
+        if type(frag_shader) == "string" then
+            frag_source = ReadEntireFile(frag_shader)
+        elseif type(frag_shader) == "function" then
+            frag_source = frag_shader()
+            assert(type(frag_source) == "string", "RunBgShader shader loader callback must return string")
+        else
+            error("expected string file name or function for frag_shader", 2)
+        end
+        assert(type(id) == "string")
+        C.create_shader_program(program, id, bg_vertex_shader_source, frag_source)
         shaders[id] = { program, {} }
     end
     local program, uniforms = unpack(shaders[id])
