@@ -485,10 +485,8 @@ ClearScreen = function()
     C.clear_screen()
 end
 
-DrawCanvas = function(canvas, width, height)
-    assert(type(width) == "number", "expected number `width`")
-    assert(type(height) == "number", "expected height `height`")
-    C.bg_draw(canvas, width, height)
+DrawCanvas = function(canvas)
+    C.bg_draw(canvas.data, canvas.width, canvas.height)
 end
 
 UpdateScreen = function (window)
