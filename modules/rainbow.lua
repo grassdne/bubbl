@@ -65,6 +65,6 @@ OnWindowResize = function(w, h)
     gen_particle_field()
 end
 
-gen_particle_field()
-
 LockTable(_G)
+
+gen_particle_field()

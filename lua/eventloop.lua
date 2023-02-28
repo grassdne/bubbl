@@ -7,7 +7,11 @@ local OptionalCallback = function(name, ...)
     local fn = rawget(_G, name)
     if fn then
         local co = coroutine.create(fn)
-        assert(coroutine.resume(co, ...))
+        local ok, err = coroutine.resume(co, ...)
+        if not ok then
+            print("Error inside "..name.." callback!")
+            print(err)
+        end
     end
 end
 
@@ -32,7 +36,13 @@ while not C.should_quit() do
 
     assert(OnUpdate, "missing OnUpdate callback")
     ClearScreen()
-    OnUpdate(dt)
+    local ok, err = pcall(OnUpdate, dt)
+    if not ok then
+        print("Error inside OnUpdate!")
+        print(err)
+        print("Disabling OnUpdate... fix it and hot reload, or restart.")
+        OnUpdate = function() end
+    end
     FlushRenderers()
     UpdateScreen(window)
 

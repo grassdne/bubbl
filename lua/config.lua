@@ -50,8 +50,10 @@ SVGEDITOR = {
     COLOR = WEBCOLORS.PURPLE,
 }
 
-local ok, err = pcall(require, "modules/"..module)
+local file_name = "modules/"..module
+local ok, err = pcall(require, file_name)
 if not ok then
     print("error loading module "..module.." "..err)
     print(string.format("usage: %s elastic|rainbow|svg|swirl", arg[0]))
 end
+package.loaded[file_name] = nil

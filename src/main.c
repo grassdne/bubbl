@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
     reload_config(L, true);
 
     if (luaL_dofile(L, "lua/eventloop.lua")) {
-        error(L, "error loading eventloop.lua:\n%s", lua_tostring(L, -1));
+        error(L, "Error: %s", lua_tostring(L, -1));
     }
 
     SDL_Quit();
