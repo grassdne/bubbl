@@ -2,9 +2,9 @@ Title "Elastic Bubbles (Press to create or pop a bubble!)"
 
 bubbles = {}
 pop_effects = {}
-movement_enabled = true
-shaders = {}
 cursor_bubble = false
+MOVEMENT_ENABLED = true
+BGSHADER_MAX_ELEMS = 10
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -85,10 +85,8 @@ local SeparateBubbles = function (a, b)
 end
 
 local EnsureBubbleInBounds = function (bubble)
-    local pos = bubble.position
-    pos.x = math.clamp(pos.x, bubble.radius, window_width  - bubble.radius)
-    pos.y = math.clamp(pos.y, bubble.radius, window_height - bubble.radius)
-    bubble.position = pos
+    bubble.position.x = math.clamp(bubble.position.x, bubble.radius, window_width  - bubble.radius)
+    bubble.position.y = math.clamp(bubble.position.y, bubble.radius, window_height - bubble.radius)
 end
 
 local CollectAllBubbles = function ()
@@ -99,13 +97,10 @@ local CollectAllBubbles = function ()
 end
 
 local GetBubblesForBgshader = function ()
-    local all_bubbles = CollectAllBubbles()
-    table.sort(all_bubbles, function(a, b) return a.radius > b.radius end)
-    local ents = {}
-    for i=1, math.min(#all_bubbles, BGSHADER_MAX_ELEMS) do 
-        ents[i] = all_bubbles[i]
-    end
-    return ents
+    local bubbles = CollectAllBubbles()
+    table.sort(bubbles, function(a, b) return a.radius > b.radius end)
+    for i=BGSHADER_MAX_ELEMS, #bubbles do bubbles[i] = nil end
+    return bubbles
 end
 
 local StartTransition = function (bubble, other)
@@ -124,18 +119,20 @@ local MoveBubble = function (bubble, dt)
     local max_x = window_width - bubble.radius
     if next.x < bubble.radius or next.x > max_x then
         bubble.velocity.x = -bubble.velocity.x
-        bubble.velocity.y = -bubble.velocity.y
+    else
+        bubble.position.x = next.x
     end
     if next.y < bubble.radius or next.y > max_y then
         bubble.velocity.y = -bubble.velocity.y
+    else
+        bubble.position.y = next.y
     end
-    bubble.position = next
 end
 
 OnUpdate = function(dt)
     local time = Seconds()
 
-    -- Grow bubble under mouse
+    --- Grow bubble under mouse ---
     if cursor_bubble then
         local percent_complete = cursor_bubble.radius / ELASTIC.MAX_GROWTH
         local growth_rate = percent_complete * (ELASTIC.MAX_GROWTH_RATE - ELASTIC.MIN_GROWTH_RATE) + ELASTIC.MIN_GROWTH_RATE
@@ -146,10 +143,11 @@ OnUpdate = function(dt)
             cursor_bubble = false
         end
     end
-    -- Move bubbles
+
+    --- Move bubbles ---
     for _, bubble in ipairs(bubbles) do
         assert(bubble ~= cursor_bubble)
-        if movement_enabled and not bubble.trans_starttime then
+        if MOVEMENT_ENABLED and not bubble.trans_starttime then
             MoveBubble(bubble, dt)
         end
         if bubble.trans_starttime and time - bubble.trans_starttime > ELASTIC.TRANS_TIME then
@@ -157,13 +155,13 @@ OnUpdate = function(dt)
         end
         EnsureBubbleInBounds(bubble)
     end
-    -- Handle collisions
+
+    --- Handle collisions ---
     for _, a in ipairs(bubbles) do
         for _, b in ipairs(bubbles) do
             if IsCollision(a, b) then
                 SwapVelocities(a, b)
                 SeparateBubbles(a, b)
-
                 if not a.trans_starttime and not b.trans_starttime
                     and time - (a.last_transition or 0) > ELASTIC.TRANS_IMMUNE_PERIOD
                     and time - (b.last_transition or 0) > ELASTIC.TRANS_IMMUNE_PERIOD
@@ -179,7 +177,7 @@ OnUpdate = function(dt)
         end
     end
 
-    -- Render bubbles
+    --- Render bubbles ---
     for _, bubble in ipairs(bubbles) do
         if bubble.trans_starttime then
             bubble.trans_percent = (time - bubble.trans_starttime) / ELASTIC.TRANSFORM_TIME
@@ -188,7 +186,7 @@ OnUpdate = function(dt)
     end
     if cursor_bubble then RenderBubble(cursor_bubble) end
 
-    -- Update pop effect particles
+    --- Update pop effect particles ---
     for _, pop in ipairs(pop_effects) do
         pop.pt_radius = pop.pt_radius + ELASTIC.POP_PT_RADIUS_DELTA * dt
         pop.age = time - pop.start_time
@@ -197,7 +195,7 @@ OnUpdate = function(dt)
             RenderPop(pt.pos, pop.color, pop.pt_radius, pop.age)
         end
     end
-    -- Pop effects should be in chronological order
+    -- Pop effects are hopefully in chronological order
     for i = #pop_effects, 1, -1 do
         if time - pop_effects[i].start_time < ELASTIC.POP_LIFETIME then
             break
@@ -205,9 +203,7 @@ OnUpdate = function(dt)
         pop_effects[i] = nil
     end
 
-    -- Draw bubbles!
-    --shaders.bg:draw(GetBubblesForBgshader())
-    ---[[
+    --- Draw background ---
     local bubbles = GetBubblesForBgshader()
     if #bubbles > 0 then
         local colors, positions = {}, {}
@@ -257,7 +253,7 @@ end
 
 OnKey = function(key, down)
     if down and key == "Space" then
-        movement_enabled = not movement_enabled
+        MOVEMENT_ENABLED = not MOVEMENT_ENABLED
     elseif down and key == "Backspace" then
         for i = #bubbles, 1, -1 do
             PopBubble(i)

@@ -109,8 +109,6 @@ void glUniform2fv(int uni, int count, Vector2 *values);
 
 ParticleEntity = ffi.typeof("Particle")
 
-BGSHADER_MAX_ELEMS = 10
-
 local vec2_mt = {
     __add      = function (a, b)  return Vector2(a.x + b.x, a.y + b.y) end,
     __sub      = function (a, b)  return Vector2(a.x - b.x, a.y - b.y) end,
