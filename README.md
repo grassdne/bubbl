@@ -1,7 +1,8 @@
 # Bubbl
+An easy-to-use interface for creating simulations and animations with a peculiar set of graphics primitives.
 
 ### Dependencies
-SDL2, LuaJIT, GLEW
+SDL2, LuaJIT, GLEW (OpenGL 3.3)
 
 ### Fedora Example
 ```bash
