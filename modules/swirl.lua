@@ -5,7 +5,9 @@ local GENERATE_FRAMES = false
 local sin, cos, deg, atan2 = math.sin, math.cos, math.deg, math.atan2
 
 local SIZE = 13
-local PERIOD = 2 local RING_SPACING = 120 local COUNT_PER_RING = 100
+local PERIOD = 2
+local RING_SPACING = 120
+local COUNT_PER_RING = 100
 local DELTA_SIZE = 0.01
 local LIGHTNESS = 0.4
 local SATURATION = 1.0
