@@ -506,8 +506,21 @@ local canvas_mt = {
         assert(x < canvas.width, "canvas:set x argument out of range")
         canvas.data[y * canvas.width + x] = color:Pixel()
     end,
-    new = function(self, width, height)
-        return Canvas(width * height, width, height)
+    new = function(self, width_or_data, height)
+        if type(width_or_data) == "table" then
+            local data = width_or_data
+            local height = #data
+            assert(height > 0, "canvas must have height > 0")
+            local width = #data[1]
+            local canvas = CreateCanvas(width, height)
+            for y = 1, height do
+                for x = 1, width do
+                    canvas:set(x-1, y-1, data[y][x])
+                end
+            end
+            return canvas
+        end
+        return CreateCanvas(width_or_data, height)
     end,
     draw = function(canvas)
         C.bg_draw(canvas.data, canvas.width, canvas.height)
@@ -517,6 +530,8 @@ local canvas_mt = {
 canvas_mt.__index = canvas_mt
 Canvas = ffi.metatype("struct { int width; int height; Pixel data[?]; }", canvas_mt)
 CreateCanvas = function(width, height)
+    assert(type(width) == "number")
+    assert(type(height) == "number")
     return Canvas(width*height, width, height)
 end
 
