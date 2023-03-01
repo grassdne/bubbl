@@ -131,6 +131,12 @@ local vec2_mt = {
     unpack     = function(v) return tonumber(v.x), tonumber(v.y) end,
 }
 vec2_mt.__index = vec2_mt
+
+--- Simple 2d vector
+--- You shouldn't need to know that this is an ffi struct
+--- rather than a Lua table. It's mostly just to make returning and passing
+--- vectors from C simpler.
+---@class Vector2
 Vector2 = ffi.metatype("Vector2", vec2_mt)
 
 local color_mt = {
@@ -189,6 +195,12 @@ local color_mt = {
     end,
 }
 color_mt.__index = color_mt
+
+--- RGBA color stored as floats [0-1]
+--- Generally don't call constructor directly,
+--- but use Color.hex or Color.hsl.
+--- With most methods you can choose to neglect the alpha component.
+---@class Color
 Color = ffi.metatype("Color", color_mt)
 
 local mt = {
@@ -533,6 +545,9 @@ local canvas_mt = {
 }
 canvas_mt.__index = canvas_mt
 Canvas = ffi.metatype("struct { int width; int height; Pixel data[?]; }", canvas_mt)
+
+---@param width number
+---@param height number
 CreateCanvas = function(width, height)
     assert(type(width) == "number")
     assert(type(height) == "number")
@@ -554,7 +569,8 @@ ClearShaderCache = function()
     shaders = {}
 end
 
--- This should probably be put in some namespace, if at all global
+--- This should probably be put in some namespace, if at all global
+---@param file_name string
 ReadEntireFile = function (file_name)
     local file = assert(io.open(file_name))
     local result = file:read("*a")
@@ -564,9 +580,18 @@ end
 
 local bg_vertex_shader_source = ReadEntireFile("shaders/bg.vert")
 
+--- Run a simple fragment shader over the entire screen.
+--- No need to declare or initialize anything,
+--- the program is automatically created and cached.
+---
+--- NOTE: Passing in a string for the fragment shader is taken
+--- as the **file path** for the location of the shader source,
+--- not the source itself. Instead pass in a function that generates
+--- and returns the string.
+--- 
 ---@param id string used to cache program/uniforms and error messages
 ---@param frag_shader string|function either file path or function that returns string
----@param data table
+---@param data table<string, number|Vector2|Color|table> uniform variables
 RunBgShader = function(id, frag_shader, data)
     if not shaders[id] then
         local program = ffi.new("Shader")
