@@ -3,8 +3,8 @@ Title "Elastic Bubbles (Press to create or pop a bubble!)"
 bubbles = bubbles or {}
 pop_effects = pop_effects or {}
 cursor_bubble = cursor_bubble or false
-local MOVEMENT_ENABLED = true
-local BGSHADER_MAX_ELEMS = 15
+if movement_enabled == nil then movement_enabled = true end
+local BGSHADER_MAX_ELEMS = 10
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -145,7 +145,7 @@ OnUpdate = function(dt)
     --- Move bubbles ---
     for _, bubble in ipairs(bubbles) do
         assert(bubble ~= cursor_bubble)
-        if MOVEMENT_ENABLED and not bubble.trans_starttime then
+        if movement_enabled and not bubble.trans_starttime then
             MoveBubble(bubble, dt)
         end
         if bubble.trans_starttime and time - bubble.trans_starttime > ELASTIC.TRANS_TIME then
@@ -253,7 +253,7 @@ end
 
 OnKey = function(key, down)
     if down and key == "Space" then
-        MOVEMENT_ENABLED = not MOVEMENT_ENABLED
+        movement_enabled = not movement_enabled
     elseif down and key == "Backspace" then
         for i = #bubbles, 1, -1 do
             PopBubble(i)
