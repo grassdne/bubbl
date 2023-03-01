@@ -500,27 +500,31 @@ CreateWindow = function(name, width, height)
     return ffi.gc(C.create_window(name, width, height), C.destroy_window)
 end
 
+local CanvasFromTable = function(field)
+    local height = #field
+    assert(height > 0, "canvas must have height > 0")
+    local width = #field[1]
+    local canvas = CreateCanvas(width, height)
+    for y = 1, height do
+        for x = 1, width do
+            canvas:set(x-1, y-1, field[y][x])
+        end
+    end
+    return canvas
+end
+
 local canvas_mt = {
     set = function(canvas, x, y, color)
         assert(y < canvas.height, "canvas:set y argument out of range")
         assert(x < canvas.width, "canvas:set x argument out of range")
         canvas.data[y * canvas.width + x] = color:Pixel()
     end,
-    new = function(self, width_or_data, height)
-        if type(width_or_data) == "table" then
-            local data = width_or_data
-            local height = #data
-            assert(height > 0, "canvas must have height > 0")
-            local width = #data[1]
-            local canvas = CreateCanvas(width, height)
-            for y = 1, height do
-                for x = 1, width do
-                    canvas:set(x-1, y-1, data[y][x])
-                end
-            end
-            return canvas
+    new = function(self, ...)
+        if type(...) == "table" then
+            return CanvasFromTable(...)
+        else
+            return CreateCanvas(...)
         end
-        return CreateCanvas(width_or_data, height)
     end,
     draw = function(canvas)
         C.bg_draw(canvas.data, canvas.width, canvas.height)
