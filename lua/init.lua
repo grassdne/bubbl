@@ -84,7 +84,7 @@ double get_time(void);
 bool screenshot(const char *file_name);
 void flush_renderers(void);
 void clear_screen(void);
-void bg_draw(void *data, int width, int height);
+void bg_draw(int texture, void *data, int width, int height);
 
 bool should_quit(void);
 Window *create_window(const char *window_name, int width, int height);
@@ -105,6 +105,7 @@ void glUniform2f(int uni, float x, float y);
 void glUniform1f(int uni, float f);
 void glUniform4fv(int uni, int count, Color *values);
 void glUniform2fv(int uni, int count, Vector2 *values);
+int bg_create_texture(void *data, int width, int height);
 ]]
 
 ParticleEntity = ffi.typeof("Particle")
@@ -497,10 +498,6 @@ ClearScreen = function()
     C.clear_screen()
 end
 
-DrawCanvas = function(canvas)
-    C.bg_draw(canvas.data, canvas.width, canvas.height)
-end
-
 UpdateScreen = function (window)
     C.update_screen(window);
 end
@@ -510,6 +507,34 @@ CreateWindow = function(name, width, height)
     assert(type(width) == "number", "expected number `width`")
     assert(type(height) == "number", "expected height `height`")
     return ffi.gc(C.create_window(name, width, height), C.destroy_window)
+end
+
+local canvas_mt = {
+    set = function(canvas, x, y, color)
+        assert(y < canvas.height, "canvas:set y argument out of range")
+        assert(x < canvas.width, "canvas:set x argument out of range")
+        canvas.data[y * canvas.width + x] = color:Pixel()
+    end,
+    draw = function(canvas)
+        C.bg_draw(canvas.texture, canvas.data, canvas.width, canvas.height)
+    end
+
+}
+canvas_mt.__index = canvas_mt
+
+---@param width number
+---@param height number
+local GenCanvas = function(width, height)
+    assert(type(width) == "number")
+    assert(type(height) == "number")
+    local canvas = setmetatable({
+        width = width,
+        height = height,
+        data = ffi.new("Pixel[?]", width*height),
+        texture = 0
+    }, canvas_mt)
+    canvas.texture = C.bg_create_texture(canvas.data, canvas.width, canvas.height)
+    return canvas
 end
 
 local CanvasFromTable = function(field)
@@ -525,33 +550,12 @@ local CanvasFromTable = function(field)
     return canvas
 end
 
-local canvas_mt = {
-    set = function(canvas, x, y, color)
-        assert(y < canvas.height, "canvas:set y argument out of range")
-        assert(x < canvas.width, "canvas:set x argument out of range")
-        canvas.data[y * canvas.width + x] = color:Pixel()
-    end,
-    new = function(self, ...)
-        if type(...) == "table" then
-            return CanvasFromTable(...)
-        else
-            return CreateCanvas(...)
-        end
-    end,
-    draw = function(canvas)
-        C.bg_draw(canvas.data, canvas.width, canvas.height)
+CreateCanvas = function(...)
+    if type(...) == "table" then
+        return CanvasFromTable(...)
+    else
+        return GenCanvas(...)
     end
-
-}
-canvas_mt.__index = canvas_mt
-Canvas = ffi.metatype("struct { int width; int height; Pixel data[?]; }", canvas_mt)
-
----@param width number
----@param height number
-CreateCanvas = function(width, height)
-    assert(type(width) == "number")
-    assert(type(height) == "number")
-    return Canvas(width*height, width, height)
 end
 
 -- Pending event iterator for event loop

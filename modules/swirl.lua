@@ -35,7 +35,7 @@ end
 
 
 local bg_width, bg_height = 512, 512
-local background = Canvas:new(bg_width, bg_height)
+local background = CreateCanvas(bg_width, bg_height)
 OnStart = function()
     for y=0, bg_height-1 do
         for x=0, bg_width-1 do
