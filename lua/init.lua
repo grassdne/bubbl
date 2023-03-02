@@ -644,6 +644,14 @@ RunBgShader = function(id, frag_shader, data)
     C.run_shader_program(program)
 end
 
+local quit = false
+Quit = function()
+    quit = true
+end
+function ShouldQuit()
+    return quit or C.should_quit()
+end
+
 require "scheduler"
 
 window_width = 1600

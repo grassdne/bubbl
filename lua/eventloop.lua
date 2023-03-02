@@ -31,7 +31,7 @@ local OnKey = function(key, is_down)
     OptionalCallback("OnKey", key, is_down)
 end
 
-while not C.should_quit() do
+while not ShouldQuit() do
     local now = Seconds()
     local dt = now - last_time
     UpdateCurrentTick()
