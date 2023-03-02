@@ -5,7 +5,7 @@
 local DEFAULT_MODULE = "swirl"
 
 local i = 0
-local NextArg = function()
+NextArg = function()
     i = i + 1
     return arg[i]
 end
@@ -43,11 +43,6 @@ RAINBOW = {
     WRAPAROUND_BUFFER = 3,
     MOUSE_EFFECT_RADIUS = 150,
     SIZE_DELTA = 75,
-}
-
-SVGEDITOR = {
-    FILE = NextArg() or "img.svg",
-    COLOR = WEBCOLORS.PURPLE,
 }
 
 local file_name = "modules/"..module..".lua"

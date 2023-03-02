@@ -1,5 +1,10 @@
 Title "SVG Editor"
 
+SVGEDITOR = {
+    FILE = NextArg() or "img.svg",
+    COLOR = WEBCOLORS.PURPLE,
+}
+
 local scale = 1
 
 circles = {}
