@@ -18,7 +18,7 @@ end
 UpdateCurrentTick()
 local last_time = Seconds()
 
-OptionalCallback("OnStart")
+OptionalCallback("OnStart", false)
 
 local OnKey = function(key, is_down)
     if key == 'R' and is_down then
@@ -27,6 +27,7 @@ local OnKey = function(key, is_down)
         setmetatable(_G, nil)
         package.loaded['config'] = false
         require 'config'
+        OptionalCallback("OnStart", true)
     end
     OptionalCallback("OnKey", key, is_down)
 end
