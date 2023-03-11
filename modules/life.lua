@@ -1,10 +1,11 @@
 Title "Game of Life"
 
-local COLOR = Color.hsl(0, 1.0, 0)
-local ROWS = 75
-local COLS = 75
+local COLOR_DEAD = Color.hsl(0, 1.0, 0.95)
+local COLOR_ALIVE = Color.hsl(0, 1.0, 0.5)
+local ROWS = 40
+local COLS = 60
 local DENSITY = 0.3
-local INTERVAL = 0.05
+local INTERVAL = 0.1
 
 local CountNeighbors = function (field, row, col, state)
     local count = 0
@@ -59,9 +60,8 @@ OnUpdate = function(dt)
         for col=1, COLS do
             local x = col * spacing_x - size
             local y = row * spacing_y - size
-            if field[row][col] == "alive" then
-                RenderSimple(Vector2(x, y), COLOR, size)
-            end
+            local color = field[row][col] == "alive" and COLOR_ALIVE or COLOR_DEAD
+            RenderSimple(Vector2(x, y), color, size)
         end
     end
 end
