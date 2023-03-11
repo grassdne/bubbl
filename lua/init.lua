@@ -72,14 +72,11 @@ typedef struct {
 
 BgShader* get_bg_shader(void);
 
-enum{ MAX_ELEMS=10 };
-
 void free(void *p);
 void render_bubble(Bubble bubble);
 void flush_bubbles(void);
 void flush_pops(void);
 void render_pop(Particle particle);
-void bgshader_draw(BgShader *sh, Bubble *bubbles[MAX_ELEMS], size_t num_elems);
 double get_time(void);
 bool screenshot(const char *file_name);
 void flush_renderers(void);
