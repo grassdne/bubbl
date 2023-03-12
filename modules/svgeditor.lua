@@ -231,8 +231,6 @@ OnKey = function(key, is_down)
             table.remove(circles, i)
         end
         selected = {}
-    elseif (key == "Left Alt" or key == "Right Alt") and is_down then
-        multiselect_mode = not multiselect_mode
     elseif key == "Left Shift" or key == "Right Shift" then
         is_shift_down = is_down
     elseif key == "Left Ctrl" or key == "Right Ctrl" then
