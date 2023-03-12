@@ -2,8 +2,9 @@
 main
 /bubbl
 .cache
-main.o
 /.ccls-cache/
 /main.exe
 /Session.vim
 /compile_commands.json
+*.so
+*.o

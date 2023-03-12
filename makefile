@@ -5,6 +5,8 @@ CLIBS = `pkg-config --libs $(PKGS)` -lm -rdynamic
 CMAIN=src/main.c
 CSRC=src/bg.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c
 EXE=bubbl
+CMODULES_OBJ = modules/foo.so
+CMODULES_SRC = modules/foo.c
 
 INCLUDE_DIRS_WIN = -IC:\mingw_dev\include
 LIBRARY_DIRS_WIN = -LC:\mingw_dev\lib
@@ -14,7 +16,7 @@ CLIBS_WIN = -luser32 -lkernel32 -lopengl32 -lglu32 -lgdi32 -lglew32 -lmingw32 -l
 
 CLIBS_MACOS = -framework OpenGL -framework IOKit
 
-all: $(EXE)
+all: $(EXE) $(CMODULES_OBJ)
 
 debug: CFLAGS += -g
 debug: $(EXE)
@@ -29,13 +31,16 @@ run: $(EXE)
 	./$(EXE)
 
 clean:
-	rm -f $(EXE) $(EXE_WIN)
+	rm -f $(EXE) $(EXE_WIN) $(CMODULES_OBJ)
 
 compile_commands:
 	bear -- $(MAKE) clean all
 
-$(EXE): $(CSRC) src/*.h makefile
+$(CMODULES_OBJ): $(CMODULES_SRC) src/api.h
+	gcc -shared -fPIC $< -o $@
 
+
+$(EXE): $(CSRC) src/*.h makefile
 ifeq ($(OS),Windows_NT)
 	$(CC_WIN) $(CSRC) $(INCLUDE_DIRS_WIN) $(LIBRARY_DIRS_WIN) $(CFLAGS_WIN) $(CLIBS_WIN) -o $(EXE_WIN)
 else ifeq ($(shell uname),Darwin)
