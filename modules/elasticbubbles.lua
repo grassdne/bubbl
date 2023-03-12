@@ -262,8 +262,11 @@ OnKey = function(key, down)
 end
 
 OnStart = function()
-    for i=1, ELASTIC.STARTING_BUBBLE_COUNT do
-        table.insert(bubbles, Bubble:New(RandomColor(), RandomPosition(), RandomVelocity(), RandomRadius()))
+    if #bubbles == 0 then
+        -- Create starting bubbles
+        for i=1, ELASTIC.STARTING_BUBBLE_COUNT do
+            table.insert(bubbles, Bubble:New(RandomColor(), RandomPosition(), RandomVelocity(), RandomRadius()))
+        end
     end
 end
 
