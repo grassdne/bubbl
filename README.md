@@ -1,5 +1,5 @@
 # Bubbl
-An easy-to-use interface for creating simulations and animations with a peculiar set of graphics primitives.
+An easy-to-use interface for creating simulations, animations, and games with a peculiar set of graphics primitives.
 
 ### Dependencies
 SDL2, LuaJIT, GLEW (OpenGL 3.3)
