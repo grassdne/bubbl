@@ -228,27 +228,27 @@ local BubbleAtPoint = function (pos)
     end
 end
 
-OnMouseDown = function(x, y)
+local Press = function ()
     if cursor_bubble then return end
-    local i = BubbleAtPoint(Vector2(x, y))
+    local i = BubbleAtPoint(MousePosition())
     if i then
         PopBubble(i)
     else
-        cursor_bubble = Bubble:New(RandomColor(), Vector2(x, y), RandomVelocity(), RandomRadius())
+        cursor_bubble = Bubble:New(RandomColor(), MousePosition(), RandomVelocity(), ELASTIC.BUBBLE_RAD_BASE)
     end
 end
 
-OnMouseUp = function(x, y)
-    if cursor_bubble then
-        table.insert(bubbles, cursor_bubble)
-        cursor_bubble = false
-    end
+local Release = function ()
+    if not cursor_bubble then return end
+    table.insert(bubbles, cursor_bubble)
+    cursor_bubble = false
 end
+
+OnMouseDown = function(x, y) Press() end
+OnMouseUp = function(x, y) Release() end
 
 OnMouseMove = function(x, y)
-    if cursor_bubble then
-        cursor_bubble.position = Vector2(x, y)
-    end
+    if cursor_bubble then cursor_bubble.position = Vector2(x, y) end
 end
 
 OnKey = function(key, down)
@@ -258,6 +258,8 @@ OnKey = function(key, down)
         for i = #bubbles, 1, -1 do
             PopBubble(i)
         end
+    elseif key == "Return" then
+        if down then Press() else Release() end
     end
 end
 

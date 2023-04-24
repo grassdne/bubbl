@@ -286,7 +286,9 @@ int main(int argc, char **argv) {
     }
 
     GLenum err = glewInit();
-	if (err) return fprintf(stderr, "error initializing GLEW: %s\n", glewGetErrorString(err)), 1;
+	if (err) {
+        fprintf(stderr, "GLEW error: %s\n", glewGetErrorString(err));
+    }
 
     if (SDL_GL_SetSwapInterval(-1) < 0) {
         VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
