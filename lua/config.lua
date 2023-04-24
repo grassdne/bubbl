@@ -2,7 +2,7 @@
 -- but it loads the module and maybe provides its constants
 -- and interprets command-line arguments
 
-local DEFAULT_MODULE = "swirl"
+local DEFAULT_MODULE = "elasticbubbles"
 
 local i = 0
 NextArg = function()

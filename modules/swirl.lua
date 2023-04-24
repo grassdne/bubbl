@@ -11,6 +11,7 @@ local COUNT_PER_RING = 100
 local DELTA_SIZE = 0.01
 local LIGHTNESS = 0.4
 local SATURATION = 1.0
+local BG_ALPHA = 0.4
 
 local delta_theta = 2*PI / COUNT_PER_RING
 local delta_radius = RING_SPACING / COUNT_PER_RING
@@ -40,7 +41,7 @@ OnStart = function()
     for y=0, bg_height-1 do
         for x=0, bg_width-1 do
             local theta = atan2(y - bg_height/2, x - bg_width/2)
-            background:set(x, y, Color.hsl(deg(theta), 1, 0.5, 0.5))
+            background:set(x, y, Color.hsl(deg(theta), 1, 0.5, BG_ALPHA))
         end
     end
 end
