@@ -94,8 +94,12 @@ OnUpdate = function(dt)
      end
 
     -- Testing text
-    TextRenderer.put_string(Vector2(0,60), "HELLO? HELLO? HELLO? HELLO? ", 20, SVGEDITOR.COLOR)
-    TextRenderer.put_string(Vector2(0,0), "ABCDEFGHIJKLMNOPQRSTUVWXYZ?", 40, SVGEDITOR.COLOR)
+    local y = 0
+    for _,str in ipairs{"OVER THE LAZY DOG", "THE QUICK BROWN FOX JUMPED"} do
+        local size = window_width / #str
+        TextRenderer.put_string(Vector2(0,y), str, size, SVGEDITOR.COLOR)
+        y = y + size * 1.333333
+    end
 end
 
 OnMouseMove = function(x, y)
