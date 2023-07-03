@@ -1,7 +1,6 @@
 #include "entity_renderer.h"
 #include <stdio.h>
 #include <assert.h>
-#include <GLFW/glfw3.h>
 #include <stdlib.h>
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
