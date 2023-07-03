@@ -1,7 +1,7 @@
 Title "Game of Life"
 
-local COLOR_DEAD = Color.hsl(0, 1.0, 0.95)
-local COLOR_ALIVE = Color.hsl(0, 1.0, 0.5)
+local COLOR_DEAD = Color.hsl(0, 1.0, 0.9)
+local COLOR_ALIVE = Color.hsl(120, 0.5, 0.5)
 local ROWS = 40
 local COLS = 60
 local DENSITY = 0.3
