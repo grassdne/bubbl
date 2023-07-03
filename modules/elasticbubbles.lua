@@ -101,15 +101,6 @@ local CollectAllBubbles = function ()
     return all_bubbles
 end
 
-local StartTransition = function (bubble, other)
-    bubble:StartTransformation(other.color, Seconds(),
-        (other.position - bubble.position):normalize())
-end
-local StopTransition = function (bubble)
-    bubble.trans_starttime = nil
-    bubble.color = bubble.color_b
-    bubble.last_transition = Seconds();
-end
 
 local MoveBubble = function (bubble, dt)
     local next = bubble.position + bubble.velocity:scale(dt)
@@ -148,9 +139,6 @@ OnUpdate = function(dt)
         if movement_enabled and not bubble.trans_starttime then
             MoveBubble(bubble, dt)
         end
-        if bubble.trans_starttime and time - bubble.trans_starttime > ELASTIC.TRANS_TIME then
-            StopTransition(bubble)
-        end
         EnsureBubbleInBounds(bubble)
     end
 
@@ -160,13 +148,6 @@ OnUpdate = function(dt)
             if IsCollision(a, b) then
                 SwapVelocities(a, b)
                 SeparateBubbles(a, b)
-                if not a.trans_starttime and not b.trans_starttime
-                    and time - (a.last_transition or 0) > ELASTIC.TRANS_IMMUNE_PERIOD
-                    and time - (b.last_transition or 0) > ELASTIC.TRANS_IMMUNE_PERIOD
-                then
-                    StartTransition(a, b);
-                    StartTransition(b, a);
-                end
             end
         end
         if cursor_bubble and IsCollision(a, cursor_bubble) then
@@ -176,12 +157,7 @@ OnUpdate = function(dt)
     end
 
     --- Render bubbles ---
-    for _, bubble in ipairs(bubbles) do
-        if bubble.trans_starttime then
-            bubble.trans_percent = (time - bubble.trans_starttime) / ELASTIC.TRANSFORM_TIME
-        end
-        RenderBubble(bubble)
-    end
+    for _, bubble in ipairs(bubbles) do RenderBubble(bubble) end
     if cursor_bubble then RenderBubble(cursor_bubble) end
 
     --- Update pop effect particles ---
@@ -208,7 +184,7 @@ OnUpdate = function(dt)
         local colors, positions = {}, {}
         for i=1, math.min(BGSHADER_MAX_ELEMS, #bubbles) do
             local bub = bubbles[i]
-            colors[i] = Color.mix(bub.color, bub.color_b, bub.trans_percent)
+            colors[i] = bub.color
             positions[i] = bub.position
         end
         RunBgShader("elastic", BgShaderLoader, {
