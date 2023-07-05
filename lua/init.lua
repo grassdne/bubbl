@@ -554,6 +554,10 @@ end
 
 require "scheduler"
 
+-- Legacy, use resolution
 window_width = 1600
 window_height = 900
+
+resolution = Vector2(window_width, window_height)
 window = CreateWindow("Bubble", window_width, window_height)
+

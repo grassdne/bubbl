@@ -68,9 +68,12 @@ while not ShouldQuit() do
             OptionalCallback("OnMouseWheel", event.mousewheel.scroll:unpack())
 
         elseif event.type == "EVENT_RESIZE" then
-            window_width = event.resize.width
-            window_height = event.resize.height
-            OptionalCallback("OnWindowResize", window_width, window_height)
+            resolution.x = event.resize.width
+            resolution.y = event.resize.height
+            OptionalCallback("OnWindowResize", resolution.x, resolution.y)
+            
+            -- Legacy
+            window_width, window_height = resolution:unpack()
         end
     end
 
