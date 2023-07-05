@@ -95,10 +95,9 @@ OnUpdate = function(dt)
 
     -- Testing text
     local y = 0
-    for _,str in ipairs{"OVER THE LAZY DOG", "THE QUICK BROWN FOX JUMPED"} do
-        local size = window_width / #str
-        TextRenderer.put_string(Vector2(0,y), str, size, SVGEDITOR.COLOR)
-        y = y + size * 1.333333
+    for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
+        local height = TextRenderer.put_string_with_width(Vector2(0,y), str, window_width, SVGEDITOR.COLOR)
+        y = y + height
     end
 end
 
