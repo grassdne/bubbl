@@ -25,7 +25,7 @@ local OnKey = function(key, is_down)
         ClearShaderCache()
         -- Unlock global table
         setmetatable(_G, nil)
-        package.loaded['config'] = false
+        for k,v in pairs(package.loaded) do package.loaded[k] = nil end
         require 'config'
         OptionalCallback("OnStart", true)
     end

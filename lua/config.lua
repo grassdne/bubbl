@@ -61,7 +61,6 @@ if FileExists(module_name_lua) then
         return;
     end
     mod()
-    package.loaded[module_name_lua] = nil
 elseif FileExists(module_name_c) then
     local ffi = require "ffi"
     -- Little hack to unload the cached c library

@@ -96,4 +96,6 @@ TextRenderer.put_string_with_width = function(pos, str, width, color)
     return scale * SVG_HEIGHT
 end
 
+TextRenderer.load_glyphs()
+
 return TextRenderer

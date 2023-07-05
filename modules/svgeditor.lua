@@ -284,8 +284,6 @@ try_load_file = function(path)
     return true
 end
 
-TextRenderer.load_glyphs()
 try_load_file(SVGEDITOR.FILE)
-package.loaded["modules/svgeditor"] = nil
 
 LockTable(_G)
