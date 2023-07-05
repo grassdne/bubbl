@@ -86,18 +86,41 @@ TextRenderer.put_char_with_width = function(pos, char, width, color)
     put_char_with_scale(pos, char, width / SVG_WIDTH, color)
 end
 
+local StringScale = function (str, width)
+    return width / (#str * SVG_WIDTH)
+end
+
 ---@param pos Vector2 screen position of bottom left of rendered text
 ---@param str string to render on screen
 ---@param width number
 ---@param color Color|nil color of text, defaults to black
 TextRenderer.put_string_with_width = function(pos, str, width, color)
-    local char_width = width / #str
-    local scale = char_width / SVG_WIDTH
+    local scale = StringScale(str, width)
     for i=1, #str do
-        local x = pos.x + (i-1) * char_width
+        local x = pos.x + (i-1) * scale * SVG_WIDTH
         put_char_with_scale(Vector2(x, pos.y), str:sub(i,i), scale, color)
     end
     return scale * SVG_HEIGHT
+end
+
+---@param str string to render on screen
+---@param width number expected width of whole string
+---@return table particles array with each particle's `offset` and `radius`
+TextRenderer.build_particles_with_width = function (str, width)
+    local particles = {}
+    local scale = StringScale(str, width)
+    for i=1, #str do
+        local c = str:sub(i,i)
+        local glyph = Glyph(c)
+        local x = (i-1) * scale * SVG_WIDTH
+        for _,circle in ipairs(glyph) do
+            table.insert(particles, {
+                offset = Vector2(x, 0) + circle.pos * scale,
+                radius = circle.radius * scale
+            })
+        end
+    end
+    return particles
 end
 
 TextRenderer.load_glyphs()
