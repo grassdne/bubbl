@@ -64,11 +64,13 @@ TextRenderer.load_glyphs = function()
     end
 end
 
+local Glyph = function (char) return glyphs[char] or glyphs[' '] end
+
 local put_char_with_scale = function (pos, char, scale, color)
-    local circles = glyphs[char] or glyphs[' ']
+    local circles = Glyph(char)
     for _,circle in ipairs(circles) do
         RenderPop(
-            circle.pos:scale(scale) + pos,
+            circle.pos * scale + pos,
             color or WEBCOLORS.BLACK,
             circle.radius * scale,
             0

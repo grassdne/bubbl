@@ -28,7 +28,7 @@ local Render = function(theta)
         theta = theta + delta_theta
         size = size + DELTA_SIZE
 
-        local pos = center + Vector2(cos(theta), sin(theta)):scale(radius)
+        local pos = center + Vector2(cos(theta), sin(theta)) * radius
         local color = Color.hsl(math.deg(theta), SATURATION, LIGHTNESS)
         RenderSimple(pos, color, size)
     end

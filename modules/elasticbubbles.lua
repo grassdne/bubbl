@@ -103,7 +103,7 @@ end
 
 
 local MoveBubble = function (bubble, dt)
-    local next = bubble.position + bubble.velocity:scale(dt)
+    local next = bubble.position + bubble.velocity * dt
     local max_y = window_height - bubble.radius
     local max_x = window_width - bubble.radius
     if next.x < bubble.radius or next.x > max_x then

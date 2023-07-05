@@ -30,7 +30,8 @@ local vec2_mt = {
     end,
 
     dot        = function (a, b)    return a.x * b.x + a.y * b.y end,
-    scale      = function (v, mult) return Vector2(v.x * mult, v.y * mult) end,
+
+    scale      = function (a, b) return Vector2(a.x * b.x, a.y * b.y) end,
     lengthsq   = function (v)       return v.x*v.x + v.y*v.y end,
     length     = function (v)       return math.sqrt(v:lengthsq()) end,
     distsq     = function (a, b)    return (a - b):lengthsq() end,

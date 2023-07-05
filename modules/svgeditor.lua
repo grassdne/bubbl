@@ -32,7 +32,7 @@ end
 
 local NormalPosition = function (pos)
     local base = get_draw_box_base_position()
-    return (pos - base):scale(1/scale)
+    return (pos - base) * (1/scale)
 end
 
 local AbsolutePosition = function (pos)
@@ -131,7 +131,7 @@ OnMouseMove = function(x, y)
             local mag = pos:length()
             local theta = math.atan2(pos.y, pos.x)
             local new_theta = theta + angle_delta
-            circle.pos = Vector2(math.cos(new_theta), math.sin(new_theta)):scale(mag) + rotate.axis_position
+            circle.pos = Vector2(math.cos(new_theta), math.sin(new_theta)) * mag + rotate.axis_position
         end
     end
 end
