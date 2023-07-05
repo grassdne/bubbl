@@ -43,6 +43,7 @@ end
 
 TextRenderer.load_glyphs = function()
     for char, file in pairs(glyph_files) do
+        -- TODO: support having multiple fonts
         local f = io.open("glyphs/Liberation Mono/"..file)
         if f then
             local contents = f:read("*a")
