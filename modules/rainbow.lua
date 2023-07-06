@@ -1,7 +1,16 @@
 Title "🌈🌈🌈"
 
-local START_POS_RIGHT = RAINBOW.WRAPAROUND_BUFFER * RAINBOW.SPACING
-local END_POS_LEFT = -RAINBOW.WRAPAROUND_BUFFER * RAINBOW.SPACING
+local PERIOD = 4.5
+local MIN_RADIUS = 10
+local MAX_RADIUS = 20
+local MAX_ATTAINED_RADIUS = 40
+local SPACING = 22
+local WRAPAROUND_BUFFER = 3
+local MOUSE_EFFECT_RADIUS = 150
+local SIZE_DELTA = 75
+
+local START_POS_RIGHT = WRAPAROUND_BUFFER * SPACING
+local END_POS_LEFT = -WRAPAROUND_BUFFER * SPACING
 
 particles = {}
 
@@ -10,7 +19,7 @@ particles = {}
 local gen_particle = function (color, x_position)
     return {
         color = color,
-        radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS),
+        radius = random.minmax(MIN_RADIUS, MAX_RADIUS),
         position = Vector2(x_position, resolution.y * math.random())
     }
 end
@@ -19,8 +28,8 @@ end
 local gen_particle_field = function ()
     -- The x positions are in neat columns
     -- Adding noise just made it look like a mess
-    for x=END_POS_LEFT+RAINBOW.SPACING, resolution.x + START_POS_RIGHT, RAINBOW.SPACING do
-        for i=0, resolution.y / RAINBOW.SPACING do
+    for x=END_POS_LEFT+SPACING, resolution.x + START_POS_RIGHT, SPACING do
+        for i=0, resolution.y / SPACING do
             table.insert(particles, gen_particle(Color.hsl(x/resolution.x*360, 1, 0.5), x))
         end
     end
@@ -32,7 +41,7 @@ Draw = function(dt)
     -- Update and draw particles
     for i,part in ipairs(particles) do
         local length = resolution.x + START_POS_RIGHT - END_POS_LEFT
-        part.position:delta_x(-length / RAINBOW.PERIOD * dt)
+        part.position:delta_x(-length / PERIOD * dt)
         if part.position.x < END_POS_LEFT then
             -- Jump back to the other end
             particles[i] = gen_particle(part.color, part.position.x + length)
@@ -50,9 +59,9 @@ Draw = function(dt)
     then
         for _,part in ipairs(particles) do
             local dist = mouse:dist(part.position)
-            if dist < RAINBOW.MOUSE_EFFECT_RADIUS then
-                local proximity = 1 - dist / RAINBOW.MOUSE_EFFECT_RADIUS
-                part.radius = math.min(RAINBOW.MAX_ATTAINED_RADIUS, part.radius + RAINBOW.SIZE_DELTA * dt)
+            if dist < MOUSE_EFFECT_RADIUS then
+                local proximity = 1 - dist / MOUSE_EFFECT_RADIUS
+                part.radius = math.min(MAX_ATTAINED_RADIUS, part.radius + SIZE_DELTA * dt)
             end
         end
     end

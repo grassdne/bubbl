@@ -4,17 +4,37 @@ bubbles = bubbles or {}
 pop_effects = pop_effects or {}
 cursor_bubble = cursor_bubble or false
 if movement_enabled == nil then movement_enabled = true end
+
 local BGSHADER_MAX_ELEMS = 10
+local STARTING_BUBBLE_COUNT = 10
+local BUBBLE_SPEED_BASE = 200
+local BUBBLE_SPEED_VARY = 225
+local BUBBLE_RAD_BASE = 30
+local BUBBLE_RAD_VARY = 25
+local MAX_GROWTH = 200
+local MIN_GROWTH_RATE = 50
+local MAX_GROWTH_RATE = 225
+local TRANS_IMMUNE_PERIOD = 1
+local TRANS_TIME = 1
+local POP_EXPAND_MULT = 2.0
+local POP_LAYER_WIDTH = 10.0
+local POP_PARTICLE_LAYOUT = 5
+local POP_LIFETIME = 1.0
+local POP_PT_RADIUS = 7.0
+local POP_PT_RADIUS_DELTA = 4.0
+local BUBBLE_HUE = 0.9
+local BUBBLE_LIGHTNESS = 0.5
+local TRANSFORM_TIME = 1.0
 
 local RandomVelocity = function()
     local Dimension = function()
-        return random.sign() * random.vary(ELASTIC.BUBBLE_SPEED_BASE, ELASTIC.BUBBLE_SPEED_VARY)
+        return random.sign() * random.vary(BUBBLE_SPEED_BASE, BUBBLE_SPEED_VARY)
     end
     return Vector2(Dimension(), Dimension())
 end
 
 local RandomRadius = function()
-    return random.vary(ELASTIC.BUBBLE_RAD_BASE, ELASTIC.BUBBLE_RAD_VARY)
+    return random.vary(BUBBLE_RAD_BASE, BUBBLE_RAD_VARY)
 end
 
 local RandomPosition = function()
@@ -22,7 +42,7 @@ local RandomPosition = function()
 end
 
 local RandomColor = function()
-    return Color.hsl(math.random()*360, ELASTIC.BUBBLE_HUE, ELASTIC.BUBBLE_LIGHTNESS)
+    return Color.hsl(math.random()*360, BUBBLE_HUE, BUBBLE_LIGHTNESS)
 end
 
 local BgShaderLoader = function()
@@ -41,7 +61,7 @@ local Particle = {
 
 local CreatePopEffect = function (center, color, size)
     local pop = {
-        pt_radius = ELASTIC.POP_PT_RADIUS,
+        pt_radius = POP_PT_RADIUS,
         color = color,
 
         -- Center bubble
@@ -50,13 +70,13 @@ local CreatePopEffect = function (center, color, size)
 
     local distance = 0
     local num_particles_in_layer = 0
-    while distance < size - ELASTIC.POP_PT_RADIUS do
-        distance = distance + ELASTIC.POP_LAYER_WIDTH
-        num_particles_in_layer = num_particles_in_layer + ELASTIC.POP_PARTICLE_LAYOUT
+    while distance < size - POP_PT_RADIUS do
+        distance = distance + POP_LAYER_WIDTH
+        num_particles_in_layer = num_particles_in_layer + POP_PARTICLE_LAYOUT
         for i = 1, num_particles_in_layer do
             local theta = 2*PI / num_particles_in_layer * i
             local dir = Vector2(math.cos(theta), math.sin(theta))
-            local velocity = dir * (ELASTIC.POP_EXPAND_MULT * distance / ELASTIC.POP_LIFETIME)
+            local velocity = dir * (POP_EXPAND_MULT * distance / POP_LIFETIME)
             table.insert(pop, Particle:New(velocity, dir * distance + center))
         end
     end
@@ -123,11 +143,11 @@ Draw = function(dt)
 
     --- Grow bubble under mouse ---
     if cursor_bubble then
-        local percent_complete = cursor_bubble.radius / ELASTIC.MAX_GROWTH
-        local growth_rate = percent_complete * (ELASTIC.MAX_GROWTH_RATE - ELASTIC.MIN_GROWTH_RATE) + ELASTIC.MIN_GROWTH_RATE
+        local percent_complete = cursor_bubble.radius / MAX_GROWTH
+        local growth_rate = percent_complete * (MAX_GROWTH_RATE - MIN_GROWTH_RATE) + MIN_GROWTH_RATE
         cursor_bubble.radius = cursor_bubble.radius + growth_rate * dt
         EnsureBubbleInBounds(cursor_bubble)
-        if cursor_bubble.radius > ELASTIC.MAX_GROWTH then
+        if cursor_bubble.radius > MAX_GROWTH then
             PopEffectFromBubble(cursor_bubble)
             cursor_bubble = false
         end
@@ -162,7 +182,7 @@ Draw = function(dt)
 
     --- Update pop effect particles ---
     for _, pop in ipairs(pop_effects) do
-        pop.pt_radius = pop.pt_radius + ELASTIC.POP_PT_RADIUS_DELTA * dt
+        pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
         pop.age = time - pop.start_time
         for _, pt in ipairs(pop) do
             pt.pos = pt.pos + pt.velocity * dt
@@ -171,7 +191,7 @@ Draw = function(dt)
     end
     -- Pop effects are hopefully in chronological order
     for i = #pop_effects, 1, -1 do
-        if time - pop_effects[i].start_time < ELASTIC.POP_LIFETIME then
+        if time - pop_effects[i].start_time < POP_LIFETIME then
             break
         end
         pop_effects[i] = nil
@@ -210,7 +230,7 @@ local Press = function ()
     if i then
         PopBubble(i)
     else
-        cursor_bubble = Bubble:New(RandomColor(), MousePosition(), RandomVelocity(), ELASTIC.BUBBLE_RAD_BASE)
+        cursor_bubble = Bubble:New(RandomColor(), MousePosition(), RandomVelocity(), BUBBLE_RAD_BASE)
     end
 end
 
@@ -242,7 +262,7 @@ end
 OnStart = function()
     if #bubbles == 0 then
         -- Create starting bubbles
-        for i=1, ELASTIC.STARTING_BUBBLE_COUNT do
+        for i=1, STARTING_BUBBLE_COUNT do
             table.insert(bubbles, Bubble:New(RandomColor(), RandomPosition(), RandomVelocity(), RandomRadius()))
         end
     end
