@@ -79,7 +79,7 @@ void flush_bubbles(void);
 void flush_pops(void);
 void render_pop(Particle particle);
 double get_time(void);
-bool screenshot(const char *file_name);
+bool screenshot(Window *window, const char *file_name);
 void flush_renderers(void);
 void clear_screen(void);
 void bg_draw(int texture, void *data, int width, int height);
@@ -143,5 +143,5 @@ GifskiError gifski_add_frame_rgba(gifski *handle,
 GifskiError gifski_finish(gifski *g);
 GifskiError gifski_set_file_output(gifski *handle, const char *destination_path);
 
-uint8_t get_screen_pixels(uint8_t *pixels);
+uint8_t get_screen_pixels(Window *window, uint8_t *pixels);
 #endif

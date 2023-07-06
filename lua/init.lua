@@ -399,7 +399,7 @@ end
 
 Screenshot = function(name)
     assert(type(name) == "string", "expected string file name for Screenshot")
-    return C.screenshot(name);
+    return C.screenshot(window, name);
 end
 
 local gifskis = {}
@@ -421,7 +421,7 @@ GifAddFrame = function (file_name, frame_number, timestamp)
     assert(type(frame_number) == "number", "expected gif frame number")
     if not gifskis[file_name] then GifNew(file_name) end
     local pixels = ffi.new("uint8_t[?]", 4 * resolution.x * resolution.y)
-    C.get_screen_pixels(pixels)
+    C.get_screen_pixels(window, pixels)
     if pixels == nil then
         print("ERROR: Unable to read screen content")
         return

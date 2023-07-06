@@ -1,4 +1,5 @@
 #include "entity_renderer.h"
+#include "SDL_video.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -38,9 +39,13 @@ void flush_entities(EntityRenderer *r)
     glBindVertexArray(r->shader.vao);
     glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
 
+    SDL_Window *window = SDL_GL_GetCurrentWindow();
+    int w, h;
+    SDL_GL_GetDrawableSize(window, &w, &h);
+
     /* Update */
     glBufferSubData(GL_ARRAY_BUFFER, 0, ENTITIY_BUFFER_SIZE, r->buffer);
-    glUniform2f(r->uniforms.resolution, window_width, window_height);
+    glUniform2f(r->uniforms.resolution, w, h);
     glUniform1f(r->uniforms.time, get_time());
 
     /* Draw */

@@ -34,8 +34,6 @@ double get_time(void) { return SDL_GetTicks64() * 0.001; }
 
 //static int windowed_xpos, windowed_ypos;
 
-int window_width = SCREEN_WIDTH;
-int window_height = SCREEN_HEIGHT;
 float scale;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
 
@@ -88,9 +86,6 @@ void reload_config(lua_State *L, bool err) {
     }
 }
 
-int get_window_width(void) { return window_width; }
-int get_window_height(void) { return window_height; }
-
 void clear_screen(void) {
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -136,6 +131,7 @@ typedef struct {
 // Handles and/or return event
 Event poll_event(SDL_Window *window)
 {
+    int w, h; SDL_GetWindowSize(window, &w, &h);
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
@@ -174,7 +170,7 @@ Event poll_event(SDL_Window *window)
                 return (Event) {
                     .type = EVENT_MOUSEBUTTON,
                         .mousebutton.is_down = e.type == SDL_MOUSEBUTTONDOWN,
-                        .mousebutton.position = (Vector2){ e.button.x, window_height - e.button.y },
+                        .mousebutton.position = (Vector2){ e.button.x, h - e.button.y },
                 };
             }
             break;
@@ -182,7 +178,7 @@ Event poll_event(SDL_Window *window)
         case SDL_MOUSEMOTION:
             return (Event) {
                 .type = EVENT_MOUSEMOTION,
-                .mousemotion.position = (Vector2){ e.button.x, window_height - e.button.y },
+                .mousemotion.position = (Vector2){ e.button.x, h - e.button.y },
             };
             break;
 
@@ -195,12 +191,12 @@ Event poll_event(SDL_Window *window)
 
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-                SDL_GL_GetDrawableSize(window, &window_width, &window_height);
-                glViewport(0, 0, window_width, window_height);
+                SDL_GL_GetDrawableSize(window, &w, &h);
+                glViewport(0, 0, w, h);
                 return (Event) {
                     .type = EVENT_RESIZE,
-                    .resize.width = window_width,
-                    .resize.height = window_height,
+                    .resize.width = w,
+                    .resize.height = h,
                 };
             }
             break;
@@ -230,34 +226,36 @@ static void vertical_flip_pixels(uint8_t *pixels, int w, int h) {
     }
 }
 
-void get_screen_pixels(uint8_t *pixels) {
+void get_screen_pixels(SDL_Window *window, uint8_t *pixels) {
+    int w, h; SDL_GetWindowSize(window, &w, &h);
     flush_renderers();
-    glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    vertical_flip_pixels(pixels, window_width, window_height);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    vertical_flip_pixels(pixels, w, h);
 }
 
-bool screenshot(const char *file_name)
+bool screenshot(SDL_Window *window, const char *file_name)
 {
+    int w, h; SDL_GetWindowSize(window, &w, &h);
     flush_renderers();
     const int ncomps = 4;
-    printf("resolution :: (%d, %d)\n", window_width, window_height);
-    const size_t stride = window_width * ncomps;
-    uint8_t *pixeldata = malloc(window_height * stride);
-    glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
+    printf("resolution :: (%d, %d)\n", w, h);
+    const size_t stride = w * ncomps;
+    uint8_t *pixeldata = malloc(h * stride);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
     //stbi_flip_vertically_on_write(true);
     //int ok = stbi_write_png(file_name, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
 
     // glReadPixels can only write from the bottom left corner
     // and libpng can only read from the top left
     
-    vertical_flip_pixels(pixeldata, window_width, window_height);
+    vertical_flip_pixels(pixeldata, w, h);
 
 
     png_image image = {
         .version = PNG_IMAGE_VERSION,
         .opaque = NULL,
-        .width = window_width,
-        .height = window_height,
+        .width = w,
+        .height = h,
         .format = PNG_FORMAT_RGBA,
         .flags = 0,
         .colormap_entries = 0,

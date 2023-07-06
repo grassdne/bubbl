@@ -35,7 +35,7 @@ local UpdatePosition = function (point, dt)
 end
 
 if GENERATE_FRAMES then
-    local FPS = 45
+    local FPS = 50
     local LENGTH = MAX_PERIOD * 1.25
     local frames_count = FPS * LENGTH
     local i = 0
