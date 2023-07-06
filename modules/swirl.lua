@@ -18,7 +18,7 @@ local delta_radius = RING_SPACING / COUNT_PER_RING
 
 local Render = function(theta)
     local radius = 0
-    local center = Vector2(window_width / 2, window_height / 2)
+    local center = resolution / 2
     -- greatest distance from center on the screen
     local max_dist = center:length()
     local count = max_dist / delta_radius

@@ -53,8 +53,8 @@ OnStart = function()
 end
 
 OnUpdate = function(dt)
-    local spacing_x = window_width / COLS
-    local spacing_y = window_height / ROWS
+    local spacing_x = resolution.x / COLS
+    local spacing_y = resolution.y / ROWS
     local size = math.min(spacing_x, spacing_y) / 2
     for row=1, ROWS do
         for col=1, COLS do

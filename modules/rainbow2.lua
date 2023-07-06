@@ -22,7 +22,7 @@ local CircularIndex = function(tbl, i)
 end
 
 OnUpdate = function(dt)
-    local start_x = window_width/2 - (N / 2) * SIZE*2 - SIZE
+    local start_x = resolution.x/2 - (N / 2) * SIZE*2 - SIZE
 
     offset = offset + DELTA_OFFSET * dt;
     local start_i, percent_trans = math.modf(offset)
@@ -36,7 +36,7 @@ OnUpdate = function(dt)
     for i = 1, N do
         local color = CircularIndex(COLORS, i - start_i)
         local next_color = CircularIndex(COLORS, i - start_i - 1)
-        RenderSimple(Vector2(start_x + i * SIZE*2, window_height/2), color, SIZE,
+        RenderSimple(Vector2(start_x + i * SIZE*2, resolution.y/2), color, SIZE,
             next_color, PI, percent_trans)
     end
 end

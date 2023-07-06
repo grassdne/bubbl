@@ -52,13 +52,13 @@ end)
 -- so this can be consistent
 --[[
 TestScreenshot("simple bubbles", "simplebubble", function()
-    local pos = Vector2(window_width / 2, window_height / 2)
+    local pos = resolution / 2
     RenderSimple(pos, Color.hex("#FF0000"), 200)
 end)
 -]]
 
 TestScreenshot("simple pop", "simplepop", function()
-    local pos = Vector2(window_width / 2, window_height / 2)
+    local pos = resolution / 2
     RenderPop(pos, Color.hex("#0000FF"), 200, 0)
 end)
 

@@ -18,7 +18,7 @@ local RandomRadius = function()
 end
 
 local RandomPosition = function()
-    return Vector2(math.random()*window_width, math.random()*window_height)
+    return Vector2(math.random(), math.random()):scale(resolution)
 end
 
 local RandomColor = function()
@@ -90,8 +90,8 @@ local SeparateBubbles = function (a, b)
 end
 
 local EnsureBubbleInBounds = function (bubble)
-    bubble.position.x = math.clamp(bubble.position.x, bubble.radius, window_width  - bubble.radius)
-    bubble.position.y = math.clamp(bubble.position.y, bubble.radius, window_height - bubble.radius)
+    bubble.position.x = math.clamp(bubble.position.x, bubble.radius, resolution.x  - bubble.radius)
+    bubble.position.y = math.clamp(bubble.position.y, bubble.radius, resolution.y - bubble.radius)
 end
 
 local CollectAllBubbles = function ()
@@ -104,8 +104,8 @@ end
 
 local MoveBubble = function (bubble, dt)
     local next = bubble.position + bubble.velocity * dt
-    local max_y = window_height - bubble.radius
-    local max_x = window_width - bubble.radius
+    local max_y = resolution.y - bubble.radius
+    local max_x = resolution.x - bubble.radius
     if next.x < bubble.radius or next.x > max_x then
         bubble.velocity.x = -bubble.velocity.x
     else
@@ -188,7 +188,7 @@ OnUpdate = function(dt)
             positions[i] = bub.position
         end
         RunBgShader("elastic", BgShaderLoader, {
-            resolution = Vector2(window_width, window_height),
+            resolution = resolution,
             num_elements = #bubbles,
             colors = colors,
             positions = positions,

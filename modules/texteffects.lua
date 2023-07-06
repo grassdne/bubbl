@@ -15,8 +15,8 @@ local particles
 local background = CreateCanvas { { Color.hsl(0, 1, 0.01) } }
 
 OnStart = function ()
-    particles = Text.build_particles_with_width(TEXT, window_width)
-    local goal = Vector2(0, (window_height - particles.height) / 2)
+    particles = Text.build_particles_with_width(TEXT, resolution.x)
+    local goal = Vector2(0, (resolution.y - particles.height) / 2)
 
     for i, pt in ipairs(particles) do
         pt.position = Vector2(math.random() * -0.1, math.random()):scale(resolution)

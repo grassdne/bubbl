@@ -71,9 +71,6 @@ while not ShouldQuit() do
             resolution.x = event.resize.width
             resolution.y = event.resize.height
             OptionalCallback("OnWindowResize", resolution.x, resolution.y)
-            
-            -- Legacy
-            window_width, window_height = resolution:unpack()
         end
     end
 

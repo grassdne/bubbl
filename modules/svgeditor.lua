@@ -24,7 +24,7 @@ local TextRenderer = require "textrenderer"
 local Draw = require "draw"
 
 local get_draw_box_base_position = function ()
-    local center = Vector2(window_width/2, window_height/2)
+    local center = resolution / 2
     local width = SVG_WIDTH * scale
     local height = SVG_HEIGHT * scale
     return Vector2(center.x - width/2, center.y - height/2)
@@ -96,7 +96,7 @@ OnUpdate = function(dt)
     -- Testing text
     local y = 0
     for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
-        local height = TextRenderer.put_string_with_width(Vector2(0,y), str, window_width, SVGEDITOR.COLOR)
+        local height = TextRenderer.put_string_with_width(Vector2(0,y), str, resolution.x, SVGEDITOR.COLOR)
         y = y + height
     end
 end
@@ -166,9 +166,9 @@ end
 
 FindSelectionCenterPoint = function()
     local right = 0
-    local left = window_width
+    local left = resolution.x
     local top = 0
-    local bottom = window_height
+    local bottom = resolution.y
     for circle in pairs(selected) do
         local pos = circle:absolute_position()
         left = math.min(left, pos.x)
@@ -276,7 +276,7 @@ end
 try_load_file = function(path)
     local f = io.open(path)
     if not f then return false end
-    local center = Vector2(window_width/2, window_height/2);
+    local center = resolution / 2
     for pos, radius in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
         table.insert(circles, Circle:New(pos, radius))
     end

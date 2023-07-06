@@ -11,7 +11,7 @@ local gen_particle = function (color, x_position)
     return {
         color = color,
         radius = random.minmax(RAINBOW.MIN_RADIUS, RAINBOW.MAX_RADIUS),
-        position = Vector2(x_position, window_height * math.random())
+        position = Vector2(x_position, resolution.y * math.random())
     }
 end
 
@@ -19,9 +19,9 @@ end
 local gen_particle_field = function ()
     -- The x positions are in neat columns
     -- Adding noise just made it look like a mess
-    for x=END_POS_LEFT+RAINBOW.SPACING, window_width + START_POS_RIGHT, RAINBOW.SPACING do
-        for i=0, window_height / RAINBOW.SPACING do
-            table.insert(particles, gen_particle(Color.hsl(x/window_width*360, 1, 0.5), x))
+    for x=END_POS_LEFT+RAINBOW.SPACING, resolution.x + START_POS_RIGHT, RAINBOW.SPACING do
+        for i=0, resolution.y / RAINBOW.SPACING do
+            table.insert(particles, gen_particle(Color.hsl(x/resolution.x*360, 1, 0.5), x))
         end
     end
 end
@@ -31,7 +31,7 @@ local last_mouse_position = MousePosition()
 OnUpdate = function(dt)
     -- Update and draw particles
     for i,part in ipairs(particles) do
-        local length = window_width + START_POS_RIGHT - END_POS_LEFT
+        local length = resolution.x + START_POS_RIGHT - END_POS_LEFT
         part.position:delta_x(-length / RAINBOW.PERIOD * dt)
         if part.position.x < END_POS_LEFT then
             -- Jump back to the other end
@@ -45,8 +45,8 @@ OnUpdate = function(dt)
     -- TODO: We don't want to do anything if the mouse is outside the window
     -- the following guard doesn't actually do any good
     if (mouse.x ~= last_mouse_position.x or mouse.y ~= last_mouse_position.y)
-        and mouse.x > 0 and mouse.x < window_width
-        and mouse.y > 0 and mouse.y < window_height
+        and mouse.x > 0 and mouse.x < resolution.x
+        and mouse.y > 0 and mouse.y < resolution.y
     then
         for _,part in ipairs(particles) do
             local dist = mouse:dist(part.position)

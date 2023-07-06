@@ -426,7 +426,7 @@ GifAddFrame = function (file_name, frame_number, timestamp)
         print("ERROR: Unable to read screen content")
         return
     end
-    local err = gifski.gifski_add_frame_rgba(gifskis[file_name], frame_number, window_width, window_height, pixels, timestamp)
+    local err = gifski.gifski_add_frame_rgba(gifskis[file_name], frame_number, resolution.x, resolution.y, pixels, timestamp)
     if err > 0 then print("ERROR: (Code "..err..") Unable to add GIF frame to "..file_name) end
 end
 
@@ -592,7 +592,6 @@ end
 Size = function (width, height)
     resolution.x = width
     resolution.y = height
-    window_width, window_height = resolution:unpack()
     C.set_window_size(window, width, height);
 end
 
@@ -606,13 +605,9 @@ end
 
 require "scheduler"
 
--- Legacy, use resolution
-window_width = 1600
-window_height = 900
+resolution = Vector2(1600, 900)
 
-resolution = Vector2(window_width, window_height)
-
-window = CreateWindow("Bubble", window_width, window_height)
+window = CreateWindow("Bubble", resolution:unpack())
 
 OnQuit = function ()
     -- Finish any remaining GIFs
