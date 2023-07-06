@@ -1,7 +1,7 @@
 Title "Text Effects"
 Size (600, 200)
 
-local Text = require "textrenderer"
+local Text = require "text"
 
 local TEXT = "bubbl"
 local PERIOD = 10

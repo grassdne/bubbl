@@ -20,7 +20,7 @@ local BASE_SIZE = 20
 local KEY_MOVEMENT = 20
 local KEY_LITTLE_MOVEMENT = 5
 
-local TextRenderer = require "textrenderer"
+local TextRenderer = require "text"
 local draw = require "draw"
 
 local get_draw_box_base_position = function ()
