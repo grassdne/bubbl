@@ -46,11 +46,10 @@ if GENERATE_FRAMES then
         end
         background:draw()
         if i < frames_count then
-            print "screenshot"
-            if not Screenshot(string.format("frames/frame_%003d.png", i)) then
-                print "failed to take screenshot"
-            end
+            GifAddFrame("logo.gif", i, i / FPS)
             i = i + 1
+        else
+            Quit()
         end
     end
 else

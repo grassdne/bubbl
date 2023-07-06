@@ -2,6 +2,7 @@
 
 local ffi = require "ffi"
 local C = ffi.C
+local gifski = ffi.load("deps/gifski/target/release/libgifski.so")
 
 ---@param file_name string
 ReadEntireFile = function (file_name)
@@ -401,6 +402,49 @@ Screenshot = function(name)
     return C.screenshot(name);
 end
 
+local gifskis = {}
+GifNew = function (file_name, settings)
+    print ("GifNew", file_name)
+    assert(type(file_name) == "string", "expected string file name for GifNew")
+    local p = ffi.new("GifskiSettings[1]", { settings or {quality=90 } })
+    local gif = gifski.gifski_new(p);
+    if gif == nil then
+        print("ERROR: invalid settings for GIF")
+        return
+    end
+    gifski.gifski_set_file_output(gif, file_name)
+    gifskis[file_name] = gif
+end
+
+GifAddFrame = function (file_name, frame_number, timestamp)
+    assert(type(file_name) == "string", "expected string file name")
+    assert(type(frame_number) == "number", "expected gif frame number")
+    if not gifskis[file_name] then GifNew(file_name) end
+    local pixels = ffi.new("uint8_t[?]", 4 * resolution.x * resolution.y)
+    C.get_screen_pixels(pixels)
+    if pixels == nil then
+        print("ERROR: Unable to read screen content")
+        return
+    end
+    local err = gifski.gifski_add_frame_rgba(gifskis[file_name], frame_number, window_width, window_height, pixels, timestamp)
+    if err > 0 then print("ERROR: (Code "..err..") Unable to add GIF frame to "..file_name) end
+end
+
+GifFinish = function (file_name)
+    -- If no file name provided, complete all GIFs
+    if not file_name then
+        for k in pairs(gifskis) do
+            GifFinish(k)
+        end
+        return
+    end
+    assert(type(file_name) == "string" and gifskis[file_name],
+           "invalid file name passed to GifFinish")
+    if not gifski.gifski_finish(gifskis[file_name]) then
+        print("ERROR: Unable to create GIF "..file_name)
+    end
+end
+
 FlushRenderers = function()
     C.flush_renderers()
 end
@@ -562,3 +606,7 @@ window_height = 900
 resolution = Vector2(window_width, window_height)
 window = CreateWindow("Bubble", window_width, window_height)
 
+OnQuit = function ()
+    -- Finish any remaining GIFs
+    GifFinish()
+end

@@ -79,3 +79,5 @@ while not ShouldQuit() do
 
     RunScheduler()
 end
+
+OnQuit()
