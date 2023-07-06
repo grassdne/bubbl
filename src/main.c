@@ -219,6 +219,7 @@ bool screenshot(const char *file_name)
     const int ncomps = 4;
     void *pixeldata = malloc(window_width * window_height * ncomps);
     glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
+    stbi_flip_vertically_on_write(true);
     int ok = stbi_write_png(file_name, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
     if (!ok) return false;
     free(pixeldata);
