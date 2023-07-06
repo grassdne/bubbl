@@ -1,0 +1,3 @@
+[submodule "deps/gifski"]
+	path = deps/gifski
+	url = https://github.com/ImageOptim/gifski
