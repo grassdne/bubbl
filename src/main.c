@@ -1,6 +1,7 @@
 #include "SDL_mouse.h"
 #include "SDL_video.h"
 #include "lua.h"
+#include <stdint.h>
 #define _CRT_SECURE_NO_WARNINGS
 #include <GL/glew.h>
 
@@ -212,6 +213,29 @@ void process_events(SDL_Window *window) {
     assert(false && "process_events unused");
 }
 
+static void vertical_flip_pixels(uint8_t *pixels, int w, int h) {
+    int stride = w * 4;
+    uint8_t tmp[stride]; // VLA
+    for (int i = 0; i < h / 2; ++i) {
+        const int row_a = i;
+        const int row_b = h - i - 1;
+        if (row_a == row_b) break; // memcpy regions must not overlap
+
+        // Swap rows
+        uint8_t *ptr_a = &pixels[row_a * stride];
+        uint8_t *ptr_b = &pixels[row_b * stride];
+        memcpy(tmp, ptr_a, stride);     // First copy a to tmp
+        memcpy(ptr_a, ptr_b, stride);   // Then copy b to a
+        memcpy(ptr_b, tmp, stride);     // Finally copy tmp to b
+    }
+}
+
+void get_screen_pixels(uint8_t *pixels) {
+    flush_renderers();
+    glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    vertical_flip_pixels(pixels, window_width, window_height);
+}
+
 bool screenshot(const char *file_name)
 {
     flush_renderers();
@@ -226,19 +250,7 @@ bool screenshot(const char *file_name)
     // glReadPixels can only write from the bottom left corner
     // and libpng can only read from the top left
     
-    uint8_t tmp[stride]; // VLA
-    for (int i = 0; i < window_height / 2; ++i) {
-        const int row_a = i;
-        const int row_b = window_height - i - 1;
-        if (row_a == row_b) break; // memcpy regions must not overlap
-
-        // Swap rows
-        uint8_t *ptr_a = &pixeldata[row_a * stride];
-        uint8_t *ptr_b = &pixeldata[row_b * stride];
-        memcpy(tmp, ptr_a, stride);     // First copy a to tmp
-        memcpy(ptr_a, ptr_b, stride);   // Then copy b to a
-        memcpy(ptr_b, tmp, stride);     // Finally copy tmp to b
-    }
+    vertical_flip_pixels(pixeldata, window_width, window_height);
 
 
     png_image image = {

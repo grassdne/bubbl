@@ -106,4 +106,42 @@ void glUniform2fv(int uni, int count, Vector2 *values);
 int bg_create_texture(void *data, int width, int height);
 
 void on_update(double dt);
+
+typedef struct gifski gifski;
+typedef struct GifskiSettings {
+  /**
+   * Resize to max this width if non-0.
+   */
+  uint32_t width;
+  /**
+   * Resize to max this height if width is non-0. Note that aspect ratio is not preserved.
+   */
+  uint32_t height;
+  /**
+   * 1-100, but useful range is 50-100. Recommended to set to 90.
+   */
+  uint8_t quality;
+  /**
+   * Lower quality, but faster encode.
+   */
+  bool fast;
+  /**
+   * If negative, looping is disabled. The number of times the sequence is repeated. 0 to loop forever.
+   */
+  int16_t repeat;
+} GifskiSettings;
+
+typedef int GifskiError;
+
+gifski *gifski_new(const GifskiSettings *settings);
+GifskiError gifski_add_frame_rgba(gifski *handle,
+                                  uint32_t frame_number,
+                                  uint32_t width,
+                                  uint32_t height,
+                                  const unsigned char *pixels,
+                                  double presentation_timestamp);
+GifskiError gifski_finish(gifski *g);
+GifskiError gifski_set_file_output(gifski *handle, const char *destination_path);
+
+uint8_t get_screen_pixels(uint8_t *pixels);
 #endif
