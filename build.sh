@@ -4,6 +4,13 @@ set -e # Quit on error
 
 DEPS="luajit sdl2 glew"
 
+
+if $(pkg-config --exists libpng zlib); then
+    DEPS+=" libpng zlib"
+else
+    echo "WARNING: could not find libpng and zlib; screenshots will not work"
+fi
+
 CFLAGS="-Wall -Wextra -std=c11 --pedantic -Ideps $(pkg-config --cflags $DEPS)"
 CLIBS="$(pkg-config --libs $DEPS) -lm"
 CSRC="src/bg.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c"

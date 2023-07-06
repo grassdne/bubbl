@@ -7,6 +7,8 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
+#include <png.h>
+
 #include "luajit.h"
 #include <lualib.h>
 #include <lauxlib.h>
@@ -19,9 +21,6 @@
 #include "common.h"
 #include "renderer_defs.h"
 #include "bg.h"
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
@@ -217,10 +216,45 @@ bool screenshot(const char *file_name)
 {
     flush_renderers();
     const int ncomps = 4;
-    void *pixeldata = malloc(window_width * window_height * ncomps);
+    printf("resolution :: (%d, %d)\n", window_width, window_height);
+    const size_t stride = window_width * ncomps;
+    uint8_t *pixeldata = malloc(window_height * stride);
     glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
-    stbi_flip_vertically_on_write(true);
-    int ok = stbi_write_png(file_name, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
+    //stbi_flip_vertically_on_write(true);
+    //int ok = stbi_write_png(file_name, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
+
+    // glReadPixels can only write from the bottom left corner
+    // and libpng can only read from the top left
+    
+    uint8_t tmp[stride]; // VLA
+    for (int i = 0; i < window_height / 2; ++i) {
+        const int row_a = i;
+        const int row_b = window_height - i - 1;
+        if (row_a == row_b) break; // memcpy regions must not overlap
+
+        // Swap rows
+        uint8_t *ptr_a = &pixeldata[row_a * stride];
+        uint8_t *ptr_b = &pixeldata[row_b * stride];
+        memcpy(tmp, ptr_a, stride);     // First copy a to tmp
+        memcpy(ptr_a, ptr_b, stride);   // Then copy b to a
+        memcpy(ptr_b, tmp, stride);     // Finally copy tmp to b
+    }
+
+
+    png_image image = {
+        .version = PNG_IMAGE_VERSION,
+        .opaque = NULL,
+        .width = window_width,
+        .height = window_height,
+        .format = PNG_FORMAT_RGBA,
+        .flags = 0,
+        .colormap_entries = 0,
+    };
+
+    int ok = png_image_write_to_file (&image, file_name, 0,  pixeldata, 0, NULL);
+
+    printf("result: %s\n", image.message);
+
     if (!ok) return false;
     free(pixeldata);
     return true;
