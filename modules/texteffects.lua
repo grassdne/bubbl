@@ -5,6 +5,7 @@ local Text = require "textrenderer"
 local TEXT = "bubbl"
 local PERIOD = 10
 local MAX_PERIOD = 5
+GENERATE_FRAMES = true
 
 
 local color = Color.hsl(300, 1.0, 0.5)
@@ -33,13 +34,33 @@ local UpdatePosition = function (point, dt)
     end
 end
 
-OnUpdate = function (dt)
-    for _,pt in ipairs(particles) do
-    local goal = Vector2(0, (window_height - particles.height) / 2)
-        UpdatePosition(pt, dt)
-        RenderSimple(pt.position, color, pt.radius)
+if GENERATE_FRAMES then
+    local FPS = 45
+    local LENGTH = MAX_PERIOD * 1.25
+    local frames_count = FPS * LENGTH
+    local i = 0
+    OnUpdate = function ()
+        for _,pt in ipairs(particles) do
+            UpdatePosition(pt, 1/FPS)
+            RenderSimple(pt.position, color, pt.radius)
+        end
+        background:draw()
+        if i < frames_count then
+            print "screenshot"
+            if not Screenshot(string.format("frames/frame_%003d.png", i)) then
+                print "failed to take screenshot"
+            end
+            i = i + 1
+        end
     end
-    background:draw()
+else
+    OnUpdate = function (dt)
+        for _,pt in ipairs(particles) do
+            UpdatePosition(pt, dt)
+            RenderSimple(pt.position, color, pt.radius)
+        end
+        background:draw()
+    end
 end
 
 LockTable(_G)
