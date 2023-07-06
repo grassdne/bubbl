@@ -21,7 +21,7 @@ local CircularIndex = function(tbl, i)
     return tbl[((i - 1) % #tbl) + 1]
 end
 
-OnUpdate = function(dt)
+Draw = function(dt)
     local start_x = resolution.x/2 - (N / 2) * SIZE*2 - SIZE
 
     offset = offset + DELTA_OFFSET * dt;

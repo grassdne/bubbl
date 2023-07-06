@@ -68,7 +68,7 @@ print("overwrite="..tostring(overwrite))
 print()
 
 local i = 0
-OnUpdate = function()
+Draw = function()
     i = i + 1
     if not tests[i] then return Quit() end
     local path = tests[i].path..".png"

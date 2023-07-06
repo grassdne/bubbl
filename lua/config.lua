@@ -73,7 +73,7 @@ elseif FileExists(module_name_c) then
     _loaded_c_module = lib
     ffi.cdef("void init(Window *window)")
     lib.init(window)
-    OnUpdate = function(dt)
+    Draw = function(dt)
         lib.on_update(dt)
     end
 else

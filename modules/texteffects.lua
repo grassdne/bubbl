@@ -40,7 +40,7 @@ if GENERATE_FRAMES then
     local LENGTH = MAX_PERIOD * 1.25
     local frames_count = FPS * LENGTH
     local i = 0
-    OnUpdate = function ()
+    Draw = function ()
         for _,pt in ipairs(particles) do
             UpdatePosition(pt, 1/FPS)
             RenderSimple(pt.position, color, pt.radius)
@@ -54,7 +54,7 @@ if GENERATE_FRAMES then
         end
     end
 else
-    OnUpdate = function (dt)
+    Draw = function (dt)
         for _,pt in ipairs(particles) do
             UpdatePosition(pt, dt)
             RenderSimple(pt.position, color, pt.radius)

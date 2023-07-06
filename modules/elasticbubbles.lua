@@ -118,7 +118,7 @@ local MoveBubble = function (bubble, dt)
     end
 end
 
-OnUpdate = function(dt)
+Draw = function(dt)
     local time = Seconds()
 
     --- Grow bubble under mouse ---

@@ -38,14 +38,14 @@ while not ShouldQuit() do
     UpdateCurrentTick()
     last_time = now
 
-    assert(OnUpdate, "missing OnUpdate callback")
+    assert(Draw, "missing Draw callback")
     ClearScreen()
-    local ok, err = pcall(OnUpdate, dt)
+    local ok, err = pcall(Draw, dt)
     if not ok then
-        print("Error inside OnUpdate!")
+        print("Error inside Draw!")
         print(err)
-        print("Disabling OnUpdate... fix it and hot reload, or restart.")
-        OnUpdate = function() end
+        print("Disabling Draw... fix it and hot reload, or restart.")
+        Draw = function() end
     end
     FlushRenderers()
     UpdateScreen(window)

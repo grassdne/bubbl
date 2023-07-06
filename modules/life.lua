@@ -52,7 +52,7 @@ OnStart = function()
     end
 end
 
-OnUpdate = function(dt)
+Draw = function(dt)
     local spacing_x = resolution.x / COLS
     local spacing_y = resolution.y / ROWS
     local size = math.min(spacing_x, spacing_y) / 2

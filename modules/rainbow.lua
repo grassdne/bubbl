@@ -28,7 +28,7 @@ end
 
 local last_mouse_position = MousePosition()
 
-OnUpdate = function(dt)
+Draw = function(dt)
     -- Update and draw particles
     for i,part in ipairs(particles) do
         local length = resolution.x + START_POS_RIGHT - END_POS_LEFT

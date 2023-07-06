@@ -50,7 +50,7 @@ if GENERATE_FRAMES then
     local FPS = 45
     local frames_count = FPS * PERIOD
     local i = 0
-    OnUpdate = function()
+    Draw = function()
         Render(i/frames_count * 2*PI)
         if i < frames_count then
             Screenshot(string.format("frame_%003d.png", i))
@@ -58,7 +58,7 @@ if GENERATE_FRAMES then
         end
     end
 else
-    OnUpdate = function()
+    Draw = function()
         background:draw()
         Render(Seconds() * 2*PI / PERIOD)
     end
