@@ -1,4 +1,6 @@
 # Bubbl
+![logo](images/logo.gif)
+
 An easy-to-use interface for creating simulations, animations, and games with a peculiar set of graphics primitives.
 
 ### Dependencies
