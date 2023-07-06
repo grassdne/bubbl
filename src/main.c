@@ -238,18 +238,10 @@ bool screenshot(SDL_Window *window, const char *file_name)
     int w, h; SDL_GetWindowSize(window, &w, &h);
     flush_renderers();
     const int ncomps = 4;
-    printf("resolution :: (%d, %d)\n", w, h);
     const size_t stride = w * ncomps;
     uint8_t *pixeldata = malloc(h * stride);
-    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
-    //stbi_flip_vertically_on_write(true);
-    //int ok = stbi_write_png(file_name, window_width, window_height, ncomps, pixeldata, window_width * ncomps);
 
-    // glReadPixels can only write from the bottom left corner
-    // and libpng can only read from the top left
-    
-    vertical_flip_pixels(pixeldata, w, h);
-
+    get_screen_pixels(window, pixeldata);
 
     png_image image = {
         .version = PNG_IMAGE_VERSION,
@@ -262,8 +254,6 @@ bool screenshot(SDL_Window *window, const char *file_name)
     };
 
     int ok = png_image_write_to_file (&image, file_name, 0,  pixeldata, 0, NULL);
-
-    printf("result: %s\n", image.message);
 
     if (!ok) return false;
     free(pixeldata);
@@ -292,6 +282,10 @@ void destroy_window(SDL_Window *window)
 
 void set_window_title(SDL_Window *window, const char *title) {
     SDL_SetWindowTitle(window, title);
+}
+
+void set_window_size(SDL_Window *window, int width, int height) {
+    SDL_SetWindowSize(window, width, height);
 }
 
 Vector2 get_mouse_position(SDL_Window *window)

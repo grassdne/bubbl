@@ -589,6 +589,13 @@ RunBgShader = function(id, frag_shader, data)
     C.run_shader_program(program)
 end
 
+Size = function (width, height)
+    resolution.x = width
+    resolution.y = height
+    window_width, window_height = resolution:unpack()
+    C.set_window_size(window, width, height);
+end
+
 local quit = false
 Quit = function()
     quit = true
@@ -604,6 +611,7 @@ window_width = 1600
 window_height = 900
 
 resolution = Vector2(window_width, window_height)
+
 window = CreateWindow("Bubble", window_width, window_height)
 
 OnQuit = function ()

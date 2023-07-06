@@ -88,6 +88,7 @@ bool should_quit(void);
 Window *create_window(const char *window_name, int width, int height);
 void destroy_window(Window *window);
 void set_window_title(Window *window, const char *title);
+void set_window_size(Window *window, int width, int height);
 void SDL_GL_SwapWindow(Window *window);
 
 Event poll_event(Window *window);

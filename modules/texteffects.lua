@@ -1,11 +1,12 @@
 Title "Text Effects"
+Size (600, 200)
 
 local Text = require "textrenderer"
 
 local TEXT = "bubbl"
 local PERIOD = 10
 local MAX_PERIOD = 5
-GENERATE_FRAMES = true
+GENERATE_FRAMES = false
 
 
 local color = Color.hsl(300, 1.0, 0.5)
