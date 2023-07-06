@@ -120,6 +120,8 @@ TextRenderer.build_particles_with_width = function (str, width)
             })
         end
     end
+    -- metadata
+    particles.height = scale * SVG_HEIGHT
     return particles
 end
 
