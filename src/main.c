@@ -277,6 +277,7 @@ SDL_Window *create_window(const char *window_name, int width, int height)
 
 void destroy_window(SDL_Window *window) 
 {
+    SDL_GL_DeleteContext(SDL_GL_GetCurrentContext());
     SDL_DestroyWindow(window);
 }
 
