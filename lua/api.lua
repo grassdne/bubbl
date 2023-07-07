@@ -3,8 +3,11 @@
 local ffi = require "ffi"
 
 local C = ffi.C
-local gifski = ffi.load("deps/gifski/target/release/libgifski.so")
-
+-- Gifski is optional; it's only needed for generating gifs
+local gifski
+local RequireGifski = function()
+    if not gifski then gifski = ffi.load("deps/gifski/target/release/libgifski.so") end
+end
 
 ----------------------------
 --------- Vector2 ----------
@@ -361,7 +364,7 @@ end
 
 local gifskis = {}
 GifNew = function (file_name, settings)
-    print ("GifNew", file_name)
+    RequireGifski()
     assert(type(file_name) == "string", "expected string file name for GifNew")
     local p = ffi.new("GifskiSettings[1]", { settings or {quality=90 } })
     local gif = gifski.gifski_new(p);
@@ -374,6 +377,7 @@ GifNew = function (file_name, settings)
 end
 
 GifAddFrame = function (file_name, frame_number, timestamp)
+    RequireGifski()
     assert(type(file_name) == "string", "expected string file name")
     assert(type(frame_number) == "number", "expected gif frame number")
     if not gifskis[file_name] then GifNew(file_name) end
@@ -388,6 +392,7 @@ GifAddFrame = function (file_name, frame_number, timestamp)
 end
 
 GifFinish = function (file_name)
+    RequireGifski()
     -- If no file name provided, complete all GIFs
     if not file_name then
         for k in pairs(gifskis) do
