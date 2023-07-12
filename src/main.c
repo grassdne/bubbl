@@ -333,7 +333,7 @@ int main(int argc, char **argv) {
     if (SDL_GL_SetSwapInterval(-1) < 0) {
         VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
         if (SDL_GL_SetSwapInterval(1) < 0) {
-            return fprintf(stderr, "unable to set VSync: %s\n", SDL_GetError()), 1;
+            fprintf(stderr, "WARNING: unable to set VSync: %s\n", SDL_GetError());
         }
 
     }
