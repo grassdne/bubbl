@@ -78,14 +78,6 @@ static void createargtable (lua_State *L, char **argv, int argc) {
 }
 
 
-#define LOADER_FILE_NAME "lua/loader.lua"
-void reload(lua_State *L, bool err) {
-    if (luaL_dofile(L, LOADER_FILE_NAME)) {
-        fprintf(stderr, "ERROR loading loader.lua:\n\t%s\n", lua_tostring(L, -1));
-        if (err) exit(1);
-    }
-}
-
 void clear_screen(void) {
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -358,8 +350,6 @@ int main(int argc, char **argv) {
 
     init_renderers();
     bg_init();
-
-    reload(L, true);
 
     if (luaL_dofile(L, "lua/eventloop.lua")) {
         error(L, "Error: %s", lua_tostring(L, -1));
