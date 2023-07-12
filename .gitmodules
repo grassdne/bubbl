@@ -1,3 +1,6 @@
 [submodule "deps/gifski"]
 	path = deps/gifski
 	url = https://github.com/ImageOptim/gifski
+[submodule "deps/lua-http"]
+	path = deps/lua-http
+	url = https://github.com/daurnimator/lua-http
