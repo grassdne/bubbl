@@ -12,7 +12,7 @@ local last_time = Seconds()
 
 local OnKey = function(key, is_down)
     if key == 'R' and is_down then
-        PerformHotReload()
+        loader.HotReload()
     end
     loader.Callback("OnKey", key, is_down)
 end
@@ -20,7 +20,6 @@ end
 local draw
 
 loader.LoadModule(arg[1] or DEFAULT_MODULE)
-loader.Callback("OnStart", false)
 
 while not ShouldQuit() do
     local now = Seconds()
@@ -32,7 +31,7 @@ while not ShouldQuit() do
     ClearScreen()
 
     RunScheduler()
-    --TheServer:update()
+    TheServer:update()
 
     draw = draw or coroutine.create(Draw)
     local ok, err = coroutine.resume(draw, dt)

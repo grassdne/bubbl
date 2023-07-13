@@ -6,9 +6,10 @@ local FileExists = function (name)
     return f ~= nil
 end
 
+local current_module
 loader.LoadModule = function (module)
-    --if TheServer then TheServer:close() end -- hot reload
-    --TheServer = require "server"
+    if TheServer then TheServer:close() end -- hot reload
+    TheServer = require "server"
 
     local module_name_lua = "modules/"..module..".lua"
     local module_name_c = "./modules/"..module..".so"
@@ -43,16 +44,17 @@ loader.LoadModule = function (module)
         print(string.format("Usage: %s elastic|rainbow|svg|swirl", arg[0]))
         return;
     end
+
+    current_module = module
+    loader.Callback("OnStart")
 end
 
-loader.HotReload = function ()
+loader.HotReload = function (module)
     ClearShaderCache()
     -- Unlock global table
     setmetatable(_G, nil)
     package.loaded["server"] = nil
-    package.loaded["loader"] = nil
-    require 'loader'
-    loader.Callback("OnStart", true)
+    loader.LoadModule(assert(current_module))
 end
 
 -- optional, asyncronous, protected call
