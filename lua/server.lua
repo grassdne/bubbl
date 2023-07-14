@@ -32,26 +32,52 @@ local GetValue = function (var)
     return Result(var.value) or tweak.vars[var.id]
 end
 
+local Substitute = function (s, t)
+    return (string.gsub(s, "%$(%w+)", t))
+end
+
 local BuildConfigItem = function (var)
     if var.type == "range" then
-        return (string.gsub([[<div>
+        return Substitute([[<div>
             <label for="$id">$name</label>
-            <input type="range" id="$id" name="$id" min="$min" max="$max" value="$value" step="$step" class="config"></div>
-        ]], "%$(%w+)", {
+            <input type="range" id="$id" name="$id" min="$min" max="$max"
+            value="$value" step="$step" class="config"></div>
+        ]], {
             id=Result(var.id),
             min=Result(var.min),
             max=Result(var.max),
             name=Result(var.name),
             value=GetValue(var),
             step=Result(var.step) or "any",
-        }))
+        })
+
+    elseif var.type == "options" then
+        local s = "<fieldset><legend>"..var.name.."</legend>"
+        s = s .. "<div>"
+        for i, option in ipairs(assert(var.options)) do
+            s = s .. Substitute([[
+                <input type="radio" id="$id" name="$name" value="$option" class="config" $checked>
+                <label for="$id">$option</label>
+            ]], {
+                name=var.id,
+                option=option,
+                id=var.id.."-"..option,
+                checked=GetValue(var) == option and "checked" or "",
+            })
+          
+        end
+        s = s .. "</div></fieldset>"
+        return s
 
     elseif var.type == "action" then
         return (string.gsub([[<div>
             <button type="button" id="$id" class="config">$name</button>
         ]], "%$(%w+)", var))
+
+    else
+        print(strint.format("Unknown twek type `%s`", var.type))
+        return "??"
     end
-    return "??"
 end
 
 local ConfigHtml = function ()
@@ -103,17 +129,29 @@ local function reply(myserver, stream) -- luacheck: ignore 212
             error("could not parse body format")
         end
 
+        assert(tweak[id], "received unknown config var id")
         local number = tonumber(value)
         if number then
             BuildHeaders(stream, 200, "text/plain", true)
-            assert(tweak[id], "received unknown config var id")
             if tweak.vars[id] then
                 tweak.vars[id] = number
             end
             if tweak[id].callback then
                 tweak[id].callback(number)
             end
+        else
+            if tweak.vars[id] then
+                tweak.vars[id] = value
+            end
+            if tweak[id].callback then
+                tweak[id].callback(value)
+            end
         end
+
+    elseif path == "/api/tweaks" and req_method == "GET" then
+        BuildHeaders(stream, 200, "text/html")
+        local html = ConfigHtml()
+        assert(stream:write_chunk(html, true))
 
     elseif path == "/api/action" and req_method == "POST" then
         BuildHeaders(stream, 200, "text/plain", true)
@@ -145,9 +183,7 @@ local function reply(myserver, stream) -- luacheck: ignore 212
         local name = stream:get_body_as_string(0.01)
         local loader = require "loader"
         loader.LoadModule(name)
-        BuildHeaders(stream, 200, "text/html")
-        local html = ConfigHtml()
-        assert(stream:write_chunk(html, true))
+        BuildHeaders(stream, 200, "text/plain", true)
 
 
     else
