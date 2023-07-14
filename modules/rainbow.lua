@@ -10,6 +10,11 @@ local SIZE_DELTA = 75
 local START_POS_RIGHT = WRAPAROUND_BUFFER * SPACING
 local END_POS_LEFT = -WRAPAROUND_BUFFER * SPACING
 
+local VAR = {
+    RADIUS_ADDEND = 0,
+    SPEED = 1/PERIOD,
+}
+
 local particles = {}
 
 -- radius and y position are randomized
@@ -40,6 +45,12 @@ gen_particle_field()
 return {
     title = "🌈🌈🌈",
 
+    tweak = {
+        vars = VAR,
+        { name="Size", id="RADIUS_ADDEND", type="range", min=-MIN_RADIUS, max=MAX_RADIUS },
+        { name="Speed", id="SPEED", type="range", min=0, max=2 },
+    },
+
     OnWindowResize = function(w, h)
         -- Clear particles
         particles = {}
@@ -50,12 +61,12 @@ return {
         -- Update and draw particles
         for i,part in ipairs(particles) do
             local length = resolution.x + START_POS_RIGHT - END_POS_LEFT
-            part.position:delta_x(-length / PERIOD * dt)
+            part.position:delta_x(-length * VAR.SPEED * dt)
             if part.position.x < END_POS_LEFT then
                 -- Jump back to the other end
                 particles[i] = gen_particle(part.color, part.position.x + length)
             end
-            RenderPop(part.position, part.color, part.radius, 0)
+            RenderPop(part.position, part.color, part.radius + VAR.RADIUS_ADDEND, 0)
         end
 
         -- Grow particles in proximity to cursor
