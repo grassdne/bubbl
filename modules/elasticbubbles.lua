@@ -243,7 +243,7 @@ return {
         local time = Seconds()
         --- Grow bubble under mouse ---
         if cursor_bubble then
-            local percent_complete = cursor_bubble:Radius() / MAX_GROWTH
+            local percent_complete = cursor_bubble.radius / MAX_GROWTH
             local growth_rate = percent_complete * (MAX_GROWTH_RATE - MIN_GROWTH_RATE) + MIN_GROWTH_RATE
             cursor_bubble.radius = cursor_bubble.radius + growth_rate * dt
             EnsureBubbleInBounds(cursor_bubble)
