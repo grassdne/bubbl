@@ -170,9 +170,21 @@ local myserver = assert(http_server.listen {
     end;
 })
 
+-- Finds ip on linux systems with `ip` command
+local FindIp = function ()
+    if require("ffi").os == "Linux" then
+        return io.popen("ip -i route"):read('a'):match("src ([%d.]+)")
+    end
+end
+
 local onstart = function ()
     local bound_port = select(3, myserver:localname())
-    print(string.format("Web interface at http://0.0.0.0:%d", bound_port))
+    local ip = FindIp()
+    if ip then
+        print(string.format("Web interface at http://localhost:%d or http://%s:%d", bound_port, ip, bound_port))
+    else
+        print(string.format("Web interface at http://localhost:%d %s", bound_port))
+    end
 end
 local started = false
 
