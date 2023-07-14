@@ -1,5 +1,3 @@
-Title "Text Effects"
-
 local Text = require "text"
 
 local CONFIG = "coalesce"
@@ -71,6 +69,8 @@ local Update = function (dt)
 end
 
 return {
+    title = "Text Effects",
+
     OnStart = function ()
         particles = Text.build_particles_with_width(TEXT, resolution.x)
         local goal = Vector2(0, (resolution.y - particles.height) / 2)
