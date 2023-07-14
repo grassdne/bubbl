@@ -3,8 +3,8 @@ Title "Text Effects"
 local Text = require "text"
 
 local CONFIG = "coalesce"
-GENERATE_FRAMES = true
-TEXT = "fuck you"
+local GENERATE_FRAMES = false
+local TEXT = "fuck you"
 local PERIOD = 10
 local MAX_PERIOD = 5
 
@@ -62,18 +62,6 @@ local UpdatePosition = function (point, dt)
     end
 end
 
-OnStart = function ()
-    particles = Text.build_particles_with_width(TEXT, resolution.x)
-    local goal = Vector2(0, (resolution.y - particles.height) / 2)
-
-    for i, pt in ipairs(particles) do
-        pt.goal = goal + pt.offset
-        pt.position = effect.position(pt)
-        pt.delta = effect.delta(pt)
-        pt.color = effect.color and effect.color(pt) or COLOR
-    end
-end
-
 local Update = function (dt)
     background:draw()
     for _,pt in ipairs(particles) do
@@ -81,10 +69,22 @@ local Update = function (dt)
         RenderSimple(pt.position, pt.color, pt.radius)
     end
 end
-Draw = Update
 
-if GENERATE_FRAMES then
-    Draw = function ()
+return {
+    OnStart = function ()
+        particles = Text.build_particles_with_width(TEXT, resolution.x)
+        local goal = Vector2(0, (resolution.y - particles.height) / 2)
+
+        for i, pt in ipairs(particles) do
+            pt.goal = goal + pt.offset
+            pt.position = effect.position(pt)
+            pt.delta = effect.delta(pt)
+            pt.color = effect.color and effect.color(pt) or COLOR
+        end
+    end,
+
+    
+    Draw = not GENERATE_FRAMES and Update or function ()
         local FPS = 50
         local LENGTH = 7
         local frames_count = FPS * LENGTH
@@ -94,7 +94,5 @@ if GENERATE_FRAMES then
             coroutine.yield()
         end
         Quit()
-    end
-end
-
-LockTable(_G)
+    end,
+}

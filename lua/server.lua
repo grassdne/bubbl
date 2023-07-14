@@ -8,25 +8,6 @@ local server = {}
 local config_html = ""
 local tweak
 
-local index = [[
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bubbl</title>
-  <script src="main.js" defer></script>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <button id="reload">Hot Reload</button>
-  <div id="module-tweaks">
-    %s
-  </div>
-</body>
-</html>
-]]
-
 local port = 3636
 
 local http_server = require "http.server"
@@ -47,17 +28,21 @@ local BuildHeaders = function (stream, status, content_type, close)
     assert(stream:write_headers(res_headers, close))
 end
 
+local GetValue = function (var)
+    return Result(var.value) or tweak.vars[var.id]
+end
+
 local BuildConfigItem = function (var)
     if var.type == "range" then
         return (string.gsub([[<div>
-            <label for="$id">$name</label></div>
-            <input type="range" id="$id" name="$id" min="$min" max="$max" value="$value" step="$step" class="config">
+            <label for="$id">$name</label>
+            <input type="range" id="$id" name="$id" min="$min" max="$max" value="$value" step="$step" class="config"></div>
         ]], "%$(%w+)", {
             id=Result(var.id),
             min=Result(var.min),
             max=Result(var.max),
             name=Result(var.name),
-            value=Result(var.value) or tweak.vars[var.id],
+            value=GetValue(var),
             step=Result(var.step) or "any",
         }))
 
@@ -97,8 +82,7 @@ local function reply(myserver, stream) -- luacheck: ignore 212
 
     if path == "/" then
         BuildHeaders(stream, 200, "text/html")
-        local content = string.format(index, ConfigHtml())
-        assert(stream:write_chunk(content, true))
+        assert(stream:write_body_from_file(assert(io.open("./web/index.html"))))
 
     elseif path == "/main.js" then
         BuildHeaders(stream, 200, "text/javascript")
@@ -139,14 +123,36 @@ local function reply(myserver, stream) -- luacheck: ignore 212
         local callback = assert(tweak[id].callback, "action missing callback")
         callback()
 
+    elseif path == "/api/update" and req_method == "POST" then
+        BuildHeaders(stream, 200, "application/json")
+        local s = "{"
+        for i = 1, #tweak do
+            local value = GetValue(tweak[i])
+            if value then
+                s = s .. "\""..tweak[i].id.."\": \""..tostring(value).."\" "
+                if i < #tweak then s = s .. "," end
+            end
+        end
+        s = s .. "}"
+        assert(stream:write_chunk(s, true))
+
     elseif path == "/action/reload" and req_method == "POST" then
         BuildHeaders(stream, 200, "text/plain", true)
         local loader = require "loader"
         loader.HotReload()
 
+    elseif path == "/api/module" and req_method == "POST" then
+        local name = stream:get_body_as_string(0.01)
+        local loader = require "loader"
+        loader.LoadModule(name)
+        BuildHeaders(stream, 200, "text/html")
+        local html = ConfigHtml()
+        assert(stream:write_chunk(html, true))
+
+
     else
         BuildHeaders(stream, 404, "text/html")
-        assert(stream:write_chunk("Error 404"))
+        assert(stream:write_chunk("Error 404", true))
     end
 
 end
@@ -183,11 +189,17 @@ function server:close()
 end
 
 function server:MakeConfig(_tweak)
-    tweak = _tweak
+    tweak = _tweak or {}
+    tweak.vars = tweak.vars or {}
     for i,v in ipairs(tweak) do
         -- use tweak as hash map too
         tweak[v.id] = v
     end
 end
+
+-- Hot reload
+if TheServer then TheServer:close() end
+
+TheServer = server
 
 return server

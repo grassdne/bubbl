@@ -1,5 +1,3 @@
-require "jit.p".start()
-
 local bubbles = {}
 local pop_effects = {}
 local cursor_bubble

@@ -7,8 +7,7 @@ local FileExists = function (name)
 end
 
 loader.LoadModule = function (module)
-    if TheServer then TheServer:close() end -- hot reload
-    TheServer = require "server"
+    require "server"
 
     local module_name_lua = "modules/"..module..".lua"
     local module_name_c = "./modules/"..module..".so"
@@ -49,9 +48,7 @@ loader.LoadModule = function (module)
 
     loader.active_module.source = module
     loader.Callback("OnStart")
-    if loader.active_module.tweak then
-        TheServer:MakeConfig(loader.active_module.tweak)
-    end
+    TheServer:MakeConfig(loader.active_module.tweak)
     return loader.active_module
 end
 
@@ -59,7 +56,7 @@ loader.HotReload = function (module)
     ClearShaderCache()
     -- Unlock global table
     setmetatable(_G, nil)
-    package.loaded["server"] = nil
+    --package.loaded["server"] = nil
     loader.LoadModule(assert(loader.active_module and loader.active_module.source))
 end
 

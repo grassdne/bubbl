@@ -17,14 +17,15 @@ button {
 	margin: 2em 10px;
 	border: none;
     color: var(--fg);
+    border-radius: 4px;
     background-color: hsl(267 33% 0%);
 }
 
 button:hover {
-    background-color: var(--hl);
+    background-color: hsl(267 33% 10%);
 }
 button:active {
-    background-color: hsl(267 33% 20%);
+    background-color: hsl(267 33% 15%);
 }
 
 #module-tweaks {
@@ -36,4 +37,10 @@ button:active {
 
 #module-tweaks > * {
     margin-top: 2em;
+}
+
+#modules {
+	margin-left: auto;
+	margin-right: auto;
+	width: fit-content;
 }
