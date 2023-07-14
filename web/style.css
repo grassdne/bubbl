@@ -10,15 +10,14 @@ input[type=range] {
     width: 100%;
 }
 
-
-
 button {
-	padding: 10px;
+	padding: 20px;
 	margin: 2em 10px;
 	border: none;
-    color: var(--fg);
-    border-radius: 4px;
-    background-color: hsl(267 33% 0%);
+	color: var(--fg);
+	border-radius: 10px;
+	background-color: hsl(267 33% 0%);
+	font-size: 20px;
 }
 
 button:hover {
