@@ -1,5 +1,7 @@
 async function requestUpdate() {
-    const response = await fetch("/api/update", { method: "POST" });
+    const response = await fetch("/api/update", {
+        method: "POST",
+    });
     const values = await response.json();
     for (const id in values) {
         const v = values[id];
@@ -52,7 +54,7 @@ function LoadModule(module) {
 }
 
 {
-    const EFFECTS = [ "elasticbubbles", "texteffects", "rainbow" ];
+    const EFFECTS = [ "elasticbubbles", "texteffects", "rainbow", "swirl" ];
 
     const moduleOptions = document.getElementById("modules");
 

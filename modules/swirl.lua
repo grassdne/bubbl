@@ -1,5 +1,3 @@
-Title "Swirl"
-
 local GENERATE_FRAMES = false
 
 local sin, cos, deg, atan2 = math.sin, math.cos, math.deg, math.atan2
@@ -34,18 +32,10 @@ local Render = function(theta)
     end
 end
 
-
 local bg_width, bg_height = 512, 512
 local background = CreateCanvas(bg_width, bg_height)
-OnStart = function()
-    for y=0, bg_height-1 do
-        for x=0, bg_width-1 do
-            local theta = atan2(y - bg_height/2, x - bg_width/2)
-            background:set(x, y, Color.hsl(deg(theta), 1, 0.5, BG_ALPHA))
-        end
-    end
-end
 
+local Draw
 if GENERATE_FRAMES then
     local FPS = 45
     local frames_count = FPS * PERIOD
@@ -64,4 +54,15 @@ else
     end
 end
 
-LockTable(_G)
+return {
+    title = "Swirl",
+    Draw = Draw,
+    OnStart = function()
+        for y=0, bg_height-1 do
+            for x=0, bg_width-1 do
+                local theta = atan2(y - bg_height/2, x - bg_width/2)
+                background:set(x, y, Color.hsl(deg(theta), 1, 0.5, BG_ALPHA))
+            end
+        end
+    end
+}
