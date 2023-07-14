@@ -2,7 +2,7 @@ local Text = require "text"
 
 local CONFIG = "coalesce"
 local GENERATE_FRAMES = false
-local TEXT = "fuck you"
+local TEXT = "bubbl"
 local PERIOD = 10
 local MAX_PERIOD = 5
 
