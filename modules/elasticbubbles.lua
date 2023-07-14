@@ -199,7 +199,7 @@ return {
         { id="BUBBLE_LIGHTNESS", name="Lightness", type="range", min=0, max=1 },
         { id="BUBBLE_SPEED_FACTOR", name="Bubble Speed", type="range", min=0, max=10 },
         { id="BUBBLE_SIZE_FACTOR", name="Bubble Size", type="range", min=0, max=2 },
-        { id="COUNT", name="Count", default=STARTING_BUBBLE_COUNT,
+        { id="COUNT", name="Bubble Count", value=function () return #bubbles end,
           type="range", min=0, max=100, step=1, callback=function (count)
             for i=#bubbles+1, count do SpawnBubble() end
             for i=#bubbles, count+1, -1 do PopBubble(i) end

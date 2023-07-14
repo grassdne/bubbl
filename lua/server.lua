@@ -32,6 +32,11 @@ local port = 3636
 local http_server = require "http.server"
 local http_headers = require "http.headers"
 
+local Result = function (v, ...)
+    if type(v) == "function" then return v(...) end
+    return v
+end
+
 local BuildHeaders = function (stream, status, content_type, close)
     if close == nil then close = false end
 
@@ -48,12 +53,12 @@ local BuildConfigItem = function (var)
             <label for="$id">$name</label></div>
             <input type="range" id="$id" name="$id" min="$min" max="$max" value="$value" step="$step" class="config">
         ]], "%$(%w+)", {
-            id=var.id,
-            min=var.min,
-            max=var.max,
-            name=var.name,
-            value=var.default or tweak.vars[var.id],
-            step=var.step or "any",
+            id=Result(var.id),
+            min=Result(var.min),
+            max=Result(var.max),
+            name=Result(var.name),
+            value=Result(var.value) or tweak.vars[var.id],
+            step=Result(var.step) or "any",
         }))
 
     elseif var.type == "action" then
