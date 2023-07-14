@@ -1,7 +1,9 @@
 -- Render text with a bunch of circles!
 
-SVG_WIDTH = 153
-SVG_HEIGHT = 256
+local TextRenderer = {}
+
+TextRenderer.GLYPH_WIDTH = 153
+TextRenderer.GLYPH_HEIGHT = 256
 
 local glyph_files = {
     [" "] = "_space.svg",
@@ -28,12 +30,11 @@ end
 
 local glyphs = {}
 
-local TextRenderer = {}
 
 local next_svg_circle = function (get_match)
     local cx, cy, r, fill = get_match()
     if cx then
-        return Vector2(tonumber(cx), SVG_HEIGHT - tonumber(cy)),
+        return Vector2(tonumber(cx), TextRenderer.GLYPH_HEIGHT - tonumber(cy)),
         tonumber(r),
         Color.hex(fill)
     end
@@ -83,11 +84,11 @@ end
 ---@param width number
 ---@param color Color|nil color of text, defaults to black
 TextRenderer.put_char_with_width = function(pos, char, width, color)
-    put_char_with_scale(pos, char, width / SVG_WIDTH, color)
+    put_char_with_scale(pos, char, width / TextRenderer.GLYPH_WIDTH, color)
 end
 
 local StringScale = function (str, width)
-    return width / (#str * SVG_WIDTH)
+    return width / (#str * TextRenderer.GLYPH_WIDTH)
 end
 
 ---@param pos Vector2 screen position of bottom left of rendered text
@@ -97,10 +98,10 @@ end
 TextRenderer.put_string_with_width = function(pos, str, width, color)
     local scale = StringScale(str, width)
     for i=1, #str do
-        local x = pos.x + (i-1) * scale * SVG_WIDTH
+        local x = pos.x + (i-1) * scale * TextRenderer.GLYPH_WIDTH
         put_char_with_scale(Vector2(x, pos.y), str:sub(i,i), scale, color)
     end
-    return scale * SVG_HEIGHT
+    return scale * TextRenderer.GLYPH_HEIGHT
 end
 
 ---@param str string to render on screen
@@ -112,7 +113,7 @@ TextRenderer.build_particles_with_width = function (str, width)
     for i=1, #str do
         local c = str:sub(i,i)
         local glyph = Glyph(c)
-        local x = (i-1) * scale * SVG_WIDTH
+        local x = (i-1) * scale * TextRenderer.GLYPH_WIDTH
         for _,circle in ipairs(glyph) do
             table.insert(particles, {
                 offset = Vector2(x, 0) + circle.pos * scale,
@@ -121,7 +122,7 @@ TextRenderer.build_particles_with_width = function (str, width)
         end
     end
     -- metadata
-    particles.height = scale * SVG_HEIGHT
+    particles.height = scale * TextRenderer.GLYPH_HEIGHT
     return particles
 end
 

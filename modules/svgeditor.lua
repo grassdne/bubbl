@@ -25,8 +25,8 @@ local draw = require "draw"
 
 local get_draw_box_base_position = function ()
     local center = resolution / 2
-    local width = SVG_WIDTH * scale
-    local height = SVG_HEIGHT * scale
+    local width = TextRenderer.GLYPH_WIDTH * scale
+    local height = TextRenderer.GLYPH_HEIGHT * scale
     return Vector2(center.x - width/2, center.y - height/2)
 end
 
@@ -78,7 +78,7 @@ Draw = function(dt)
     end
 
     local base = get_draw_box_base_position()
-    draw.rect_outline(base.x, base.y, SVG_WIDTH*scale, SVG_HEIGHT*scale, WEBCOLORS.BLACK)
+    draw.rect_outline(base.x, base.y, TextRenderer.GLYPH_WIDTH*scale, TextRenderer.GLYPH_HEIGHT*scale, WEBCOLORS.BLACK)
 
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
@@ -140,13 +140,13 @@ local fmt = string.format
 local SaveToSVG = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
-    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", SVG_WIDTH, SVG_HEIGHT))
+    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", TextRenderer.GLYPH_WIDTH, TextRenderer.GLYPH_HEIGHT))
     
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:unpack()
-        if x > 0 and x < SVG_WIDTH and y > 0 and y < SVG_HEIGHT then
+        if x > 0 and x < TextRenderer.GLYPH_WIDTH and y > 0 and y < TextRenderer.GLYPH_HEIGHT then
             f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                    x, SVG_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
+                    x, TextRenderer.GLYPH_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
         end
     end
 
