@@ -15,6 +15,18 @@ local VAR = {
     PARTICLE_ENTITY = "bubble",
 }
 
+local bg_width, bg_height = 512, 512
+local background = CreateCanvas(bg_width, bg_height)
+
+local BuildBackground = function()
+    for y=0, bg_height-1 do
+        for x=0, bg_width-1 do
+            local theta = atan2(y - bg_height/2, x - bg_width/2)
+            background:set(x, y, Color.hsl(deg(theta), 1, 0.5, BG_ALPHA))
+        end
+    end
+end
+
 local Render = function(theta)
     local delta_radius = VAR.RING_SPACING / VAR.COUNT_PER_RING
     local delta_theta = 2*PI / VAR.COUNT_PER_RING
@@ -39,9 +51,6 @@ local Render = function(theta)
         end
     end
 end
-
-local bg_width, bg_height = 512, 512
-local background = CreateCanvas(bg_width, bg_height)
 
 local Draw
 if GENERATE_FRAMES then
@@ -75,12 +84,5 @@ return {
         --{ id="SATURATION", name="Saturation", type="range", min=0, max=1 },
     },
     Draw = Draw,
-    OnStart = function()
-        for y=0, bg_height-1 do
-            for x=0, bg_width-1 do
-                local theta = atan2(y - bg_height/2, x - bg_width/2)
-                background:set(x, y, Color.hsl(deg(theta), 1, 0.5, BG_ALPHA))
-            end
-        end
-    end
+    OnStart = BuildBackground()
 }
