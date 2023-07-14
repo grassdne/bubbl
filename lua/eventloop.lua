@@ -27,13 +27,12 @@ while not ShouldQuit() do
     UpdateCurrentTick()
     last_time = now
 
-    assert(Draw, "missing Draw callback")
     ClearScreen()
 
     RunScheduler()
     TheServer:update()
 
-    draw = draw or coroutine.create(Draw)
+    draw = draw or coroutine.create(assert(loader.active_module.Draw, "module missing Draw callback"))
     local ok, err = coroutine.resume(draw, dt)
 
     if not ok then

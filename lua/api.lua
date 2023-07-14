@@ -592,6 +592,8 @@ math.clamp = function(v, min, max)
     return math.max(min, math.min(max, v))
 end
 
+math.sign = function(v) return v < 0 and -1 or v > 0 and 1 or 0 end
+
 MousePosition = function ()
     return C.get_mouse_position(window)
 end
@@ -604,14 +606,29 @@ end
 
 dbg = function(...) print(...) return ... end
 
-local locked_mt = {
-    __newindex = function(t, k, v)
-        error("attempt to set undeclared global \""..k.."\"", 2)
-    end;
-    __index = function(t, k)
-        error("attempt to get undeclared global \""..k.."\"", 2)
-    end;
-}
-LockTable = function(t)
-    setmetatable(t, locked_mt)
+-- The most barebones of class implementations
+Parent = function (t)
+    t.__index = t
+    return t
+end
+
+--TODO: fully implement
+Dump = function (t)
+    print("-------------------")
+    for k,v in pairs(t) do print(k,v) end
+    print("-------------------")
+end
+
+----------------------------
+-------- Config vars -------
+----------------------------
+
+Tweak = function (config)
+    local t = {}
+    for id, options in pairs(config) do
+        t[id] = options.default or options.callback
+        options["id"] = id
+    end
+    t._config = config
+    return t
 end

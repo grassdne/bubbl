@@ -6,7 +6,6 @@ local FileExists = function (name)
     return f ~= nil
 end
 
-local current_module
 loader.LoadModule = function (module)
     if TheServer then TheServer:close() end -- hot reload
     TheServer = require "server"
@@ -20,7 +19,8 @@ loader.LoadModule = function (module)
             print(err)
             return;
         end
-        mod()
+        -- TODO: DEPRECATED: modules putting info in global table
+        loader.active_module = mod() or _G
     elseif FileExists(module_name_c) then
         local ffi = require "ffi"
         -- Little hack to unload the cached c library
@@ -33,9 +33,11 @@ loader.LoadModule = function (module)
         _loaded_c_module = lib
         ffi.cdef("void init(Window *window)")
         lib.init(window)
-        Draw = function(dt)
-            lib.on_update(dt)
-        end
+        loader.active_module = {
+            Draw = function(dt)
+                lib.on_update(dt)
+            end,
+        }
     else
         print("Could not find module "..module)
         print("Tried: "..module_name_lua)
@@ -45,8 +47,12 @@ loader.LoadModule = function (module)
         return;
     end
 
-    current_module = module
+    loader.active_module.source = module
     loader.Callback("OnStart")
+    if loader.active_module.tweak then
+        TheServer:MakeConfig(loader.active_module.tweak)
+    end
+    return loader.active_module
 end
 
 loader.HotReload = function (module)
@@ -54,12 +60,12 @@ loader.HotReload = function (module)
     -- Unlock global table
     setmetatable(_G, nil)
     package.loaded["server"] = nil
-    loader.LoadModule(assert(current_module))
+    loader.LoadModule(assert(loader.active_module and loader.active_module.source))
 end
 
 -- optional, asyncronous, protected call
 loader.Callback = function(name, ...)
-    local fn = rawget(_G, name)
+    local fn = rawget(loader.active_module, name)
     if fn then
         local co = coroutine.create(fn)
         local ok, err = coroutine.resume(co, ...)
