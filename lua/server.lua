@@ -172,7 +172,7 @@ local myserver = assert(http_server.listen {
 
 local onstart = function ()
     local bound_port = select(3, myserver:localname())
-    assert(io.stderr:write(string.format("Now listening on port %d\n", bound_port)))
+    print(string.format("Web interface at http://0.0.0.0:%d", bound_port))
 end
 local started = false
 
