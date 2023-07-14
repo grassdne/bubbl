@@ -1,5 +1,3 @@
-Title "🌈🌈🌈"
-
 local PERIOD = 4.5
 local MIN_RADIUS = 10
 local MAX_RADIUS = 20
@@ -12,7 +10,7 @@ local SIZE_DELTA = 75
 local START_POS_RIGHT = WRAPAROUND_BUFFER * SPACING
 local END_POS_LEFT = -WRAPAROUND_BUFFER * SPACING
 
-particles = {}
+local particles = {}
 
 -- radius and y position are randomized
 -- but color and x position are passed in
@@ -37,43 +35,45 @@ end
 
 local last_mouse_position = MousePosition()
 
-Draw = function(dt)
-    -- Update and draw particles
-    for i,part in ipairs(particles) do
-        local length = resolution.x + START_POS_RIGHT - END_POS_LEFT
-        part.position:delta_x(-length / PERIOD * dt)
-        if part.position.x < END_POS_LEFT then
-            -- Jump back to the other end
-            particles[i] = gen_particle(part.color, part.position.x + length)
-        end
-        RenderPop(part.position, part.color, part.radius, 0)
-    end
-
-    -- Grow particles in proximity to cursor
-    local mouse = MousePosition()
-    -- TODO: We don't want to do anything if the mouse is outside the window
-    -- the following guard doesn't actually do any good
-    if (mouse.x ~= last_mouse_position.x or mouse.y ~= last_mouse_position.y)
-        and mouse.x > 0 and mouse.x < resolution.x
-        and mouse.y > 0 and mouse.y < resolution.y
-    then
-        for _,part in ipairs(particles) do
-            local dist = mouse:dist(part.position)
-            if dist < MOUSE_EFFECT_RADIUS then
-                local proximity = 1 - dist / MOUSE_EFFECT_RADIUS
-                part.radius = math.min(MAX_ATTAINED_RADIUS, part.radius + SIZE_DELTA * dt)
-            end
-        end
-    end
-    last_mouse_position = mouse
-end
-
-OnWindowResize = function(w, h)
-    -- Clear particles
-    particles = {}
-    gen_particle_field()
-end
-
-LockTable(_G)
-
 gen_particle_field()
+
+return {
+    title = "🌈🌈🌈",
+
+    OnWindowResize = function(w, h)
+        -- Clear particles
+        particles = {}
+        gen_particle_field()
+    end,
+
+    Draw = function(dt)
+        -- Update and draw particles
+        for i,part in ipairs(particles) do
+            local length = resolution.x + START_POS_RIGHT - END_POS_LEFT
+            part.position:delta_x(-length / PERIOD * dt)
+            if part.position.x < END_POS_LEFT then
+                -- Jump back to the other end
+                particles[i] = gen_particle(part.color, part.position.x + length)
+            end
+            RenderPop(part.position, part.color, part.radius, 0)
+        end
+
+        -- Grow particles in proximity to cursor
+        local mouse = MousePosition()
+        -- TODO: We don't want to do anything if the mouse is outside the window
+        -- the following guard doesn't actually do any good
+        if (mouse.x ~= last_mouse_position.x or mouse.y ~= last_mouse_position.y)
+            and mouse.x > 0 and mouse.x < resolution.x
+            and mouse.y > 0 and mouse.y < resolution.y
+            then
+                for _,part in ipairs(particles) do
+                    local dist = mouse:dist(part.position)
+                    if dist < MOUSE_EFFECT_RADIUS then
+                        local proximity = 1 - dist / MOUSE_EFFECT_RADIUS
+                        part.radius = math.min(MAX_ATTAINED_RADIUS, part.radius + SIZE_DELTA * dt)
+                    end
+                end
+            end
+            last_mouse_position = mouse
+        end
+}
