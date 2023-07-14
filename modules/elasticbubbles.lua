@@ -32,6 +32,13 @@ local VAR = {
     BUBBLE_SIZE_FACTOR = 1,
 }
 
+local RandomVelocity = function()
+    local Dimension = function()
+        return random.sign() * random.vary(BUBBLE_SPEED_BASE, BUBBLE_SPEED_VARY)
+    end
+    return Vector2(Dimension(), Dimension())
+end
+
 local RandomRadius = function()
     return random.vary(BUBBLE_RAD_BASE, BUBBLE_RAD_VARY)
 end
@@ -55,22 +62,19 @@ local Particle = Parent {
 }
 
 local Bubble = Parent {
-    New = function (Self, position, radius)
+    New = function (Self, position, velocity, radius)
         local p = setmetatable({}, Self)
         p.position = position
         p.radius = radius
         p.hue = math.random()
-        p.vfactor = Vector2(math.random(), math.random())
+        p.velocity = velocity
         return p
     end,
     Color = function (bubble)
         return Color.hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS)
     end,
     Velocity = function (bubble)
-        local vary = BUBBLE_SPEED_VARY * VAR.BUBBLE_SPEED_FACTOR
-        local base = BUBBLE_SPEED_BASE * VAR.BUBBLE_SPEED_FACTOR
-        local sign = Vector2(math.sign(bubble.vfactor.x), math.sign(bubble.vfactor.y))
-        return bubble.vfactor * vary + sign * base
+        return bubble.velocity * VAR.BUBBLE_SPEED_FACTOR
     end,
     Radius = function (bubble)
         return bubble.radius * VAR.BUBBLE_SIZE_FACTOR
@@ -81,7 +85,7 @@ local Bubble = Parent {
 }
 
 local SpawnBubble = function ()
-    table.insert(bubbles, Bubble:New(RandomPosition(), RandomRadius()))
+    table.insert(bubbles, Bubble:New(RandomPosition(), RandomVelocity(), RandomRadius()))
 end
 
 local CreatePopEffect = function (center, color, size)
@@ -124,7 +128,7 @@ local IsCollision = function (a, b)
 end
 
 local SwapVelocities = function (a, b)
-    a.vfactor, b.vfactor = b.vfactor, a.vfactor
+    a.velocity, b.velocity = b.velocity, a.velocity
 end
 
 local SeparateBubbles = function (a, b)
@@ -152,12 +156,12 @@ local MoveBubble = function (bubble, dt)
     local max_y = resolution.y - bubble:Radius()
     local max_x = resolution.x - bubble:Radius()
     if next.x < bubble:Radius() or next.x > max_x then
-        bubble.vfactor.x = -bubble.vfactor.x
+        bubble.velocity.x = -bubble.velocity.x
     else
         bubble.position.x = next.x
     end
     if next.y < bubble:Radius() or next.y > max_y then
-        bubble.vfactor.y = -bubble.vfactor.y
+        bubble.velocity.y = -bubble.velocity.y
     else
         bubble.position.y = next.y
     end
@@ -177,7 +181,7 @@ local Press = function ()
     if i then
         PopBubble(i)
     else
-        cursor_bubble = Bubble:New(MousePosition(), BUBBLE_RAD_BASE)
+        cursor_bubble = Bubble:New(MousePosition(), RandomVelocity(), BUBBLE_RAD_BASE)
     end
 end
 
@@ -200,7 +204,6 @@ return {
             for i=#bubbles+1, count do
                 SpawnBubble()
             end
-            print(count, #bubbles)
             for i=#bubbles, count+1, -1 do
                 PopBubble(i)
             end
