@@ -4,11 +4,11 @@ local GENERATE_FRAMES = false
 local PERIOD = 10
 local MAX_PERIOD = 5
 
-local COLOR = Color.hsl(300, 1.0, 0.5)
 
 local VAR = {
     TEXT = "bubbl",
     EFFECT = "coalesce",
+    COLOR = Color.hsl(300, 1.0, 0.5),
 }
 
 local EFFECTS = {
@@ -30,7 +30,7 @@ local EFFECTS = {
             local TIME = 5
             return (pt.goal - pt.position) / TIME
         end,
-        color = function (pt)
+        _color = function (pt)
             do return Color.hsl(300, 1.0, 0.5) end
             local percent = pt.goal.x / resolution.x
             return Color.hsl(percent*360, 1.0, 0.5)
@@ -87,7 +87,7 @@ local BuildText = function ()
         pt.goal = goal + pt.offset
         pt.position = effect.position(pt)
         pt.delta = effect.delta(pt)
-        pt.color = effect.color and effect.color(pt) or COLOR
+        pt.color = effect.color and effect.color(pt) or VAR.COLOR
     end
 end
 
@@ -98,6 +98,7 @@ return {
         vars = VAR,
         { id="TEXT", name="Text", type="string", callback=BuildText },
         { id="EFFECT", name="Effect", type="options", callback=BuildText, options = { "in_from_left", "coalesce", "pour" } },
+        { id="COLOR", name="Color", type="color", callback=BuildText },
     },
 
     OnStart = BuildText,
