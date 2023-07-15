@@ -41,6 +41,6 @@ set -x # Echo commmand
 cargo build --manifest-path=deps/gifski/Cargo.toml --release --lib
 
 # Build lua-http
-#luarocks --lua-version 5.1 --tree deps/lua_modules install http luafilesystem
+#luarocks --lua-version 5.1 --tree deps/lua_modules install http
 
 ${CC:=cc} -o bubbl $CSRC $CFLAGS $CLIBS 
