@@ -69,6 +69,16 @@ local BuildConfigItem = function (var)
         s = s .. "</div></fieldset>"
         return s
 
+    elseif var.type == "string" then
+        return Substitute([[<div>
+          <label for="$id">$name</label>
+          <input type="text" id="$id" name="$id" value="$default" class="config">
+        </div>]], {
+            id=var.id,
+            name=var.name,
+            default=GetValue(var),
+        })
+
     elseif var.type == "action" then
         return (string.gsub([[<div>
             <button type="button" id="$id" class="config">$name</button>
@@ -132,7 +142,6 @@ local function reply(myserver, stream) -- luacheck: ignore 212
         assert(tweak[id], "received unknown config var id")
         local number = tonumber(value)
         if number then
-            BuildHeaders(stream, 200, "text/plain", true)
             if tweak.vars[id] then
                 tweak.vars[id] = number
             end
@@ -147,6 +156,8 @@ local function reply(myserver, stream) -- luacheck: ignore 212
                 tweak[id].callback(value)
             end
         end
+
+        BuildHeaders(stream, 200, "text/plain", true)
 
     elseif path == "/api/tweaks" and req_method == "GET" then
         BuildHeaders(stream, 200, "text/html")
