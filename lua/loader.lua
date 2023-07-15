@@ -48,7 +48,7 @@ loader.LoadModule = function (module)
 
 
     Title(assert(loader.active_module.title, "module missing title!"))
-
+    loader.active_module.source = module
     loader.Callback("OnStart")
     TheServer:MakeConfig(loader.active_module.tweak)
     return loader.active_module
