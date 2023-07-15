@@ -76,8 +76,8 @@ return {
     tweak = {
         vars = VAR,
 
-        { id="RING_SPACING", name="Ring Spacing", type="range", min=60, max=180 },
-        { id="COUNT_PER_RING", name="Particles Per Ring", type="range", min=50, max=150 },
+        { id="RING_SPACING", name="Ring Spacing", type="range", min=50, max=360 },
+        { id="COUNT_PER_RING", name="Particles Per Ring", type="range", min=30, max=150 },
         { id="PARTICLE_ENTITY", name="Particle Type", type="options", options = { "bubble", "pop" } },
         { id="LIGHTNESS", name="Lightness", type="range", min=0, max=1 },
         -- Can't do much anything interesting with Saturation
