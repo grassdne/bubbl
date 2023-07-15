@@ -34,6 +34,7 @@ local vec2_mt = {
     delta_x    = function (v, dx) v.x = v.x + dx end,
     delta_y    = function (v, dy) v.y = v.y + dy end,
     unpack     = function(v) return tonumber(v.x), tonumber(v.y) end,
+    angle      = function (theta) return Vector2(math.cos(theta), math.sin(theta)) end,
 }
 vec2_mt.__index = vec2_mt
 

@@ -19,6 +19,7 @@ local POP_LIFETIME = 1.0
 local POP_PT_RADIUS = 7.0
 local POP_PT_RADIUS_DELTA = 4.0
 local TRANSFORM_TIME = 1.0
+local POP_PARTICLE_SPEED = 300
 
 local BUBBLE_SPEED_VARY = 100
 local BUBBLE_SPEED_BASE = 100
@@ -86,13 +87,17 @@ local SpawnBubble = function ()
     table.insert(bubbles, Bubble:New(RandomPosition(), RandomVelocity(), RandomRadius()))
 end
 
-local CreatePopEffect = function (center, color, size)
+local ParticleVelocity = function (bubble_velocity)
+    return Vector2.angle(math.random()*2*math.pi) * POP_PARTICLE_SPEED + bubble_velocity
+end
+
+local CreatePopEffect = function (center, color, size, bubble_velocity)
     local pop = {
         pt_radius = POP_PT_RADIUS,
         color = color,
 
         -- Center bubble
-        [1] = Particle:New(center, Vector2(0,0))
+        [1] = Particle:New(center, ParticleVelocity(bubble_velocity))
     }
 
     local distance = 0
@@ -103,7 +108,11 @@ local CreatePopEffect = function (center, color, size)
         for i = 1, num_particles_in_layer do
             local theta = 2*PI / num_particles_in_layer * i
             local dir = Vector2(math.cos(theta), math.sin(theta))
-            local velocity = dir * (POP_EXPAND_MULT * distance / POP_LIFETIME)
+
+            -- Before velocity was in direction dir
+            --local velocity = dir * (POP_EXPAND_MULT * distance / POP_LIFETIME)
+            -- instead make it random
+            local velocity = ParticleVelocity(bubble_velocity)
             table.insert(pop, Particle:New(dir * distance + center, velocity))
         end
     end
@@ -112,7 +121,7 @@ local CreatePopEffect = function (center, color, size)
 end
 
 local PopEffectFromBubble = function (bubble)
-    table.insert(pop_effects, CreatePopEffect(bubble.position, bubble:Color(), bubble:Radius()))
+    table.insert(pop_effects, CreatePopEffect(bubble.position, bubble:Color(), bubble:Radius(), bubble:Velocity()))
 end
 
 local PopBubble = function(i)
