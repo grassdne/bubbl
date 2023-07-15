@@ -25,31 +25,30 @@ function attachListeners() {
     for (const config of configs) {
         if (config.type == "range") {
             config.oninput = (e) => {
-                fetch("/api/tweak", {
+                fetch("/api/tweak/number", {
                     method: "POST",
                     body: `${config.getAttribute("id")}=${config.value}`,
                 })
             }
         } else if (config.type == "radio") {
             config.oninput = () => {
-                fetch("/api/tweak", {
+                fetch("/api/tweak/string", {
                     method: "POST",
                     body: `${config.name}=${config.value}`,
                 })
             }
         } else if (config.type == "text") {
             config.oninput = (e) => {
-                fetch("/api/tweak", {
+                fetch("/api/tweak/string", {
                     method: "POST",
                     body: `${config.name}=${config.value}`,
                 })
             }
-        } else if (config.type == "button") {
-            config.onclick = (e) => {
-                console.log("post", config.getAttribute("id"))
-                fetch("/api/action", {
+        } else if (config.type == "color") {
+            config.oninput = (e) => {
+                fetch("/api/tweak/color", {
                     method: "POST",
-                    body: config.getAttribute("id"),
+                    body: `${config.name}=${config.value}`
                 })
             }
         } else {

@@ -79,13 +79,25 @@ local BuildConfigItem = function (var)
             default=GetValue(var),
         })
 
+    elseif var.type == "color" then
+        local default = GetValue(var)
+        if default and default.to_hex_string then default = default:to_hex_string() end
+        return Substitute([[<div>
+          <label for="$id">$name</label>
+          <input type="color" id="$id" name="$id" value="$default" class="config">
+        </div>]], {
+            id=var.id,
+            name=var.name,
+            default=default,
+        })
+
     elseif var.type == "action" then
         return (string.gsub([[<div>
             <button type="button" id="$id" class="config">$name</button>
         ]], "%$(%w+)", var))
 
     else
-        print(strint.format("Unknown twek type `%s`", var.type))
+        print(string.format("Unknown tweak type `%s`", var.type))
         return "??"
     end
 end
@@ -96,6 +108,35 @@ local ConfigHtml = function ()
         table.insert(items, BuildConfigItem(v))
     end
     return table.concat(items)
+end
+
+local PerformTweak = function (stream, parser)
+    -- Get data
+    local body = stream:get_body_as_string(0.01)
+
+    -- All data is in format ID=something
+    local id, value = body:match("^([_%w]+)=(.*)$")
+    if not id or not tweak[id] then
+        print("Invalid tweak input: ", body)
+        BuildHeaders(stream, 400, "text/plain", true)
+    end
+
+    -- Apply parser to value
+    local result = parser(value)
+    if result then
+        -- Set the tweak variable, if provided
+        if tweak.vars[id] then
+            tweak.vars[id] = result
+        end
+        -- Call the tweak callback, if provided
+        if tweak[id].callback then
+            tweak[id].callback(result)
+        end
+        BuildHeaders(stream, 200, "text/plain", true)
+    else
+        print("Unable to parse value: " + value + "")
+        BuildHeaders(stream, 400, "text/plain", true)
+    end
 end
 
 local function reply(myserver, stream) -- luacheck: ignore 212
@@ -128,36 +169,14 @@ local function reply(myserver, stream) -- luacheck: ignore 212
         BuildHeaders(stream, 200, "text/css")
         assert(stream:write_body_from_file(assert(io.open("./web"..path))))
 
+    elseif path == "/api/tweak/number" and req_method == "POST" then
+        PerformTweak(stream, tonumber)
 
-    elseif path == "/api/tweak" and req_method == "POST" then
-        -- Get data
-        local body = stream:get_body_as_string(0.01)
+    elseif path == "/api/tweak/string" and req_method == "POST" then
+        PerformTweak(stream, tostring)
 
-        local id, value = body:match("^([_%w]+)=(.+)$")
-        if not id then
-            BuildHeaders(stream, 300, "text/plain", true)
-            error("could not parse body format")
-        end
-
-        assert(tweak[id], "received unknown config var id")
-        local number = tonumber(value)
-        if number then
-            if tweak.vars[id] then
-                tweak.vars[id] = number
-            end
-            if tweak[id].callback then
-                tweak[id].callback(number)
-            end
-        else
-            if tweak.vars[id] then
-                tweak.vars[id] = value
-            end
-            if tweak[id].callback then
-                tweak[id].callback(value)
-            end
-        end
-
-        BuildHeaders(stream, 200, "text/plain", true)
+    elseif path == "/api/tweak/color" and req_method == "POST" then
+        PerformTweak(stream, Color.hex)
 
     elseif path == "/api/tweaks" and req_method == "GET" then
         BuildHeaders(stream, 200, "text/html")
