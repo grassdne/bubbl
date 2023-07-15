@@ -1,12 +1,15 @@
 local Text = require "text"
 
-local CONFIG = "coalesce"
 local GENERATE_FRAMES = false
-local TEXT = "bubbl"
 local PERIOD = 10
 local MAX_PERIOD = 5
 
 local COLOR = Color.hsl(300, 1.0, 0.5)
+
+local VAR = {
+    TEXT = "bubbl",
+    EFFECT = "coalesce",
+}
 
 local EFFECTS = {
     in_from_left = {
@@ -17,6 +20,7 @@ local EFFECTS = {
             local MAX_TIME = 5
             return (pt.goal - pt.position):normalize() * resolution.x / MAX_TIME
         end,
+        length=7,
     },
     coalesce = {
         position = function ()
@@ -30,7 +34,8 @@ local EFFECTS = {
             do return Color.hsl(300, 1.0, 0.5) end
             local percent = pt.goal.x / resolution.x
             return Color.hsl(percent*360, 1.0, 0.5)
-        end
+        end,
+        length=7,
     },
     pour = {
         position = function (pt)
@@ -41,10 +46,9 @@ local EFFECTS = {
             local MAX_TIME = 5
             return (pt.goal - pt.position):normalize() * resolution.x / MAX_TIME
         end,
+        length=20,
     }
 }
-
-local effect = EFFECTS[CONFIG]
 
 local particles
 
@@ -62,37 +66,45 @@ end
 
 local Update = function (dt)
     background:draw()
+    local finished_count = 0
     for _,pt in ipairs(particles) do
         UpdatePosition(pt, dt)
+        if pt.goal == pt.position then finished_count = finished_count + 1 end
         RenderSimple(pt.position, pt.color, pt.radius)
+    end
+    return finished_count < #particles
+end
+
+local effect
+
+local BuildText = function ()
+    effect = EFFECTS[VAR.EFFECT]
+
+    particles = Text.build_particles_with_width(VAR.TEXT, resolution.x)
+    local goal = Vector2(0, (resolution.y - particles.height) / 2)
+
+    for i, pt in ipairs(particles) do
+        pt.goal = goal + pt.offset
+        pt.position = effect.position(pt)
+        pt.delta = effect.delta(pt)
+        pt.color = effect.color and effect.color(pt) or COLOR
     end
 end
 
 return {
     title = "Text Effects",
 
-    OnStart = function ()
-        particles = Text.build_particles_with_width(TEXT, resolution.x)
-        local goal = Vector2(0, (resolution.y - particles.height) / 2)
+    tweak = {
+        vars = VAR,
+        { id="TEXT", name="Text", type="string", callback=BuildText },
+        { id="EFFECT", name="Effect", type="options", callback=BuildText, options = { "in_from_left", "coalesce", "pour" } },
+    },
 
-        for i, pt in ipairs(particles) do
-            pt.goal = goal + pt.offset
-            pt.position = effect.position(pt)
-            pt.delta = effect.delta(pt)
-            pt.color = effect.color and effect.color(pt) or COLOR
-        end
-    end,
+    OnStart = BuildText,
 
-    
-    Draw = not GENERATE_FRAMES and Update or function ()
-        local FPS = 50
-        local LENGTH = 7
-        local frames_count = FPS * LENGTH
-        for i=0, frames_count-1 do
-            Update(1/FPS)
-            GifAddFrame("test.gif", i, i / FPS)
-            coroutine.yield()
-        end
-        Quit()
+    Draw = function (dt)
+        Update(dt)
+        -- TODO: GIFs
+        -- GifAddFrame("test.gif", i, i / FPS)
     end,
 }

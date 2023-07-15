@@ -37,6 +37,13 @@ function attachListeners() {
                     body: `${config.name}=${config.value}`,
                 })
             }
+        } else if (config.type == "text") {
+            config.oninput = (e) => {
+                fetch("/api/tweak", {
+                    method: "POST",
+                    body: `${config.name}=${config.value}`,
+                })
+            }
         } else if (config.type == "button") {
             config.onclick = (e) => {
                 console.log("post", config.getAttribute("id"))
