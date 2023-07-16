@@ -1,5 +1,10 @@
 #!/bin/env luajit
 
+local user_clib_dirs = os.getenv("BUBBL_CLIB_DIR") or ""
+local user_include_dirs = os.getenv("BUBBL_INCLUDE_DIR") or ""
+local gif_disabled = os.getenv("BUBBL_NO_GIF")
+local png_disabled = os.getenv("BUBBL_NO_PNG")
+
 local Message = function (type, s, ...)
     io.stderr:write(type, ": ", string.format(s, ...), '\n')
 end
@@ -15,8 +20,8 @@ end
 Read = function (...)
     local cmd = table.concat({ ... }, " ")
     print(cmd)
-    local f = io.popen(cmd)
-    local out = f:read("*l")
+    local f = assert(io.popen(cmd))
+    local out = f:read("*a"):gsub("\n$", "")
     if not f:close() then Error("running: %s",cmd) end
     return out
 end
@@ -30,18 +35,18 @@ end
 local pkgs = "luajit sdl2 glew"
 
 ----- LIBPNG -----
-local has_png = Execute("pkg-config --exists libpng zlib")
+local has_png = not png_disabled and Execute("pkg-config --exists libpng zlib")
 if has_png then
     pkgs = pkgs.." libpng zlib"
 else
-    Warning("missing libpng")
+    Warning("libpng cannot be installed")
     Warning("PNG creation disabled")
 end
 
 
 ----- GIFSKI -----
 local has_cargo = Execute("cargo --version")
-local use_gifski = not os.getenv("BUBBL_NO_GIF") and has_cargo
+local use_gifski = not gif_disabled and has_cargo
 if not use_gifski
     or not Execute("cargo build --manifest-path=deps/gifski/Cargo.toml --release --lib")
 then
@@ -67,4 +72,4 @@ local pkgflags = Read("pkg-config --cflags", pkgs)
 local pkglibs = Read("pkg-config --libs", pkgs)
 local clibs = "-lm"
 local cflags = "-Wall -Wextra -std=c11 --pedantic -rdynamic"
-Execute(cc, "-o bubbl", csrc, pkgflags, cflags, pkglibs, clibs)
+Execute(cc, "-o bubbl", csrc, user_include_dirs, pkgflags, cflags, user_clib_dirs, pkglibs, clibs)
