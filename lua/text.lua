@@ -27,6 +27,9 @@ end
 for a = string.byte('a'), string.byte('z') do
     glyph_files[string.char(a)] = string.char(a)..'.svg'
 end
+for a = string.byte('0'), string.byte('9') do
+    glyph_files[string.char(a)] = string.char(a)..'.svg'
+end
 
 local glyphs = {}
 
