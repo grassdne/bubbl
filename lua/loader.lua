@@ -64,7 +64,7 @@ end
 
 -- optional, asyncronous, protected call
 loader.Callback = function(name, ...)
-    local fn = rawget(loader.active_module, name)
+    local fn = loader.active_module[name]
     if fn then
         local co = coroutine.create(fn)
         local ok, err = coroutine.resume(co, ...)
