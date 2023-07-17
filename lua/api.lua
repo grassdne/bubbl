@@ -580,6 +580,13 @@ random = {
     select = function (a)
         return a[math.random(1, #a)]
     end;
+    shuffle = function (a)
+        for i = 1, #a-1 do
+            local i2 = math.random(i+1, #a)
+            a[i], a[i2] = a[i2], a[i]
+        end
+        return a
+    end;
 }
 PI = math.pi
 
