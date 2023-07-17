@@ -71,13 +71,14 @@ end
 local Glyph = function (char) return glyphs[char] or glyphs[' '] end
 
 local put_char_with_scale = function (pos, char, scale, color)
+    color = color or WEBCOLORS.BLACK
     local circles = Glyph(char)
     for _,circle in ipairs(circles) do
         RenderPop(
             circle.pos * scale + pos,
-            color or WEBCOLORS.BLACK,
+            color,
             circle.radius * scale,
-            0
+            1 - color.a
         )
     end
 end
