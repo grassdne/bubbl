@@ -1,5 +1,5 @@
 local Text = require "text"
-local BUBBLE_COUNT = 5
+local BUBBLE_COUNT = 10
 
 local BGSHADER_MAX_ELEMS = 10
 local BUBBLE_RAD_BASE = 30
@@ -98,6 +98,22 @@ local Bubble = Parent {
     end,
 }
 
+local RandomPositionInRadius = function (max_distance)
+    local theta = math.random() * 2 * math.pi
+    local r = math.random() * max_distance
+    return Vector2.angle(theta) * r
+end
+
+local ParticleUpdatePosition = function (point, dt)
+    local next_position = point.position + point.delta * dt
+    local diff = point.goal - point.position
+    if diff.x * point.delta.x > 0 or diff.y * point.delta.y > 0 then
+        point.position = next_position
+    else
+        point.position = point.goal
+    end
+end
+
 local SpawnBubble = function (self, pos)
     score = score + 1
     table.insert(bubbles, Bubble:New(pos or RandomPosition(), RandomVelocity(), RandomRadius()))
@@ -143,9 +159,10 @@ end
 local PopBubble = function(self, i)
     score = score - 1
     local bubble = table.remove(bubbles, i)
-    PopEffectFromBubble(self, bubble)
     if score <= 0 then
-        scene = Won()
+        scene = Won(bubble)
+    else
+        PopEffectFromBubble(self, bubble)
     end
 end
 
@@ -269,12 +286,32 @@ function Game:Draw(dt)
     Text.put_string_with_width(Vector2(0,0), tostring(score), 100, WEBCOLORS.BLACK)
 end
 
-Won = Class(function (self)
+local WIN_EFFECT_PERIOD = 1
+Won = Class(function (self, bubble)
+    self.color = bubble:Color()
+    local str = "Play again?"
+    -- TODO: iterator rather than table returned by build_string_with_width
+    self.particles = Text.build_particles_with_width(str, resolution.x)
+    local center = Vector2(0, resolution.y - self.particles.height) / 2
+    for i, particle in ipairs(self.particles) do
+        particle.position = bubble.position + RandomPositionInRadius(bubble:Radius())
+        particle.goal = center + particle.offset
+        local difference = particle.goal - particle.position
+        particle.delta = difference / WIN_EFFECT_PERIOD
+    end
 end)
 
 function Won:Draw(dt)
-    local str = "Play again?"
-    Text.put_string_with_width(Vector2(0, resolution.y / 2), str, resolution.x, WEBCOLORS.BLACK)
+    for i, particle in ipairs(self.particles) do
+        ParticleUpdatePosition(particle, dt)
+        RenderPop(particle.position, self.color, particle.radius, 0)
+    end
+    RunBgShader("elastic", BgShaderLoader, {
+        resolution = resolution,
+        num_elements = 1,
+        colors = self.color,
+        positions = { resolution / 2 },
+    })
 end
 
 function Won:Click()
