@@ -287,10 +287,11 @@ return {
         --- Update pop effect particles ---
         for _, pop in ipairs(pop_effects) do
             pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
-            pop.age = time - pop.start_time
+            local age = time - pop.start_time
+            pop.color.a = 1 - age / POP_LIFETIME
             for _, pt in ipairs(pop) do
                 pt.pos = pt.pos + pt.velocity * dt
-                RenderPop(pt.pos, pop.color, pop.pt_radius, pop.age)
+                RenderPop(pt.pos, pop.color, pop.pt_radius)
             end
         end
         -- Pop effects are hopefully in chronological order

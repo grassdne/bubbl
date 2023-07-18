@@ -5,7 +5,7 @@ local POINT_SIZE=3
 local draw = {}
 
 draw.point = function(x, y, color)
-    RenderPop(Vector2(x, y), color or Color.hex "000000", POINT_SIZE, 0)
+    RenderPop(Vector2(x, y), color or Color.hex "000000", POINT_SIZE)
 end
 draw.horiz_line = function(x1, y1, w, c)
     for x=x1, x1+w, POINT_SIZE do draw.point(x, y1, c) end

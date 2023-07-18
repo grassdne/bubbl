@@ -47,7 +47,7 @@ local Render = function(theta)
         if VAR.PARTICLE_ENTITY == "bubble" then
             RenderSimple(pos, color, size)
         elseif VAR.PARTICLE_ENTITY == "pop" then
-            RenderPop(pos, color, size, 0)
+            RenderPop(pos, color, size)
         end
     end
 end

@@ -14,7 +14,6 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Particle, pos) },
             { .id=2, GL_FLOAT, .count=4, offsetof(Particle, color) },
             { .id=3, GL_FLOAT, .count=1, offsetof(Particle, radius) },
-            { .id=4, GL_FLOAT, .count=1, offsetof(Particle, age) },
         },
     },
 

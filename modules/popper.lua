@@ -245,25 +245,25 @@ function Game:Draw(dt)
         end
     end
 
-
     --- Render bubbles ---
     for i, bubble in ipairs(bubbles) do bubble:Render() end
 
-    --- Update pop effect particles ---
-    for _, pop in ipairs(pop_effects) do
-        pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
-        pop.age = time - pop.start_time
-        for _, pt in ipairs(pop) do
-            pt.pos = pt.pos + pt.velocity * dt
-            RenderPop(pt.pos, pop.color, pop.pt_radius, pop.age)
-        end
-    end
     -- Pop effects are hopefully in chronological order
     for i = #pop_effects, 1, -1 do
         if time - pop_effects[i].start_time < POP_LIFETIME then
             break
         end
         pop_effects[i] = nil
+    end
+    --- Update pop effect particles ---
+    for _, pop in ipairs(pop_effects) do
+        pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
+        local age = time - pop.start_time
+        pop.color.a = 1 - age / POP_LIFETIME
+        for _, pt in ipairs(pop) do
+            pt.pos = pt.pos + pt.velocity * dt
+            RenderPop(pt.pos, pop.color, pop.pt_radius)
+        end
     end
 
     --- Draw background ---
@@ -304,7 +304,7 @@ end)
 function Won:Draw(dt)
     for i, particle in ipairs(self.particles) do
         ParticleUpdatePosition(particle, dt)
-        RenderPop(particle.position, self.color, particle.radius, 0)
+        RenderPop(particle.position, self.color, particle.radius)
     end
     RunBgShader("elastic", BgShaderLoader, {
         resolution = resolution,

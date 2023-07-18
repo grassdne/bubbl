@@ -51,7 +51,7 @@ Vector2 = ffi.metatype("Vector2", vec2_mt)
 
 local color_mt = {
     __tostring = function(c)
-        return ("Color(%.2f, %.2f, %.2f)"):format(c.r, c.g, c.b)
+        return ("Color(%.2f, %.2f, %.2f, %.2f)"):format(c.r, c.g, c.b, c.a)
     end,
     hex = function(hex, a)
         if hex:sub(1, 1) == '#' then hex = hex:sub(2) end
@@ -175,8 +175,8 @@ end
 
 ParticleEntity = ffi.typeof("Particle")
 
-RenderPop = function (pos, color, radius, age)
-    C.render_pop(ParticleEntity(pos, color, radius, age))
+RenderPop = function (pos, color, radius)
+    C.render_pop(ParticleEntity(pos, color, radius))
 end
 
 

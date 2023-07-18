@@ -66,7 +66,7 @@ return {
                 -- Jump back to the other end
                 particles[i] = gen_particle(part.color, part.position.x + length)
             end
-            RenderPop(part.position, part.color, part.radius + VAR.RADIUS_ADDEND, 0)
+            RenderPop(part.position, part.color, part.radius + VAR.RADIUS_ADDEND)
         end
 
         -- Grow particles in proximity to cursor

@@ -73,8 +73,9 @@ end
 Draw = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
-        local alpha = selected[pt] and 0.5 or 0
-        RenderPop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale, alpha)
+        local color = Color(SVGEDITOR.COLOR)
+        color.a = selected[pt] and 0.5 or 0
+        RenderPop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale)
     end
 
     local base = get_draw_box_base_position()

@@ -5,7 +5,6 @@ layout(location = 0) in vec2 vertpos;
 layout(location = 1) in vec2 in_position;
 layout(location = 2) in vec4 in_color;
 layout(location = 3) in float in_radius;
-layout(location = 4) in float in_age;
 
 uniform vec2 resolution;
 uniform float time;
@@ -14,7 +13,6 @@ uniform float starttime;
 out vec2 pos;
 out vec4 color;
 out float radius;
-out float age;
 
 void main() {
     // radius in [0, 2] scale
@@ -27,5 +25,4 @@ void main() {
     pos = in_position;
     color = in_color;
     radius = in_radius;
-    age = in_age;
 }

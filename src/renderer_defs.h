@@ -6,7 +6,6 @@ typedef struct {
     Vector2 pos;
     Color color;
     float radius;
-    float age;
 } Particle;
 
 typedef struct  {

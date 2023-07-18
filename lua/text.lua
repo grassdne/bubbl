@@ -77,8 +77,7 @@ local put_char_with_scale = function (pos, char, scale, color)
         RenderPop(
             circle.pos * scale + pos,
             color,
-            circle.radius * scale,
-            1 - color.a
+            circle.radius * scale
         )
     end
 end

@@ -59,7 +59,7 @@ end)
 
 TestScreenshot("simple pop", "simplepop", function()
     local pos = resolution / 2
-    RenderPop(pos, Color.hex("#0000FF"), 200, 0)
+    RenderPop(pos, Color.hex("#0000FF"), 200)
 end)
 
 ------------------------------------------------------
