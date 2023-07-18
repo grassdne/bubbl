@@ -32,7 +32,7 @@ if not has_pkg_config then
     return
 end
 
-local pkgs = "luajit sdl2 glew"
+local pkgs = "luajit sdl2 gl"
 
 ----- LIBPNG -----
 local has_png = not png_disabled and Execute("pkg-config --exists libpng zlib")
@@ -70,6 +70,6 @@ if not Execute("pkg-config --exists", pkgs) then
 end
 local pkgflags = Read("pkg-config --cflags", pkgs)
 local pkglibs = Read("pkg-config --libs", pkgs)
-local clibs = "-lm"
-local cflags = "-Wall -Wextra -std=c11 --pedantic -rdynamic"
+local clibs = ""
+local cflags = "-Wall -Wextra -std=c11 -rdynamic -I deps/"
 Execute(cc, "-o bubbl", csrc, user_include_dirs, pkgflags, cflags, user_clib_dirs, pkglibs, clibs)

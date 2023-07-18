@@ -1,9 +1,11 @@
+#define GLAD_GL_IMPLEMENTATION
+#include "gl.h"
+
 #include "SDL_mouse.h"
 #include "SDL_video.h"
 #include "lua.h"
 #include <stdint.h>
 #define _CRT_SECURE_NO_WARNINGS
-#include <GL/glew.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -44,7 +46,7 @@ static void message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
     (void)userParam;
     (void)source;
     (void)length;
-    if (type == GL_DEBUG_TYPE_ERROR) {
+    if (type == GL_DEBUG_TYPE_ERROR_ARB) {
         fprintf(stderr, "OpenGL ERROR: %s\n", message);
         exit(1);
     } else {
@@ -317,10 +319,8 @@ int main(int argc, char **argv) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
 
-    GLenum err = glewInit();
-	if (err) {
-        fprintf(stderr, "GLEW error: %s\n", glewGetErrorString(err));
-    }
+    int version = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
+    printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
     if (SDL_GL_SetSwapInterval(-1) < 0) {
         VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
@@ -337,10 +337,10 @@ int main(int argc, char **argv) {
 
     if (GL_ARB_debug_output) {
         // OpenGL 4 extension
-        glEnable(GL_DEBUG_OUTPUT);
-        glDebugMessageCallback(message_callback, NULL);
-        glDebugMessageControl(/*source*/GL_DONT_CARE,
-                              /*type*/GL_DEBUG_TYPE_OTHER,
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+        glDebugMessageCallbackARB(message_callback, NULL);
+        glDebugMessageControlARB(/*source*/GL_DONT_CARE,
+                              /*type*/GL_DEBUG_TYPE_OTHER_ARB,
                               /* severity */GL_DONT_CARE,
                               0, NULL, false);
     }
