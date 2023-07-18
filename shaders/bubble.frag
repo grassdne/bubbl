@@ -9,8 +9,8 @@ uniform float time;
 
 in float rad;
 in vec2 bubble_pos;
-in vec3 color_a;
-in vec3 color_b;
+in vec4 color_a;
+in vec4 color_b;
 in vec2 trans_angle;
 in float trans_percent;
 
@@ -38,7 +38,7 @@ void main() {
         // Alpha is gradiant based on proximity to light center
         float a = mix(MIN_TRANSPARENCY, MAX_TRANSPARENCY, dist_to_light_pos / rad);
         if (color_a == color_b) {
-            outcolor = vec4(color_a, a);
+            outcolor = vec4(color_a.rgb, color_a.a * a);
         } else {
             // The color of the bubble is a gradient between two colors
             // If the bubble is only meant to be a single color,
@@ -67,8 +67,8 @@ void main() {
             // smoothstep will return 0 when dist_to_trans_origin is out to the "left" of the gradient
             // smoothstep will return 1 when dist_to_trans_origin is out to the "right" of the gradient
             float percent_transitioned = smoothstep(transitioned_radius - gradient_width, transitioned_radius + gradient_width, dist_to_trans_origin);
-            vec3 color = mix(color_b, color_a, percent_transitioned);
-            outcolor = vec4(color, a);
+            vec4 color = mix(color_b, color_a, percent_transitioned);
+            outcolor = vec4(color.rgb, color.a * a);
         }
     }
     else { discard; }

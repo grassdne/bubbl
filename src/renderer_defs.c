@@ -12,7 +12,7 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         },
         .attributes = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Particle, pos) },
-            { .id=2, GL_FLOAT, .count=3, offsetof(Particle, color) },
+            { .id=2, GL_FLOAT, .count=4, offsetof(Particle, color) },
             { .id=3, GL_FLOAT, .count=1, offsetof(Particle, radius) },
             { .id=4, GL_FLOAT, .count=1, offsetof(Particle, age) },
         },
@@ -27,8 +27,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         .attributes = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Bubble, pos) },
             { .id=2, GL_FLOAT, .count=1, offsetof(Bubble, rad) },
-            { .id=3, GL_FLOAT, .count=3, offsetof(Bubble, color_a) },
-            { .id=4, GL_FLOAT, .count=3, offsetof(Bubble, color_b) },
+            { .id=3, GL_FLOAT, .count=4, offsetof(Bubble, color_a) },
+            { .id=4, GL_FLOAT, .count=4, offsetof(Bubble, color_b) },
             { .id=5, GL_FLOAT, .count=2, offsetof(Bubble, trans_angle) },
             { .id=6, GL_FLOAT, .count=1, offsetof(Bubble, trans_percent) },
         }

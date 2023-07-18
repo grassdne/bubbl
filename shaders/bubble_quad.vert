@@ -4,15 +4,15 @@ layout(location = 0) in vec2 vertpos;
 
 layout(location = 1) in vec2 in_bubble;
 layout(location = 2) in float in_radius;
-layout(location = 3) in vec3 in_color_a;
-layout(location = 4) in vec3 in_color_b;
+layout(location = 3) in vec4 in_color_a;
+layout(location = 4) in vec4 in_color_b;
 layout(location = 5) in vec2 in_trans_angle;
 layout(location = 6) in float in_trans_percent;
 
 out vec2 bubble_pos;
 out float rad;
-out vec3 color_a;
-out vec3 color_b;
+out vec4 color_a;
+out vec4 color_b;
 out vec2 trans_angle;
 out float trans_percent;
 
