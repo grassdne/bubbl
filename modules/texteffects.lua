@@ -20,7 +20,6 @@ local EFFECTS = {
             local MAX_TIME = 5
             return (pt.goal - pt.position):normalize() * resolution.x / MAX_TIME
         end,
-        length=7,
     },
     coalesce = {
         position = function ()
@@ -47,7 +46,24 @@ local EFFECTS = {
             return (pt.goal - pt.position):normalize() * resolution.x / MAX_TIME
         end,
         length=20,
-    }
+    },
+    dissolve = {
+        position = function (pt)
+            return pt.goal
+        end,
+        delta = function (pt)
+            return Vector2(0, 0)
+        end,
+        color = function (pt)
+            local color = Color(VAR.COLOR)
+            color.a = 0
+            local time = math.random() * MAX_PERIOD
+            ScheduleFn(function ()
+                color.a = 1
+            end, time)
+            return color
+        end,
+    },
 }
 
 local particles
