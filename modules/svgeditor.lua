@@ -79,19 +79,19 @@ Draw = function(dt)
     end
 
     local base = get_draw_box_base_position()
-    draw.rect_outline(base.x, base.y, TextRenderer.GLYPH_WIDTH*scale, TextRenderer.GLYPH_HEIGHT*scale, WEBCOLORS.BLACK)
+    draw.RectOutline(base.x, base.y, TextRenderer.GLYPH_WIDTH*scale, TextRenderer.GLYPH_HEIGHT*scale, WEBCOLORS.BLACK)
 
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
         local botleft = AbsolutePosition(Vector2(x1, y1))
         local topright = AbsolutePosition(Vector2(x2, y2))
-        draw.rect_outline(botleft.x, botleft.y, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
+        draw.RectOutline(botleft.x, botleft.y, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
     end
 
      if rotate then
          local axis = AbsolutePosition(rotate.axis_position)
          local mouse = MousePosition()
-         draw.line(axis.x, axis.y, mouse.x, mouse.y, SVGEDITOR.COLOR)
+         draw.Line(axis.x, axis.y, mouse.x, mouse.y, SVGEDITOR.COLOR)
      end
 
     -- Testing text
