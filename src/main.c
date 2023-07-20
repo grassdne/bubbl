@@ -65,9 +65,13 @@ static void error(lua_State *L, const char *fmt, ...) {
 }
 
 static int error_traceback(lua_State *L) {
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-    error(L, "lua: %s\n", lua_tostring(L, -1));
+    luaL_traceback(L, L, lua_tostring(L, -1), 2);
+    error(L, "%s\n", lua_tostring(L, -1));
     return 1;
+}
+
+static int run_file(lua_State *L, const char *file) {
+    return luaL_loadfile(L, file) || lua_pcall(L, 0, LUA_MULTRET, 1);
 }
 
 static void createargtable (lua_State *L, char **argv, int argc) {
@@ -315,7 +319,7 @@ int main(int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
 
-    if (luaL_dofile(L, "lua/init.lua")) {
+    if (run_file(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
 
@@ -351,8 +355,8 @@ int main(int argc, char **argv) {
     init_renderers();
     bg_init();
 
-    if (luaL_dofile(L, "lua/eventloop.lua")) {
-        error(L, "Error: %s", lua_tostring(L, -1));
+    if (run_file(L, "lua/eventloop.lua")) {
+        error(L, lua_tostring(L, -1));
     }
 
     SDL_Quit();
