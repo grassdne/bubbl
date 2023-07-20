@@ -78,25 +78,20 @@ end
 --------- Vector2 ----------
 ----------------------------
 
-local CheckVec2 = function (a, b)
-    if not ffi.istype(Vector2, a) or not ffi.istype(Vector2, b) then
-        error(string.format("expected Vector2 and Vector2 but got %s and %s", tostring(a), tostring(b)), 3)
-    end
-end
-
 --- Simple 2d vector
 --- You shouldn't need to know that this is an ffi struct
 --- rather than a Lua table. It's mostly just to make returning and passing
 --- vectors from C simpler.
 ---@class Vector2
 Vector2 = ffi.metatype("Vector2", Parent {
-    __add = function (a, b) CheckVec2(a,b) return Vector2(a.x + b.x, a.y + b.y) end,
+    __add = function (a, b) return Vector2(a.x + b.x, a.y + b.y) end,
     __sub = function (a, b) return Vector2(a.x - b.x, a.y - b.y) end,
     __mul = function (a, b) return Vector2(a.x * b, a.y * b) end,
     __div = function (a, b) return Vector2(a.x / b, a.y / b) end,
     __unm = function (v) return Vector2(-v.x, -v.y) end,
 
     __tostring = function (v)
+        CheckVec2(v)
         return string.format("Vector2(%.2f, %.2f)", v.x, v.y)
     end,
 
