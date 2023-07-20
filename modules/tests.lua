@@ -57,7 +57,7 @@ end)
 
 TestScreenshot("simple pop", "simplepop", function()
     local pos = resolution / 2
-    RenderPop(pos, Color.Hex("#0000FF"), 200)
+    RenderPop(pos, Color.Hex("#0000FF"), 100)
 end)
 
 ------------------------------------------------------
@@ -69,7 +69,9 @@ local active
 
 return {
     title = "Running tests...",
+    resolution = Vector2(256, 256),
     OnStart = function ()
+        Suspend()
         for i, test in ipairs(tests) do
             active = test
             active.call()
