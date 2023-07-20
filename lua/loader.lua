@@ -51,11 +51,14 @@ loader.LoadModule = function (module)
         Size(loader.active_module.resolution:Unpack())
     end
     loader.active_module.source = module
-    loader.Callback("OnStart")
+
     TheServer:MakeConfig(loader.active_module.tweak)
-    local title = loader.active_module.title or "bubbl"
-    local size = loader.active_module.resolution or Vector2(1600, 900)
-    window = CreateWindow(title, size:Unpack())
+    local title = loader.active_module.title
+    local size = loader.active_module.resolution
+    if title then Title(title) end
+    if size then Size(size:Unpack()) end
+
+    loader.Callback("OnStart")
 
     return loader.active_module
 end
