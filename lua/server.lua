@@ -227,6 +227,7 @@ local myserver = assert(http_server.listen {
     host = "0.0.0.0";
     port = port;
     onstream = reply;
+    tls = false;
     onerror = function(myserver, context, op, err, errno) -- luacheck: ignore 212
         local msg = op .. " on " .. tostring(context) .. " failed"
         if err then
