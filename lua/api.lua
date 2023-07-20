@@ -256,6 +256,9 @@ local canvas_mt = {
         canvas.data[y * canvas.width + x] = color:Pixel()
     end,
     draw = function(canvas)
+        if canvas.texture == 0 then
+            canvas.texture = C.bg_create_texture(canvas.data, canvas.width, canvas.height)
+        end
         C.bg_draw(canvas.texture, canvas.data, canvas.width, canvas.height)
     end
 }
@@ -272,7 +275,6 @@ local GenCanvas = function(width, height)
         data = ffi.new("Pixel[?]", width*height),
         texture = 0
     }, canvas_mt)
-    canvas.texture = C.bg_create_texture(canvas.data, canvas.width, canvas.height)
     return canvas
 end
 
