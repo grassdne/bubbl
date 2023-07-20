@@ -11,44 +11,58 @@ local VAR = {
     COLOR = Color.hsl(300, 1.0, 0.5),
 }
 
+-- Colors
+local Rainbow = function (pt)
+    local percent = pt.goal.x / resolution.x
+    return Color.hsl(percent*360, 1.0, 0.5)
+end
+
 local EFFECTS = {
-    in_from_left = {
-        position = function (pt)
-            return Vector2(math.random() * -0.1, math.random()):scale(resolution)
+    in_from_left = Parent {
+        Init = function (pt)
+            pt.position = Vector2(math.random() * -0.1, math.random()):scale(resolution)
+            local SPEED = 400
+            pt.lifetime = Vector2.dist(pt.position, pt.goal) / SPEED
+            pt.delta = (pt.goal - pt.position) / pt.lifetime
         end,
-        delta = function (pt)
-            local MAX_TIME = 5
-            return (pt.goal - pt.position):normalize() * resolution.x / MAX_TIME
+        Update = function (pt, dt)
+            pt.position = pt.position + pt.delta * dt
+        end,
+        Render = function (pt)
+            RenderSimple(pt.position, VAR.COLOR, pt.radius)
         end,
     },
-    coalesce = {
-        position = function ()
-            return Vector2(math.random(), math.random()):scale(resolution)
+    coalesce = Parent {
+        Init = function (pt)
+            pt.position = Vector2(math.random(), math.random()):scale(resolution)
+            pt.lifetime = 5
+            pt.color = Rainbow(pt)
+            pt.delta = (pt.goal - pt.position) / pt.lifetime
         end,
-        delta = function (pt)
-            local TIME = 5
-            return (pt.goal - pt.position) / TIME
+        Update = function (pt, dt)
+            pt.position = pt.position + pt.delta * dt
         end,
-        _color = function (pt)
-            do return Color.hsl(300, 1.0, 0.5) end
-            local percent = pt.goal.x / resolution.x
-            return Color.hsl(percent*360, 1.0, 0.5)
+        Render = function (pt)
+            RenderSimple(pt.position, pt.color, pt.radius)
         end,
-        length=7,
     },
-    pour = {
-        position = function (pt)
+    pour = Parent {
+        Init = function (pt)
             local STRETCH_Y = 8
-            return Vector2(pt.goal.x, pt.goal.y + pt.offset.y * STRETCH_Y + pt.offset.x)
+            local SPEED = 300
+            pt.position = Vector2(pt.goal.x, pt.goal.y + pt.offset.y * STRETCH_Y + pt.offset.x)
+            pt.lifetime = (pt.position.y - pt.goal.y) / SPEED
+            pt.delta = (pt.goal - pt.position) / pt.lifetime
         end,
-        delta = function (pt)
-            local MAX_TIME = 5
-            return (pt.goal - pt.position):normalize() * resolution.x / MAX_TIME
+        Update = function (pt, dt)
+            pt.position = pt.position + pt.delta * dt
         end,
-        length=20,
+        Render = function (pt)
+            RenderSimple(pt.position, VAR.COLOR, pt.radius)
+        end,
     },
     dissolve = {
-        position = function (pt)
+        start_position = function (pt)
             return pt.goal
         end,
         delta = function (pt)
@@ -67,44 +81,35 @@ local EFFECTS = {
 }
 
 local particles
-
+local start_time
 local background = CreateCanvas { { Color.hsl(0, 1, 0.01) } }
-
-local UpdatePosition = function (point, dt)
-    local next_position = point.position + point.delta * dt
-    local diff = point.goal - point.position
-    if diff.x * point.delta.x > 0 or diff.y * point.delta.y > 0 then
-        point.position = next_position
-    else
-        point.position = point.goal
-    end
-end
+local effect
 
 local Update = function (dt)
     background:draw()
     local finished_count = 0
+    local time = Seconds() - start_time
     for _,pt in ipairs(particles) do
-        UpdatePosition(pt, dt)
-        if pt.goal == pt.position then finished_count = finished_count + 1 end
-        RenderSimple(pt.position, pt.color, pt.radius)
+        if time < pt.lifetime then
+            pt:Update(dt)
+        end
+        pt:Render()
     end
     return finished_count < #particles
 end
 
-local effect
 
 local BuildText = function ()
     effect = EFFECTS[VAR.EFFECT]
-
     particles = Text.build_particles_with_width(VAR.TEXT, resolution.x)
     local goal = Vector2(0, (resolution.y - particles.height) / 2)
 
     for i, pt in ipairs(particles) do
         pt.goal = goal + pt.offset
-        pt.position = effect.position(pt)
-        pt.delta = effect.delta(pt)
-        pt.color = effect.color and effect.color(pt) or VAR.COLOR
+        setmetatable(pt, effect)
+        pt:Init()
     end
+    start_time = Seconds()
 end
 
 return {
