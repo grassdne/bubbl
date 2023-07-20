@@ -270,6 +270,38 @@ SDL_Window *create_window(const char *window_name, int width, int height)
         fprintf(stderr, "error creating OpenGL context: %s\n", SDL_GetError());
         return NULL;
     }
+
+    int version = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
+    printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+
+    if (SDL_GL_SetSwapInterval(-1) < 0) {
+        VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
+        if (SDL_GL_SetSwapInterval(1) < 0) {
+            fprintf(stderr, "WARNING: unable to set VSync: %s\n", SDL_GetError());
+        }
+
+    }
+
+	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
+    //    fprintf(stderr, "Shaders not available\n");
+    //    exit(1);
+	//}
+
+    if (GL_ARB_debug_output) {
+        // OpenGL 4 extension
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+        glDebugMessageCallbackARB(message_callback, NULL);
+        glDebugMessageControlARB(/*source*/GL_DONT_CARE,
+                              /*type*/GL_DEBUG_TYPE_OTHER_ARB,
+                              /* severity */GL_DONT_CARE,
+                              0, NULL, false);
+    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
+    init_renderers();
+    bg_init();
     return window;
 }
 
@@ -322,38 +354,6 @@ int main(int argc, char **argv) {
     if (run_file(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));
     }
-
-    int version = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
-    printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
-
-    if (SDL_GL_SetSwapInterval(-1) < 0) {
-        VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
-        if (SDL_GL_SetSwapInterval(1) < 0) {
-            fprintf(stderr, "WARNING: unable to set VSync: %s\n", SDL_GetError());
-        }
-
-    }
-
-	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
-    //    fprintf(stderr, "Shaders not available\n");
-    //    exit(1);
-	//}
-
-    if (GL_ARB_debug_output) {
-        // OpenGL 4 extension
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
-        glDebugMessageCallbackARB(message_callback, NULL);
-        glDebugMessageControlARB(/*source*/GL_DONT_CARE,
-                              /*type*/GL_DEBUG_TYPE_OTHER_ARB,
-                              /* severity */GL_DONT_CARE,
-                              0, NULL, false);
-    }
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
-
-    init_renderers();
-    bg_init();
 
     if (run_file(L, "lua/eventloop.lua")) {
         error(L, lua_tostring(L, -1));
