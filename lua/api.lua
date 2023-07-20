@@ -176,56 +176,15 @@ Color = ffi.metatype("Color", Parent {
 ----------------------------
 --------- Bubble ----------
 ----------------------------
---
+
 BubbleEntity = ffi.typeof("Bubble")
 
-Bubble = {}
-Bubble.__index = Bubble
-function Bubble:New(color, pos, velocity, radius)
-    local bubble = setmetatable({}, self)
-    bubble.position = pos
-    bubble.color = color
-    bubble.velocity = velocity
-    bubble.radius = radius
-    bubble.color_b = color
-    bubble.trans_angle = Vector2(0,0)
-    bubble.trans_percent = 0
-    bubble.trans_starttime = nil
-    return bubble
-end
-function Bubble:StartTransformation(color, start_time, angle)
-    self.color_b = color
-    self.trans_percent = 0
-    self.trans_starttime = start_time
-    self.trans_angle = angle
-end
-function Bubble:CBubble()
-    return BubbleEntity {
-        pos = self.position,
-        rad = self.radius,
-        color = self.color,
-        color_b = self.color_b or self.color,
-        trans_angle = self.trans_angle or Vector2(0,0),
-        trans_percent = self.trans_percent or 0,
-    }
-end
-
-RenderBubble = function (bubble)
-    C.render_bubble(bubble:CBubble())
-end
-
-RenderSimple = function (pos, color, rad,
-                          opt_color_b, opt_trans_angle, opt_trans_percent)
+RenderSimple = function (pos, color, rad)
     local bubble = BubbleEntity()
     bubble.pos = pos
     bubble.rad = rad
     bubble.color = color
-    bubble.color_b = opt_color_b or color
-    -- If number, convert to vector
-    bubble.trans_angle = type(opt_trans_angle) == "number"
-                         and Vector2(math.cos(opt_trans_angle, math.sin(opt_trans_angle)))
-                         or opt_trans_angle or Vector2(0,0)
-    bubble.trans_percent = opt_trans_percent or 0
+    bubble.color_b = color
     C.render_bubble(bubble)
 end
 
