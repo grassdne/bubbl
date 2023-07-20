@@ -29,7 +29,7 @@ local EFFECTS = {
             pt.position = pt.position + pt.delta * dt
         end,
         Render = function (pt)
-            RenderSimple(pt.position, VAR.COLOR, pt.radius)
+            RenderBubble(pt.position, VAR.COLOR, pt.radius)
         end,
     },
     coalesce = Parent {
@@ -43,7 +43,7 @@ local EFFECTS = {
             pt.position = pt.position + pt.delta * dt
         end,
         Render = function (pt)
-            RenderSimple(pt.position, pt.color, pt.radius)
+            RenderBubble(pt.position, pt.color, pt.radius)
         end,
     },
     pour = Parent {
@@ -58,7 +58,7 @@ local EFFECTS = {
             pt.position = pt.position + pt.delta * dt
         end,
         Render = function (pt)
-            RenderSimple(pt.position, VAR.COLOR, pt.radius)
+            RenderBubble(pt.position, VAR.COLOR, pt.radius)
         end,
     },
     dissolve = {

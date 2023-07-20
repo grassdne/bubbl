@@ -36,7 +36,7 @@ Draw = function(dt)
     for i = 1, N do
         local color = CircularIndex(COLORS, i - start_i)
         local next_color = CircularIndex(COLORS, i - start_i - 1)
-        RenderSimple(Vector2(start_x + i * SIZE*2, resolution.y/2), color, SIZE,
+        RenderBubble(Vector2(start_x + i * SIZE*2, resolution.y/2), color, SIZE,
             next_color, PI, percent_trans)
     end
 end

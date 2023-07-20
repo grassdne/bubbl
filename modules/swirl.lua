@@ -45,7 +45,7 @@ local Render = function(theta)
         local pos = center + Vector2(cos(theta), sin(theta)) * radius
         local color = Color.Hsl(math.deg(theta), VAR.SATURATION, VAR.LIGHTNESS)
         if VAR.PARTICLE_ENTITY == "bubble" then
-            RenderSimple(pos, color, size)
+            RenderBubble(pos, color, size)
         elseif VAR.PARTICLE_ENTITY == "pop" then
             RenderPop(pos, color, size)
         end

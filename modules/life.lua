@@ -61,7 +61,7 @@ Draw = function(dt)
             local x = col * spacing_x - size
             local y = row * spacing_y - size
             local color = field[row][col] == "alive" and COLOR_ALIVE or COLOR_DEAD
-            RenderSimple(Vector2(x, y), color, size)
+            RenderBubble(Vector2(x, y), color, size)
         end
     end
 end

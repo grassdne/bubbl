@@ -179,7 +179,7 @@ Color = ffi.metatype("Color", Parent {
 
 BubbleEntity = ffi.typeof("Bubble")
 
-RenderSimple = function (pos, color, rad)
+RenderBubble = function (pos, color, rad)
     local bubble = BubbleEntity()
     bubble.pos = pos
     bubble.rad = rad

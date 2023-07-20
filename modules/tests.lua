@@ -53,7 +53,7 @@ end)
 --[[
 TestScreenshot("simple bubbles", "simplebubble", function()
     local pos = resolution / 2
-    RenderSimple(pos, Color.Hex("#FF0000"), 200)
+    RenderBubble(pos, Color.Hex("#FF0000"), 200)
 end)
 -]]
 

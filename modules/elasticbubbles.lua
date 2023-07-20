@@ -79,7 +79,7 @@ local Bubble = Parent {
         return bubble.radius * VAR.BUBBLE_SIZE_FACTOR
     end,
     Render = function (bubble)
-        RenderSimple(bubble.position, bubble:Color(), bubble:Radius())
+        RenderBubble(bubble.position, bubble:Color(), bubble:Radius())
     end,
 }
 
