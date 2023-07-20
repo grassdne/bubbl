@@ -29,8 +29,6 @@ require "http.server"
 
 resolution = Vector2(1600, 900)
 
-window = CreateWindow("Bubble", resolution:Unpack())
-
 OnQuit = function ()
     -- Finish any remaining GIFs
     GifFinish()
@@ -58,3 +56,4 @@ do
 end
 
 Global "TheServer"
+Global "window"

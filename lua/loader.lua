@@ -47,11 +47,16 @@ loader.LoadModule = function (module)
         return;
     end
 
-
-    Title(assert(loader.active_module.title, "module missing title!"))
+    if loader.active_module.resolution then
+        Size(loader.active_module.resolution:Unpack())
+    end
     loader.active_module.source = module
     loader.Callback("OnStart")
     TheServer:MakeConfig(loader.active_module.tweak)
+    local title = loader.active_module.title or "bubbl"
+    local size = loader.active_module.resolution or Vector2(1600, 900)
+    window = CreateWindow(title, size:Unpack())
+
     return loader.active_module
 end
 
