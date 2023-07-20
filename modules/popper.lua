@@ -58,7 +58,7 @@ local RandomRadius = function()
 end
 
 local RandomPosition = function()
-    return Vector2(math.random(), math.random()):scale(resolution)
+    return Vector2(math.random(), math.random()):Scale(resolution)
 end
 
 local BgShaderLoader = function()
@@ -85,7 +85,7 @@ local Bubble = Parent {
         return p
     end,
     Color = function (bubble)
-        return Color.hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS)
+        return Color.Hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS)
     end,
     Velocity = function (bubble)
         return bubble.velocity
@@ -101,7 +101,7 @@ local Bubble = Parent {
 local RandomPositionInRadius = function (max_distance)
     local theta = math.random() * 2 * math.pi
     local r = math.random() * max_distance
-    return Vector2.angle(theta) * r
+    return Vector2.Angle(theta) * r
 end
 
 local ParticleUpdatePosition = function (point, dt)
@@ -120,7 +120,7 @@ local SpawnBubble = function (self, pos)
 end
 
 local ParticleVelocity = function (bubble_velocity)
-    return Vector2.angle(math.random()*2*math.pi) * POP_PARTICLE_SPEED + bubble_velocity
+    return Vector2.Angle(math.random()*2*math.pi) * POP_PARTICLE_SPEED + bubble_velocity
 end
 
 local CreatePopEffect = function (center, color, size, bubble_velocity)
@@ -168,7 +168,7 @@ end
 
 local IsCollision = function (a, b)
     local mindist = a:Radius() + b:Radius()
-    return a ~= b and Vector2.distsq(a.position, b.position) < mindist*mindist
+    return a ~= b and Vector2.DistSq(a.position, b.position) < mindist*mindist
 end
 
 local SwapVelocities = function (a, b)
@@ -177,7 +177,7 @@ end
 
 local SeparateBubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
-    local dir_b_to_a = Vector2.normalize(a.position - b.position)
+    local dir_b_to_a = Vector2.Normalize(a.position - b.position)
     local mindist = a:Radius() + b:Radius()
     a.position = b.position + dir_b_to_a * mindist
 end
@@ -205,7 +205,7 @@ end
 
 local BubbleAtPoint = function (self, pos)
     for i, b in ipairs(bubbles) do
-        if pos:dist(b.position) < b:Radius() then
+        if pos:Dist(b.position) < b:Radius() then
             return i, b
         end
     end
@@ -283,7 +283,7 @@ function Game:Draw(dt)
         })
     end
 
-    Text.put_string_with_width(Vector2(0,0), tostring(score), 100, WEBCOLORS.BLACK)
+    Text.PutstringWithWidth(Vector2(0,0), tostring(score), 100, WEBCOLORS.BLACK)
 end
 
 local WIN_EFFECT_PERIOD = 1
@@ -291,7 +291,7 @@ Won = Class(function (self, bubble)
     self.color = bubble:Color()
     local str = "Play again?"
     -- TODO: iterator rather than table returned by build_string_with_width
-    self.particles = Text.build_particles_with_width(str, resolution.x)
+    self.particles = Text.BuildParticlesWithWidth(str, resolution.x)
     local center = Vector2(0, resolution.y - self.particles.height) / 2
     for i, particle in ipairs(self.particles) do
         particle.position = bubble.position + RandomPositionInRadius(bubble:Radius())

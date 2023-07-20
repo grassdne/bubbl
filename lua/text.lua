@@ -34,27 +34,27 @@ end
 local glyphs = {}
 
 
-local next_svg_circle = function (get_match)
+local NextSvgCircle = function (get_match)
     local cx, cy, r, fill = get_match()
     if cx then
         return Vector2(tonumber(cx), TextRenderer.GLYPH_HEIGHT - tonumber(cy)),
         tonumber(r),
-        Color.hex(fill)
+        Color.Hex(fill)
     end
 end
-TextRenderer.svg_iter_circles = function (contents)
+TextRenderer.SvgIterCircles = function (contents)
     local get_match = contents:gmatch("<circle cx=\"(%d*)\" cy=\"(%d*)\" r=\"(%d*)\" fill=\"(%#%x*)\" />")
-    return next_svg_circle, get_match
+    return NextSvgCircle, get_match
 end
 
-TextRenderer.load_glyphs = function()
+TextRenderer.LoadGlyphs = function()
     for char, file in pairs(glyph_files) do
         -- TODO: support having multiple fonts
         local f = io.open("glyphs/Liberation Mono/"..file)
         if f then
             local contents = f:read("*a")
             local circles = {}
-            for pos, radius, color in TextRenderer.svg_iter_circles(contents) do
+            for pos, radius, color in TextRenderer.SvgIterCircles(contents) do
                 table.insert(circles, {
                     pos=pos,
                     radius=radius,
@@ -70,7 +70,7 @@ end
 
 local Glyph = function (char) return glyphs[char] or glyphs[' '] end
 
-local put_char_with_scale = function (pos, char, scale, color)
+local PutCharWithScale = function (pos, char, scale, color)
     color = color or WEBCOLORS.BLACK
     local circles = Glyph(char)
     for _,circle in ipairs(circles) do
@@ -86,8 +86,8 @@ end
 ---@param char string to render on screen
 ---@param width number
 ---@param color Color|nil color of text, defaults to black
-TextRenderer.put_char_with_width = function(pos, char, width, color)
-    put_char_with_scale(pos, char, width / TextRenderer.GLYPH_WIDTH, color)
+TextRenderer.PutCharWithWidth = function(pos, char, width, color)
+    PutCharWithScale(pos, char, width / TextRenderer.GLYPH_WIDTH, color)
 end
 
 local StringScale = function (str, width)
@@ -98,11 +98,11 @@ end
 ---@param str string to render on screen
 ---@param width number
 ---@param color Color|nil color of text, defaults to black
-TextRenderer.put_string_with_width = function(pos, str, width, color)
+TextRenderer.PutstringWithWidth = function(pos, str, width, color)
     local scale = StringScale(str, width)
     for i=1, #str do
         local x = pos.x + (i-1) * scale * TextRenderer.GLYPH_WIDTH
-        put_char_with_scale(Vector2(x, pos.y), str:sub(i,i), scale, color)
+        PutCharWithScale(Vector2(x, pos.y), str:sub(i,i), scale, color)
     end
     return scale * TextRenderer.GLYPH_HEIGHT
 end
@@ -110,7 +110,7 @@ end
 ---@param str string to render on screen
 ---@param width number expected width of whole string
 ---@return table particles array with each particle's `offset` and `radius`
-TextRenderer.build_particles_with_width = function (str, width)
+TextRenderer.BuildParticlesWithWidth = function (str, width)
     local particles = {}
     local scale = StringScale(str, width)
     for i=1, #str do
@@ -129,6 +129,6 @@ TextRenderer.build_particles_with_width = function (str, width)
     return particles
 end
 
-TextRenderer.load_glyphs()
+TextRenderer.LoadGlyphs()
 
 return TextRenderer

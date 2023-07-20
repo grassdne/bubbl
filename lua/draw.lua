@@ -5,7 +5,7 @@ local POINT_SIZE=3
 local draw = {}
 
 draw.Point = function(x, y, color)
-    RenderPop(Vector2(x, y), color or Color.hex "000000", POINT_SIZE)
+    RenderPop(Vector2(x, y), color or Color.Hex "000000", POINT_SIZE)
 end
 draw.HorizontalLine = function(x1, y1, w, c)
     for x=x1, x1+w, POINT_SIZE do draw.Point(x, y1, c) end
@@ -16,8 +16,8 @@ end
 
 draw.Line = function(x1, y1, x2, y2, color)
     local vector = Vector2(x2-x1, y2-y1)
-    local angle = vector:normalize()
-    local count = vector:length() / POINT_SIZE
+    local angle = vector:Normalize()
+    local count = vector:Length() / POINT_SIZE
     for i = 0, count-1 do
         local pos = Vector2(x1, y1) + angle * (i * POINT_SIZE)
         draw.Point(pos.x, pos.y, color)

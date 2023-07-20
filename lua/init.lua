@@ -29,7 +29,7 @@ require "http.server"
 
 resolution = Vector2(1600, 900)
 
-window = CreateWindow("Bubble", resolution:unpack())
+window = CreateWindow("Bubble", resolution:Unpack())
 
 OnQuit = function ()
     -- Finish any remaining GIFs

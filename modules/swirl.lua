@@ -22,7 +22,7 @@ local BuildBackground = function()
     for y=0, bg_height-1 do
         for x=0, bg_width-1 do
             local theta = atan2(y - bg_height/2, x - bg_width/2)
-            background:set(x, y, Color.hsl(deg(theta), 1, 0.5, BG_ALPHA))
+            background:set(x, y, Color.Hsl(deg(theta), 1, 0.5, BG_ALPHA))
         end
     end
 end
@@ -34,7 +34,7 @@ local Render = function(theta)
     local radius = 0
     local center = resolution / 2
     -- greatest distance from center on the screen
-    local max_dist = center:length()
+    local max_dist = center:Length()
     local count = max_dist / delta_radius
     local size = SIZE
     for i=1, count do
@@ -43,7 +43,7 @@ local Render = function(theta)
         size = size + DELTA_SIZE
 
         local pos = center + Vector2(cos(theta), sin(theta)) * radius
-        local color = Color.hsl(math.deg(theta), VAR.SATURATION, VAR.LIGHTNESS)
+        local color = Color.Hsl(math.deg(theta), VAR.SATURATION, VAR.LIGHTNESS)
         if VAR.PARTICLE_ENTITY == "bubble" then
             RenderSimple(pos, color, size)
         elseif VAR.PARTICLE_ENTITY == "pop" then

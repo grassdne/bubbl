@@ -81,7 +81,7 @@ local BuildConfigItem = function (var)
 
     elseif var.type == "color" then
         local default = GetValue(var)
-        if default and default.to_hex_string then default = default:to_hex_string() end
+        if default and default.ToHexString then default = default:ToHexString() end
         return Substitute([[<div>
           <label for="$id">$name</label>
           <input type="color" id="$id" name="$id" value="$default" class="config">
@@ -176,7 +176,7 @@ local function Reply(server, stream) -- luacheck: ignore 212
         PerformTweak(stream, tostring)
 
     elseif path == "/api/tweak/color" and req_method == "POST" then
-        PerformTweak(stream, Color.hex)
+        PerformTweak(stream, Color.Hex)
 
     elseif path == "/api/tweaks" and req_method == "GET" then
         BuildHeaders(stream, 200, "text/html")

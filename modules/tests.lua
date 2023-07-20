@@ -30,7 +30,7 @@ end
 ------------------------------------------------------
 
 TestScreenshot("canvas solid red", "solidbg", function()
-    local canvas = CreateCanvas { { Color.hex "#550000" } }
+    local canvas = CreateCanvas { { Color.Hex "#550000" } }
     canvas:draw()
 end)
 
@@ -53,13 +53,13 @@ end)
 --[[
 TestScreenshot("simple bubbles", "simplebubble", function()
     local pos = resolution / 2
-    RenderSimple(pos, Color.hex("#FF0000"), 200)
+    RenderSimple(pos, Color.Hex("#FF0000"), 200)
 end)
 -]]
 
 TestScreenshot("simple pop", "simplepop", function()
     local pos = resolution / 2
-    RenderPop(pos, Color.hex("#0000FF"), 200)
+    RenderPop(pos, Color.Hex("#0000FF"), 200)
 end)
 
 ------------------------------------------------------

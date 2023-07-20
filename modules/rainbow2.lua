@@ -1,13 +1,13 @@
 Title "🌈 2"
 
 local COLORS = {
-    Color.hex "#ff0000",
-    Color.hex "#ffa500",
-    Color.hex "#ffff00",
-    Color.hex "#008000",
-    Color.hex "#0000ff",
-    Color.hex "#4b0082",
-    Color.hex "#ee82ee",
+    Color.Hex "#ff0000",
+    Color.Hex "#ffa500",
+    Color.Hex "#ffff00",
+    Color.Hex "#008000",
+    Color.Hex "#0000ff",
+    Color.Hex "#4b0082",
+    Color.Hex "#ee82ee",
 }
 local SIZE = 100
 local DELTA_OFFSET = 2

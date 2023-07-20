@@ -43,7 +43,7 @@ local RandomRadius = function()
 end
 
 local RandomPosition = function()
-    return Vector2(math.random(), math.random()):scale(resolution)
+    return Vector2(math.random(), math.random()):Scale(resolution)
 end
 
 local BgShaderLoader = function()
@@ -70,7 +70,7 @@ local Bubble = Parent {
         return p
     end,
     Color = function (bubble)
-        return Color.hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS)
+        return Color.Hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS)
     end,
     Velocity = function (bubble)
         return bubble.velocity * VAR.BUBBLE_SPEED_FACTOR
@@ -88,7 +88,7 @@ local SpawnBubble = function ()
 end
 
 local ParticleVelocity = function (bubble_velocity)
-    return Vector2.angle(math.random()*2*math.pi) * POP_PARTICLE_SPEED + bubble_velocity
+    return Vector2.Angle(math.random()*2*math.pi) * POP_PARTICLE_SPEED + bubble_velocity
 end
 
 local CreatePopEffect = function (center, color, size, bubble_velocity)
@@ -131,7 +131,7 @@ end
 
 local IsCollision = function (a, b)
     local mindist = a:Radius() + b:Radius()
-    return a ~= b and Vector2.distsq(a.position, b.position) < mindist*mindist
+    return a ~= b and Vector2.DistSq(a.position, b.position) < mindist*mindist
 end
 
 local SwapVelocities = function (a, b)
@@ -140,7 +140,7 @@ end
 
 local SeparateBubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
-    local dir_b_to_a = Vector2.normalize(a.position - b.position)
+    local dir_b_to_a = Vector2.Normalize(a.position - b.position)
     local mindist = a:Radius() + b:Radius()
     a.position = b.position + dir_b_to_a * mindist
 end
@@ -176,7 +176,7 @@ end
 
 local BubbleAtPoint = function (pos)
     for i, b in ipairs(bubbles) do
-        if pos:dist(b.position) < b:Radius() then
+        if pos:Dist(b.position) < b:Radius() then
             return i, b
         end
     end

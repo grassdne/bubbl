@@ -8,21 +8,21 @@ local MAX_PERIOD = 5
 local VAR = {
     TEXT = "bubbl",
     EFFECT = "coalesce",
-    COLOR = Color.hsl(300, 1.0, 0.5),
+    COLOR = Color.Hsl(300, 1.0, 0.5),
 }
 
 -- Colors
 local Rainbow = function (pt)
     local percent = pt.goal.x / resolution.x
-    return Color.hsl(percent*360, 1.0, 0.5)
+    return Color.Hsl(percent*360, 1.0, 0.5)
 end
 
 local EFFECTS = {
     in_from_left = Parent {
         Init = function (pt)
-            pt.position = Vector2(math.random() * -0.1, math.random()):scale(resolution)
+            pt.position = Vector2(math.random() * -0.1, math.random()):Scale(resolution)
             local SPEED = 400
-            pt.lifetime = Vector2.dist(pt.position, pt.goal) / SPEED
+            pt.lifetime = Vector2.Dist(pt.position, pt.goal) / SPEED
             pt.delta = (pt.goal - pt.position) / pt.lifetime
         end,
         Update = function (pt, dt)
@@ -34,7 +34,7 @@ local EFFECTS = {
     },
     coalesce = Parent {
         Init = function (pt)
-            pt.position = Vector2(math.random(), math.random()):scale(resolution)
+            pt.position = Vector2(math.random(), math.random()):Scale(resolution)
             pt.lifetime = 5
             pt.color = Rainbow(pt)
             pt.delta = (pt.goal - pt.position) / pt.lifetime
@@ -82,7 +82,7 @@ local EFFECTS = {
 
 local particles
 local start_time
-local background = CreateCanvas { { Color.hsl(0, 1, 0.01) } }
+local background = CreateCanvas { { Color.Hsl(0, 1, 0.01) } }
 local effect
 
 local Update = function (dt)
@@ -101,7 +101,7 @@ end
 
 local BuildText = function ()
     effect = EFFECTS[VAR.EFFECT]
-    particles = Text.build_particles_with_width(VAR.TEXT, resolution.x)
+    particles = Text.BuildParticlesWithWidth(VAR.TEXT, resolution.x)
     local goal = Vector2(0, (resolution.y - particles.height) / 2)
 
     for i, pt in ipairs(particles) do

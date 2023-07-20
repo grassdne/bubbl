@@ -61,8 +61,8 @@ Circle.__index = Circle
 
 local GetSelection = function()
     local mouse = NormalPosition(MousePosition())
-    local x1, y1 = selection_start:unpack()
-    local x2, y2 = mouse:unpack()
+    local x1, y1 = selection_start:Unpack()
+    local x2, y2 = mouse:Unpack()
     if x1 > x2 then x1, x2 = x2, x1 end
     if y1 > y2 then y1, y2 = y2, y1 end
     -- x1, y1 is bottom right
@@ -97,7 +97,7 @@ Draw = function(dt)
     -- Testing text
     local y = 0
     for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
-        local height = TextRenderer.put_string_with_width(Vector2(0,y), str, resolution.x, SVGEDITOR.COLOR)
+        local height = TextRenderer.PutstringWithWidth(Vector2(0,y), str, resolution.x, SVGEDITOR.COLOR)
         y = y + height
     end
 end
@@ -108,7 +108,7 @@ OnMouseMove = function(x, y)
         local x1, y1, x2, y2 = GetSelection()
         selected = {}
         for _,circle in ipairs(circles) do
-            local x, y = circle.pos:unpack()
+            local x, y = circle.pos:Unpack()
             local r = circle.radius
             if x1 < x + r and x - r < x2 and y1 < y + r and y - r < y2 then
                 selected[circle] = true
@@ -129,7 +129,7 @@ OnMouseMove = function(x, y)
         rotate.start_position = mouse
         for circle in pairs(selected) do
             local pos = circle.pos - rotate.axis_position
-            local mag = pos:length()
+            local mag = pos:Length()
             local theta = math.atan2(pos.y, pos.x)
             local new_theta = theta + angle_delta
             circle.pos = Vector2(math.cos(new_theta), math.sin(new_theta)) * mag + rotate.axis_position
@@ -144,10 +144,10 @@ local SaveToSVG = function(file_path)
     f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", TextRenderer.GLYPH_WIDTH, TextRenderer.GLYPH_HEIGHT))
     
     for i,circle in ipairs(circles) do
-        local x, y = circle.pos:unpack()
+        local x, y = circle.pos:Unpack()
         if x > 0 and x < TextRenderer.GLYPH_WIDTH and y > 0 and y < TextRenderer.GLYPH_HEIGHT then
             f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                    x, TextRenderer.GLYPH_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:to_hex_string()))
+                    x, TextRenderer.GLYPH_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:ToHexString()))
         end
     end
 
@@ -158,7 +158,7 @@ end
 local circle_at_position = function(pos)
     -- We iterate backwards to get the front circle
     for i = #circles, 1, -1 do
-        if circles[i].pos:dist(pos) < circles[i].radius then
+        if circles[i].pos:Dist(pos) < circles[i].radius then
             return circles[i]
         end
     end

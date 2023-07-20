@@ -10,50 +10,123 @@ local RequireGifski = function()
 end
 
 ----------------------------
+--------- Lua Utility ------
+----------------------------
+
+-- utilities around math.random()
+random = {
+    sign = function()
+        return math.random() > 0.5 and 1 or -1
+    end;
+    vary = function (base, vary)
+        return base + vary * math.random()
+    end;
+    minmax = function (min, max)
+        return math.random() * (max - min) + min
+    end;
+    select = function (a)
+        return a[math.random(1, #a)]
+    end;
+    shuffle = function (a)
+        for i = 1, #a-1 do
+            local i2 = math.random(i+1, #a)
+            a[i], a[i2] = a[i2], a[i]
+        end
+        return a
+    end;
+}
+PI = math.pi
+
+table.copy = function(tbl)
+    local cpy = {}
+    for k,v in pairs(tbl) do cpy[k] = v end
+    return cpy
+end
+
+math.clamp = function(v, min, max)
+    return math.max(min, math.min(max, v))
+end
+
+math.sign = function(v) return v < 0 and -1 or v > 0 and 1 or 0 end
+
+MousePosition = function ()
+    return C.get_mouse_position(window)
+end
+
+ArrayFind = function (array, item)
+    for i,v in ipairs(array) do
+        if v == item then return i end
+    end
+end
+
+dbg = function(...) print(...) return ... end
+
+-- The most barebones of class implementations
+Parent = function (t)
+    t.__index = t
+    return t
+end
+
+--TODO: fully implement
+Dump = function (t)
+    print("-------------------")
+    for k,v in pairs(t) do print(k,v) end
+    print("-------------------")
+end
+
+----------------------------
 --------- Vector2 ----------
 ----------------------------
 
-local vec2_mt = {
-    __add      = function (a, b)  return Vector2(a.x + b.x, a.y + b.y) end,
-    __sub      = function (a, b)  return Vector2(a.x - b.x, a.y - b.y) end,
-    __mul      = function (a, b)  return Vector2(a.x * b, a.y * b) end,
-    __div      = function (a, b)  return Vector2(a.x / b, a.y / b) end,
-    __unm      = function (v)     return Vector2(-v.x, -v.y) end,
-    __tostring = function (v)
-        return ("Vector2(%.2f, %.2f)"):format(v.x, v.y)
-    end,
-
-    dot        = function (a, b)    return a.x * b.x + a.y * b.y end,
-
-    scale      = function (a, b) return Vector2(a.x * b.x, a.y * b.y) end,
-    lengthsq   = function (v)       return v.x*v.x + v.y*v.y end,
-    length     = function (v)       return math.sqrt(v:lengthsq()) end,
-    distsq     = function (a, b)    return (a - b):lengthsq() end,
-    dist       = function (a, b)    return math.sqrt(a:distsq(b)) end,
-    normalize  = function (v)       return v / v:length() end,
-    delta_x    = function (v, dx) v.x = v.x + dx end,
-    delta_y    = function (v, dy) v.y = v.y + dy end,
-    unpack     = function(v) return tonumber(v.x), tonumber(v.y) end,
-    angle      = function (theta) return Vector2(math.cos(theta), math.sin(theta)) end,
-}
-vec2_mt.__index = vec2_mt
+local CheckVec2 = function (a, b)
+    if not ffi.istype(Vector2, a) or not ffi.istype(Vector2, b) then
+        error(string.format("expected Vector2 and Vector2 but got %s and %s", tostring(a), tostring(b)), 3)
+    end
+end
 
 --- Simple 2d vector
 --- You shouldn't need to know that this is an ffi struct
 --- rather than a Lua table. It's mostly just to make returning and passing
 --- vectors from C simpler.
 ---@class Vector2
-Vector2 = ffi.metatype("Vector2", vec2_mt)
+Vector2 = ffi.metatype("Vector2", Parent {
+    __add = function (a, b) CheckVec2(a,b) return Vector2(a.x + b.x, a.y + b.y) end,
+    __sub = function (a, b) return Vector2(a.x - b.x, a.y - b.y) end,
+    __mul = function (a, b) return Vector2(a.x * b, a.y * b) end,
+    __div = function (a, b) return Vector2(a.x / b, a.y / b) end,
+    __unm = function (v) return Vector2(-v.x, -v.y) end,
+
+    __tostring = function (v)
+        return string.format("Vector2(%.2f, %.2f)", v.x, v.y)
+    end,
+
+    Dot = function (a, b) return a.x * b.x + a.y * b.y end,
+    Scale = function (a, b) return Vector2(a.x * b.x, a.y * b.y) end,
+    LengthSq = function (v) return v.x*v.x + v.y*v.y end,
+    Length = function (v) return math.sqrt(v:LengthSq()) end,
+    DistSq = function (a, b) return (a - b):LengthSq() end,
+    Dist = function (a, b) return math.sqrt(a:DistSq(b)) end,
+    Normalize = function (v) return v / v:Length() end,
+    DeltaX = function (v, dx) v.x = v.x + dx end,
+    DeltaY = function (v, dy) v.y = v.y + dy end,
+    Unpack = function(v) return tonumber(v.x), tonumber(v.y) end,
+    Angle = function (theta) return Vector2(math.cos(theta), math.sin(theta)) end,
+})
 
 ----------------------------
 --------- Color ----------
 ----------------------------
 
-local color_mt = {
+--- RGBA color stored as floats [0-1]
+--- Generally don't call constructor directly,
+--- but use Color.Hex or Color.Hsl.
+--- With most methods you can choose to neglect the alpha component.
+---@class Color
+Color = ffi.metatype("Color", Parent {
     __tostring = function(c)
         return ("Color(%.2f, %.2f, %.2f, %.2f)"):format(c.r, c.g, c.b, c.a)
     end,
-    hex = function(hex, a)
+    Hex = function(hex, a)
         if hex:sub(1, 1) == '#' then hex = hex:sub(2) end
         assert(#hex == 6 and "hex string should be an optional '#' plus six hexadecimal digits")
         local r = tonumber(hex:sub(1, 2), 16) / 0xFF
@@ -73,7 +146,7 @@ local color_mt = {
     ---@param saturation number in range [0, 1]
     ---@param lightness  number in range [0, 1]
     ---@param alpha      number|nil (default 1)
-    hsl = function(hue, saturation, lightness, alpha)
+    Hsl = function(hue, saturation, lightness, alpha)
             local a = saturation * math.min(lightness, 1 - lightness)
 
             local k = (0 + hue / 30) % 12
@@ -88,7 +161,7 @@ local color_mt = {
             -- TODO: alpha
             return Color(red, green, blue, alpha or 1)
     end,
-    to_hex_string = function(c)
+    ToHexString = function(c)
         return "#"..string.format("%.2x", c.r*255)
                   ..string.format("%.2x", c.g*255)
                   ..string.format("%.2x", c.b*255)
@@ -96,22 +169,14 @@ local color_mt = {
     Pixel = function(c)
         return ffi.new("Pixel", math.floor(c.r*255), math.floor(c.g*255), math.floor(c.b*255), math.floor(c.a*255))
     end,
-    unpack = function(c) return c.r, c.g, c.b, c.a end,
-    mix = function(a, b, f)
+    Unpack = function(c) return c.r, c.g, c.b, c.a end,
+    Mix = function(a, b, f)
         return Color(a.r * (1 - f) + b.r * f,
                      a.g * (1 - f) + b.g * f,
                      a.b * (1 - f) + b.b * f,
                      a.a * (1 - f) + a.a * f)
     end,
-}
-color_mt.__index = color_mt
-
---- RGBA color stored as floats [0-1]
---- Generally don't call constructor directly,
---- but use Color.hex or Color.hsl.
---- With most methods you can choose to neglect the alpha component.
----@class Color
-Color = ffi.metatype("Color", color_mt)
+})
 
 ----------------------------
 --------- Bubble ----------
@@ -329,10 +394,10 @@ RunBgShader = function(id, frag_shader, data)
             uniforms[name] = C.glGetUniformLocation(program.program, name)
         end
         if ffi.istype(Color, arg) then
-            C.glUniform4f(uniforms[name], arg:unpack())
+            C.glUniform4f(uniforms[name], arg:Unpack())
 
         elseif ffi.istype(Vector2, arg) then
-            C.glUniform2f(uniforms[name], arg:unpack())
+            C.glUniform2f(uniforms[name], arg:Unpack())
 
         elseif type(arg) == "number" then
             C.glUniform1f(uniforms[name], arg)
@@ -414,218 +479,153 @@ end
 ----------------------------
 --https://developer.mozilla.org/en-US/docs/Web/CSS/named-color
 WEBCOLORS = {
-    BLACK = Color.hex "#000000",
-    SILVER = Color.hex "#c0c0c0",
-    GRAY = Color.hex "#808080",
-    WHITE = Color.hex "#ffffff",
-    MAROON = Color.hex "#800000",
-    RED = Color.hex "#ff0000",
-    PURPLE = Color.hex "#800080",
-    FUCHSIA = Color.hex "#ff00ff",
-    GREEN = Color.hex "#008000",
-    LIME = Color.hex "#00ff00",
-    OLIVE = Color.hex "#808000",
-    YELLOW = Color.hex "#ffff00",
-    NAVY = Color.hex "#000080",
-    BLUE = Color.hex "#0000ff",
-    TEAL = Color.hex "#008080",
-    AQUA = Color.hex "#00ffff",
-    ORANGE = Color.hex "#ffa500",
-    ALICEBLUE = Color.hex "#f0f8ff",
-    ANTIQUEWHITE = Color.hex "#faebd7",
-    AQUAMARINE = Color.hex "#7fffd4",
-    AZURE = Color.hex "#f0ffff",
-    BEIGE = Color.hex "#f5f5dc",
-    BISQUE = Color.hex "#ffe4c4",
-    BLANCHEDALMOND = Color.hex "#ffebcd",
-    BLUEVIOLET = Color.hex "#8a2be2",
-    BROWN = Color.hex "#a52a2a",
-    BURLYWOOD = Color.hex "#deb887",
-    CADETBLUE = Color.hex "#5f9ea0",
-    CHARTREUSE = Color.hex "#7fff00",
-    CHOCOLATE = Color.hex "#d2691e",
-    CORAL = Color.hex "#ff7f50",
-    CORNFLOWERBLUE = Color.hex "#6495ed",
-    CORNSILK = Color.hex "#fff8dc",
-    CRIMSON = Color.hex "#dc143c",
-    DARKBLUE = Color.hex "#00008b",
-    DARKCYAN = Color.hex "#008b8b",
-    DARKGOLDENROD = Color.hex "#b8860b",
-    DARKGRAY = Color.hex "#a9a9a9",
-    DARKGREEN = Color.hex "#006400",
-    DARKGREY = Color.hex "#a9a9a9",
-    DARKKHAKI = Color.hex "#bdb76b",
-    DARKMAGENTA = Color.hex "#8b008b",
-    DARKOLIVEGREEN = Color.hex "#556b2f",
-    DARKORANGE = Color.hex "#ff8c00",
-    DARKORCHID = Color.hex "#9932cc",
-    DARKRED = Color.hex "#8b0000",
-    DARKSALMON = Color.hex "#e9967a",
-    DARKSEAGREEN = Color.hex "#8fbc8f",
-    DARKSLATEBLUE = Color.hex "#483d8b",
-    DARKSLATEGRAY = Color.hex "#2f4f4f",
-    DARKSLATEGREY = Color.hex "#2f4f4f",
-    DARKTURQUOISE = Color.hex "#00ced1",
-    DARKVIOLET = Color.hex "#9400d3",
-    DEEPPINK = Color.hex "#ff1493",
-    DEEPSKYBLUE = Color.hex "#00bfff",
-    DIMGRAY = Color.hex "#696969",
-    DIMGREY = Color.hex "#696969",
-    DODGERBLUE = Color.hex "#1e90ff",
-    FIREBRICK = Color.hex "#b22222",
-    FLORALWHITE = Color.hex "#fffaf0",
-    FORESTGREEN = Color.hex "#228b22",
-    GAINSBORO = Color.hex "#dcdcdc",
-    GHOSTWHITE = Color.hex "#f8f8ff",
-    GOLD = Color.hex "#ffd700",
-    GOLDENROD = Color.hex "#daa520",
-    GREENYELLOW = Color.hex "#adff2f",
-    GREY = Color.hex "#808080",
-    HONEYDEW = Color.hex "#f0fff0",
-    HOTPINK = Color.hex "#ff69b4",
-    INDIANRED = Color.hex "#cd5c5c",
-    INDIGO = Color.hex "#4b0082",
-    IVORY = Color.hex "#fffff0",
-    KHAKI = Color.hex "#f0e68c",
-    LAVENDER = Color.hex "#e6e6fa",
-    LAVENDERBLUSH = Color.hex "#fff0f5",
-    LAWNGREEN = Color.hex "#7cfc00",
-    LEMONCHIFFON = Color.hex "#fffacd",
-    LIGHTBLUE = Color.hex "#add8e6",
-    LIGHTCORAL = Color.hex "#f08080",
-    LIGHTCYAN = Color.hex "#e0ffff",
-    LIGHTGOLDENRODYELLOW = Color.hex "#fafad2",
-    LIGHTGRAY = Color.hex "#d3d3d3",
-    LIGHTGREEN = Color.hex "#90ee90",
-    LIGHTGREY = Color.hex "#d3d3d3",
-    LIGHTPINK = Color.hex "#ffb6c1",
-    LIGHTSALMON = Color.hex "#ffa07a",
-    LIGHTSEAGREEN = Color.hex "#20b2aa",
-    LIGHTSKYBLUE = Color.hex "#87cefa",
-    LIGHTSLATEGRAY = Color.hex "#778899",
-    LIGHTSLATEGREY = Color.hex "#778899",
-    LIGHTSTEELBLUE = Color.hex "#b0c4de",
-    LIGHTYELLOW = Color.hex "#ffffe0",
-    LIMEGREEN = Color.hex "#32cd32",
-    LINEN = Color.hex "#faf0e6",
-    MEDIUMAQUAMARINE = Color.hex "#66cdaa",
-    MEDIUMBLUE = Color.hex "#0000cd",
-    MEDIUMORCHID = Color.hex "#ba55d3",
-    MEDIUMPURPLE = Color.hex "#9370db",
-    MEDIUMSEAGREEN = Color.hex "#3cb371",
-    MEDIUMSLATEBLUE = Color.hex "#7b68ee",
-    MEDIUMSPRINGGREEN = Color.hex "#00fa9a",
-    MEDIUMTURQUOISE = Color.hex "#48d1cc",
-    MEDIUMVIOLETRED = Color.hex "#c71585",
-    MIDNIGHTBLUE = Color.hex "#191970",
-    MINTCREAM = Color.hex "#f5fffa",
-    MISTYROSE = Color.hex "#ffe4e1",
-    MOCCASIN = Color.hex "#ffe4b5",
-    NAVAJOWHITE = Color.hex "#ffdead",
-    OLDLACE = Color.hex "#fdf5e6",
-    OLIVEDRAB = Color.hex "#6b8e23",
-    ORANGERED = Color.hex "#ff4500",
-    ORCHID = Color.hex "#da70d6",
-    PALEGOLDENROD = Color.hex "#eee8aa",
-    PALEGREEN = Color.hex "#98fb98",
-    PALETURQUOISE = Color.hex "#afeeee",
-    PALEVIOLETRED = Color.hex "#db7093",
-    PAPAYAWHIP = Color.hex "#ffefd5",
-    PEACHPUFF = Color.hex "#ffdab9",
-    PERU = Color.hex "#cd853f",
-    PINK = Color.hex "#ffc0cb",
-    PLUM = Color.hex "#dda0dd",
-    POWDERBLUE = Color.hex "#b0e0e6",
-    ROSYBROWN = Color.hex "#bc8f8f",
-    ROYALBLUE = Color.hex "#4169e1",
-    SADDLEBROWN = Color.hex "#8b4513",
-    SALMON = Color.hex "#fa8072",
-    SANDYBROWN = Color.hex "#f4a460",
-    SEAGREEN = Color.hex "#2e8b57",
-    SEASHELL = Color.hex "#fff5ee",
-    SIENNA = Color.hex "#a0522d",
-    SKYBLUE = Color.hex "#87ceeb",
-    SLATEBLUE = Color.hex "#6a5acd",
-    SLATEGRAY = Color.hex "#708090",
-    SLATEGREY = Color.hex "#708090",
-    SNOW = Color.hex "#fffafa",
-    SPRINGGREEN = Color.hex "#00ff7f",
-    STEELBLUE = Color.hex "#4682b4",
-    TAN = Color.hex "#d2b48c",
-    THISTLE = Color.hex "#d8bfd8",
-    TOMATO = Color.hex "#ff6347",
-    TURQUOISE = Color.hex "#40e0d0",
-    VIOLET = Color.hex "#ee82ee",
-    WHEAT = Color.hex "#f5deb3",
-    WHITESMOKE = Color.hex "#f5f5f5",
-    YELLOWGREEN = Color.hex "#9acd32",
+    BLACK = Color.Hex "#000000",
+    SILVER = Color.Hex "#c0c0c0",
+    GRAY = Color.Hex "#808080",
+    WHITE = Color.Hex "#ffffff",
+    MAROON = Color.Hex "#800000",
+    RED = Color.Hex "#ff0000",
+    PURPLE = Color.Hex "#800080",
+    FUCHSIA = Color.Hex "#ff00ff",
+    GREEN = Color.Hex "#008000",
+    LIME = Color.Hex "#00ff00",
+    OLIVE = Color.Hex "#808000",
+    YELLOW = Color.Hex "#ffff00",
+    NAVY = Color.Hex "#000080",
+    BLUE = Color.Hex "#0000ff",
+    TEAL = Color.Hex "#008080",
+    AQUA = Color.Hex "#00ffff",
+    ORANGE = Color.Hex "#ffa500",
+    ALICEBLUE = Color.Hex "#f0f8ff",
+    ANTIQUEWHITE = Color.Hex "#faebd7",
+    AQUAMARINE = Color.Hex "#7fffd4",
+    AZURE = Color.Hex "#f0ffff",
+    BEIGE = Color.Hex "#f5f5dc",
+    BISQUE = Color.Hex "#ffe4c4",
+    BLANCHEDALMOND = Color.Hex "#ffebcd",
+    BLUEVIOLET = Color.Hex "#8a2be2",
+    BROWN = Color.Hex "#a52a2a",
+    BURLYWOOD = Color.Hex "#deb887",
+    CADETBLUE = Color.Hex "#5f9ea0",
+    CHARTREUSE = Color.Hex "#7fff00",
+    CHOCOLATE = Color.Hex "#d2691e",
+    CORAL = Color.Hex "#ff7f50",
+    CORNFLOWERBLUE = Color.Hex "#6495ed",
+    CORNSILK = Color.Hex "#fff8dc",
+    CRIMSON = Color.Hex "#dc143c",
+    DARKBLUE = Color.Hex "#00008b",
+    DARKCYAN = Color.Hex "#008b8b",
+    DARKGOLDENROD = Color.Hex "#b8860b",
+    DARKGRAY = Color.Hex "#a9a9a9",
+    DARKGREEN = Color.Hex "#006400",
+    DARKGREY = Color.Hex "#a9a9a9",
+    DARKKHAKI = Color.Hex "#bdb76b",
+    DARKMAGENTA = Color.Hex "#8b008b",
+    DARKOLIVEGREEN = Color.Hex "#556b2f",
+    DARKORANGE = Color.Hex "#ff8c00",
+    DARKORCHID = Color.Hex "#9932cc",
+    DARKRED = Color.Hex "#8b0000",
+    DARKSALMON = Color.Hex "#e9967a",
+    DARKSEAGREEN = Color.Hex "#8fbc8f",
+    DARKSLATEBLUE = Color.Hex "#483d8b",
+    DARKSLATEGRAY = Color.Hex "#2f4f4f",
+    DARKSLATEGREY = Color.Hex "#2f4f4f",
+    DARKTURQUOISE = Color.Hex "#00ced1",
+    DARKVIOLET = Color.Hex "#9400d3",
+    DEEPPINK = Color.Hex "#ff1493",
+    DEEPSKYBLUE = Color.Hex "#00bfff",
+    DIMGRAY = Color.Hex "#696969",
+    DIMGREY = Color.Hex "#696969",
+    DODGERBLUE = Color.Hex "#1e90ff",
+    FIREBRICK = Color.Hex "#b22222",
+    FLORALWHITE = Color.Hex "#fffaf0",
+    FORESTGREEN = Color.Hex "#228b22",
+    GAINSBORO = Color.Hex "#dcdcdc",
+    GHOSTWHITE = Color.Hex "#f8f8ff",
+    GOLD = Color.Hex "#ffd700",
+    GOLDENROD = Color.Hex "#daa520",
+    GREENYELLOW = Color.Hex "#adff2f",
+    GREY = Color.Hex "#808080",
+    HONEYDEW = Color.Hex "#f0fff0",
+    HOTPINK = Color.Hex "#ff69b4",
+    INDIANRED = Color.Hex "#cd5c5c",
+    INDIGO = Color.Hex "#4b0082",
+    IVORY = Color.Hex "#fffff0",
+    KHAKI = Color.Hex "#f0e68c",
+    LAVENDER = Color.Hex "#e6e6fa",
+    LAVENDERBLUSH = Color.Hex "#fff0f5",
+    LAWNGREEN = Color.Hex "#7cfc00",
+    LEMONCHIFFON = Color.Hex "#fffacd",
+    LIGHTBLUE = Color.Hex "#add8e6",
+    LIGHTCORAL = Color.Hex "#f08080",
+    LIGHTCYAN = Color.Hex "#e0ffff",
+    LIGHTGOLDENRODYELLOW = Color.Hex "#fafad2",
+    LIGHTGRAY = Color.Hex "#d3d3d3",
+    LIGHTGREEN = Color.Hex "#90ee90",
+    LIGHTGREY = Color.Hex "#d3d3d3",
+    LIGHTPINK = Color.Hex "#ffb6c1",
+    LIGHTSALMON = Color.Hex "#ffa07a",
+    LIGHTSEAGREEN = Color.Hex "#20b2aa",
+    LIGHTSKYBLUE = Color.Hex "#87cefa",
+    LIGHTSLATEGRAY = Color.Hex "#778899",
+    LIGHTSLATEGREY = Color.Hex "#778899",
+    LIGHTSTEELBLUE = Color.Hex "#b0c4de",
+    LIGHTYELLOW = Color.Hex "#ffffe0",
+    LIMEGREEN = Color.Hex "#32cd32",
+    LINEN = Color.Hex "#faf0e6",
+    MEDIUMAQUAMARINE = Color.Hex "#66cdaa",
+    MEDIUMBLUE = Color.Hex "#0000cd",
+    MEDIUMORCHID = Color.Hex "#ba55d3",
+    MEDIUMPURPLE = Color.Hex "#9370db",
+    MEDIUMSEAGREEN = Color.Hex "#3cb371",
+    MEDIUMSLATEBLUE = Color.Hex "#7b68ee",
+    MEDIUMSPRINGGREEN = Color.Hex "#00fa9a",
+    MEDIUMTURQUOISE = Color.Hex "#48d1cc",
+    MEDIUMVIOLETRED = Color.Hex "#c71585",
+    MIDNIGHTBLUE = Color.Hex "#191970",
+    MINTCREAM = Color.Hex "#f5fffa",
+    MISTYROSE = Color.Hex "#ffe4e1",
+    MOCCASIN = Color.Hex "#ffe4b5",
+    NAVAJOWHITE = Color.Hex "#ffdead",
+    OLDLACE = Color.Hex "#fdf5e6",
+    OLIVEDRAB = Color.Hex "#6b8e23",
+    ORANGERED = Color.Hex "#ff4500",
+    ORCHID = Color.Hex "#da70d6",
+    PALEGOLDENROD = Color.Hex "#eee8aa",
+    PALEGREEN = Color.Hex "#98fb98",
+    PALETURQUOISE = Color.Hex "#afeeee",
+    PALEVIOLETRED = Color.Hex "#db7093",
+    PAPAYAWHIP = Color.Hex "#ffefd5",
+    PEACHPUFF = Color.Hex "#ffdab9",
+    PERU = Color.Hex "#cd853f",
+    PINK = Color.Hex "#ffc0cb",
+    PLUM = Color.Hex "#dda0dd",
+    POWDERBLUE = Color.Hex "#b0e0e6",
+    ROSYBROWN = Color.Hex "#bc8f8f",
+    ROYALBLUE = Color.Hex "#4169e1",
+    SADDLEBROWN = Color.Hex "#8b4513",
+    SALMON = Color.Hex "#fa8072",
+    SANDYBROWN = Color.Hex "#f4a460",
+    SEAGREEN = Color.Hex "#2e8b57",
+    SEASHELL = Color.Hex "#fff5ee",
+    SIENNA = Color.Hex "#a0522d",
+    SKYBLUE = Color.Hex "#87ceeb",
+    SLATEBLUE = Color.Hex "#6a5acd",
+    SLATEGRAY = Color.Hex "#708090",
+    SLATEGREY = Color.Hex "#708090",
+    SNOW = Color.Hex "#fffafa",
+    SPRINGGREEN = Color.Hex "#00ff7f",
+    STEELBLUE = Color.Hex "#4682b4",
+    TAN = Color.Hex "#d2b48c",
+    THISTLE = Color.Hex "#d8bfd8",
+    TOMATO = Color.Hex "#ff6347",
+    TURQUOISE = Color.Hex "#40e0d0",
+    VIOLET = Color.Hex "#ee82ee",
+    WHEAT = Color.Hex "#f5deb3",
+    WHITESMOKE = Color.Hex "#f5f5f5",
+    YELLOWGREEN = Color.Hex "#9acd32",
 }
 
-
-----------------------------
---------- Lua Utility ------
-----------------------------
-
--- utilities around math.random()
-random = {
-    sign = function()
-        return math.random() > 0.5 and 1 or -1
-    end;
-    vary = function (base, vary)
-        return base + vary * math.random()
-    end;
-    minmax = function (min, max)
-        return math.random() * (max - min) + min
-    end;
-    select = function (a)
-        return a[math.random(1, #a)]
-    end;
-    shuffle = function (a)
-        for i = 1, #a-1 do
-            local i2 = math.random(i+1, #a)
-            a[i], a[i2] = a[i2], a[i]
-        end
-        return a
-    end;
-}
-PI = math.pi
-
-table.copy = function(tbl)
-    local cpy = {}
-    for k,v in pairs(tbl) do cpy[k] = v end
-    return cpy
-end
-
-math.clamp = function(v, min, max)
-    return math.max(min, math.min(max, v))
-end
-
-math.sign = function(v) return v < 0 and -1 or v > 0 and 1 or 0 end
-
-MousePosition = function ()
-    return C.get_mouse_position(window)
-end
-
-ArrayFind = function (array, item)
-    for i,v in ipairs(array) do
-        if v == item then return i end
-    end
-end
-
-dbg = function(...) print(...) return ... end
-
--- The most barebones of class implementations
-Parent = function (t)
-    t.__index = t
-    return t
-end
-
---TODO: fully implement
-Dump = function (t)
-    print("-------------------")
-    for k,v in pairs(t) do print(k,v) end
-    print("-------------------")
-end
 
 ----------------------------
 -------- Config vars -------

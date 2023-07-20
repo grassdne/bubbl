@@ -19,7 +19,7 @@ local particles = {}
 
 -- radius and y position are randomized
 -- but color and x position are passed in
-local gen_particle = function (color, x_position)
+local GenParticle = function (color, x_position)
     return {
         color = color,
         radius = random.minmax(MIN_RADIUS, MAX_RADIUS),
@@ -28,19 +28,19 @@ local gen_particle = function (color, x_position)
 end
 
 -- This is the only place we actually add new particles
-local gen_particle_field = function ()
+local GenParticleField = function ()
     -- The x positions are in neat columns
     -- Adding noise just made it look like a mess
     for x=END_POS_LEFT+SPACING, resolution.x + START_POS_RIGHT, SPACING do
         for i=0, resolution.y / SPACING do
-            table.insert(particles, gen_particle(Color.hsl(x/resolution.x*360, 1, 0.5), x))
+            table.insert(particles, GenParticle(Color.Hsl(x/resolution.x*360, 1, 0.5), x))
         end
     end
 end
 
 local last_mouse_position = MousePosition()
 
-gen_particle_field()
+GenParticleField()
 
 return {
     title = "🌈🌈🌈",
@@ -54,17 +54,17 @@ return {
     OnWindowResize = function(w, h)
         -- Clear particles
         particles = {}
-        gen_particle_field()
+        GenParticleField()
     end,
 
     Draw = function(dt)
         -- Update and draw particles
         for i,part in ipairs(particles) do
             local length = resolution.x + START_POS_RIGHT - END_POS_LEFT
-            part.position:delta_x(-length * VAR.SPEED * dt)
+            part.position:DeltaX(-length * VAR.SPEED * dt)
             if part.position.x < END_POS_LEFT then
                 -- Jump back to the other end
-                particles[i] = gen_particle(part.color, part.position.x + length)
+                particles[i] = GenParticle(part.color, part.position.x + length)
             end
             RenderPop(part.position, part.color, part.radius + VAR.RADIUS_ADDEND)
         end
@@ -78,7 +78,7 @@ return {
             and mouse.y > 0 and mouse.y < resolution.y
             then
                 for _,part in ipairs(particles) do
-                    local dist = mouse:dist(part.position)
+                    local dist = mouse:Dist(part.position)
                     if dist < MOUSE_EFFECT_RADIUS then
                         local proximity = 1 - dist / MOUSE_EFFECT_RADIUS
                         part.radius = math.min(MAX_ATTAINED_RADIUS, part.radius + SIZE_DELTA * dt)
