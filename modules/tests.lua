@@ -1,8 +1,6 @@
-Title "Running tests..."
-
 local tests = {}
 
-local overwrite = NextArg() == "overwrite"
+local overwrite = arg[2] == "overwrite"
 
 local TestScreenshot = function (name, path, func)
     table.insert(tests, {
@@ -67,32 +65,42 @@ end)
 print("overwrite="..tostring(overwrite))
 print()
 
-local i = 0
-Draw = function()
-    i = i + 1
-    if not tests[i] then return Quit() end
-    local path = tests[i].path..".png"
-    local contents = SlurpFile(path)
-    print("TEST "..tests[i].name)
-    tests[i].call()
-    local tmpname = os.tmpname()
-    if not Screenshot(tmpname) then
-        print("\tFailed to take screenshot!")
-        return
-    end
-    local new_contents = assert(SlurpFile(tmpname))
-    if not contents then
-        print("\tNo previous test image found")
-        SaveToFile(path, new_contents)
-    elseif contents == new_contents then
-        print("\tSUCCESS")
-    elseif overwrite then
-        print("\tOVERWRITING "..path)
-        SaveToFile(path, new_contents)
-        os.remove(tests[i].path..".fail.png")
-    else
-        print("\tFAILURE")
-        SaveToFile(tests[i].path..".fail.png", new_contents)
-    end
-    os.remove(tmpname)
-end
+local active
+
+return {
+    title = "Running tests...",
+    OnStart = function ()
+        for i, test in ipairs(tests) do
+            active = test
+            active.call()
+            local path = active.path..".png"
+            local contents = SlurpFile(path)
+            print("TEST "..active.name)
+            local tmpname = os.tmpname()
+            if not Screenshot(tmpname) then
+                print("\tFailed to take screenshot!")
+                return
+            end
+            local new_contents = assert(SlurpFile(tmpname))
+            if not contents then
+                print("\tNo previous test image found")
+                SaveToFile(path, new_contents)
+            elseif contents == new_contents then
+                print("\tSUCCESS")
+            elseif overwrite then
+                print("\tOVERWRITING "..path)
+                SaveToFile(path, new_contents)
+                os.remove(active.path..".fail.png")
+            else
+                print("\tFAILURE")
+                SaveToFile(active.path..".fail.png", new_contents)
+            end
+            os.remove(tmpname)
+            Suspend(1)
+        end
+        Quit()
+    end,
+    Draw = function()
+        active.call()
+    end,
+}
