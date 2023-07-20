@@ -174,25 +174,16 @@ Color = ffi.metatype("Color", Parent {
 })
 
 ----------------------------
---------- Bubble ----------
+--------- Entities ----------
 ----------------------------
 
-BubbleEntity = ffi.typeof("Bubble")
+local BubbleEntity = ffi.typeof("Bubble")
 
 RenderBubble = function (pos, color, rad)
-    local bubble = BubbleEntity()
-    bubble.pos = pos
-    bubble.rad = rad
-    bubble.color = color
-    bubble.color_b = color
-    C.render_bubble(bubble)
+    C.render_bubble(BubbleEntity(pos, rad, color, color))
 end
 
-----------------------------
---------- Pop -------------
-----------------------------
-
-ParticleEntity = ffi.typeof("Particle")
+local ParticleEntity = ffi.typeof("Particle")
 
 RenderPop = function (pos, color, radius)
     C.render_pop(ParticleEntity(pos, color, radius))
