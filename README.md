@@ -1,16 +1,16 @@
 # Bubbl
 ![logo](images/logo.gif)
 
-An easy-to-use programming interface for creating simulations, animations, and games with a peculiar set of graphics primitives.
+A WIP set of animations, simulations, and games with a common theme.
 
 ### Dependencies
-SDL2, LuaJIT, GLEW (OpenGL 3.3)
+SDL2, LuaJIT, OpenGL 3.3
 
 ### Fedora Example
 ```bash
-sudo dnf install SDL2-devel glew-devel luajit-devel
-./build.sh
-./bubbl --help
+sudo dnf install SDL2-devel glew-devel
+./build.lua
+./bubbl
 ```
 
 ![elastic](images/elastic.png)
