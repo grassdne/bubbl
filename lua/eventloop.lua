@@ -37,9 +37,16 @@ while not ShouldQuit() do
 
     if not ok then
         print("Error inside Draw!")
-        print(err)
+        print(debug.traceback(draw, err))
+
         print("Disabling Draw... fix it and hot reload, or restart.")
-        Draw = function() end
+        loader.active_module = {
+            source = loader.active_module.source,
+            Draw = function ()
+                local text = require "text"
+                text.PutstringWithWidth(Vector2(0, 0), err, resolution.x, WEBCOLORS.RED)
+            end
+        }
     end
     -- restart Draw function next frame, unless this one is unfinished
     if coroutine.status(draw) == "dead" then draw = nil end

@@ -79,7 +79,7 @@ loader.Callback = function(name, ...)
         local ok, err = coroutine.resume(co, ...)
         if not ok then
             print("Error inside "..name.." callback!")
-            print(err)
+            print(debug.traceback(co, err))
         end
     end
 end
