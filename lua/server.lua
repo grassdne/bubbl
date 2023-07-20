@@ -1,13 +1,13 @@
 --[[
-Start a local HTTP server.
+Start a local HTTP Server.
 Tweaking can be done on a web browser over the network!
 ]]
 
-local server = {}
+local Server = {}
 
 local config_html = ""
 local tweak
-
+local server
 local port = 3636
 
 local http_server = require "http.server"
@@ -139,7 +139,7 @@ local PerformTweak = function (stream, parser)
     end
 end
 
-local function reply(myserver, stream) -- luacheck: ignore 212
+local function Reply(server, stream) -- luacheck: ignore 212
     -- Read in headers
     local req_headers = assert(stream:get_headers())
     local req_method = req_headers:get ":method"
@@ -223,12 +223,12 @@ local function reply(myserver, stream) -- luacheck: ignore 212
 
 end
 
-local myserver = assert(http_server.listen {
+server = assert(http_server.listen {
     host = "0.0.0.0";
     port = port;
-    onstream = reply;
+    onstream = Reply;
     tls = false;
-    onerror = function(myserver, context, op, err, errno) -- luacheck: ignore 212
+    onerror = function(server, context, op, err, errno) -- luacheck: ignore 212
         local msg = op .. " on " .. tostring(context) .. " failed"
         if err then
             msg = msg .. ": " .. tostring(err)
@@ -244,8 +244,8 @@ local FindIp = function ()
     end
 end
 
-local onstart = function ()
-    local bound_port = select(3, myserver:localname())
+local OnStart = function ()
+    local bound_port = select(3, server:localname())
     local ip = FindIp()
     if ip then
         print(string.format("Web interface at http://localhost:%d or http://%s:%d", bound_port, ip, bound_port))
@@ -255,19 +255,19 @@ local onstart = function ()
 end
 local started = false
 
-function server:update()
-    myserver:step(0.01)
+function Server:Update()
+    server:step(0.01)
     if not started then
         started = true
-        onstart()
+        OnStart()
     end
 end
 
-function server:close()
-    myserver:close()
+function Server:Close()
+    server:close()
 end
 
-function server:MakeConfig(_tweak)
+function Server:MakeConfig(_tweak)
     tweak = _tweak or {}
     tweak.vars = tweak.vars or {}
     for i,v in ipairs(tweak) do
@@ -276,9 +276,4 @@ function server:MakeConfig(_tweak)
     end
 end
 
--- Hot reload
-if TheServer then TheServer:close() end
-
-TheServer = server
-
-return server
+return Server

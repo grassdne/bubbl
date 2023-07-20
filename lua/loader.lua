@@ -6,8 +6,9 @@ local FileExists = function (name)
     return f ~= nil
 end
 
+
 loader.LoadModule = function (module)
-    require "server"
+    TheServer = require "server"
 
     local module_name_lua = "modules/"..module..".lua"
     local module_name_c = "./modules/"..module..".so"
