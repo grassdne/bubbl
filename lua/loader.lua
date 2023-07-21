@@ -68,6 +68,9 @@ loader.HotReload = function (module)
     -- Unlock global table
     setmetatable(_G, nil)
     --package.loaded["server"] = nil
+    package.loaded["loader"] = nil
+    package.loaded["effects"] = nil
+    package.loaded["text"] = nil
     loader.LoadModule(assert(loader.active_module and loader.active_module.source))
 end
 
