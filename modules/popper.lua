@@ -1,4 +1,5 @@
 local Text = require "text"
+local Effect = require "effects"
 local BUBBLE_COUNT = 10
 
 local BGSHADER_MAX_ELEMS = 10
@@ -45,6 +46,11 @@ local pop_effects, bubbles
 local score = 0
 local scene
 local Game, Won
+local tutorial_text = Effect:Build("CLICK or press SPACE over bubbles to POP them", {
+    speed = resolution.x,
+    position = "left",
+    color = Color.Hsl(0, 1, 0.5)
+})
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -221,6 +227,7 @@ end)
 
 function Game:Click (pos)
     local i = BubbleAtPoint(self, pos)
+    tutorial_text:Disperse()
     if i then
         PopBubble(self, i)
     else
@@ -284,6 +291,7 @@ function Game:Draw(dt)
     end
 
     Text.PutstringWithWidth(Vector2(0,0), tostring(score), 100, WEBCOLORS.BLACK)
+    tutorial_text:Update(dt)
 end
 
 local WIN_EFFECT_PERIOD = 1
@@ -302,16 +310,16 @@ Won = Class(function (self, bubble)
 end)
 
 function Won:Draw(dt)
-    for i, particle in ipairs(self.particles) do
-        ParticleUpdatePosition(particle, dt)
-        RenderPop(particle.position, self.color, particle.radius)
-    end
     RunBgShader("elastic", BgShaderLoader, {
         resolution = resolution,
         num_elements = 1,
         colors = self.color,
         positions = { resolution / 2 },
     })
+    for i, particle in ipairs(self.particles) do
+        ParticleUpdatePosition(particle, dt)
+        RenderPop(particle.position, self.color, particle.radius)
+    end
 end
 
 function Won:Click()

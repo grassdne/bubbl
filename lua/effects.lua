@@ -11,74 +11,118 @@ local Get = function (v, ...)
 end
 
 local coloring = {
-    rainbow = function (pt)
-        local percent = pt.goal.x / pt.effect.dimensions.x
+    rainbow = function (dimensions, goal)
+        local percent = goal.x / dimensions.x
         return Color.Hsl(percent*360, 1.0, 0.5)
     end
 }
 
 local positions = {
-    left = function (pt)
-        return Vector2(math.random() * -0.1, math.random()):Scale(pt.effect.dimensions)
+    left = function (dimensions, goal)
+        return Vector2(math.random() * -0.1, math.random()):Scale(dimensions)
     end,
-    random = function (pt)
-        return Vector2(math.random(), math.random()):Scale(pt.effect.dimensions)
+    random = function (dimensions, goal)
+        return Vector2(math.random(), math.random()):Scale(dimensions)
     end,
-    constant = function (pt)
-        return pt.goal
+    constant = function (dimensions, goal)
+        return goal
     end,
-    above = function (pt)
-        local STRETCH_Y = 8
-        return Vector2(pt.goal.x, pt.goal.y + pt.offset.y * STRETCH_Y + pt.offset.x)
+    above = function (dimensions, goal)
+        local STRETCH_Y = 2
+        return Vector2(goal.x, goal.y * STRETCH_Y + goal.x)
     end,
 }
 
-local LifetimeFromSpeed = function (speed)
-    return function (pt)
-        return Vector2.Dist(pt.position, pt.goal) / speed
+local to_positions = {
+    random = function (dimensions, goal)
+        return Vector2(math.random(), math.random()):Scale(dimensions)
+    end,
+    disperse = function (dimensions, goal)
+        local direction = Vector2.Angle(math.random() * 2 * PI)
+        return goal + direction * resolution.y/2
+    end,
+    zoom = function (dimensions, goal)
+        local center = dimensions / 2
+        local direction = Vector2.Normalize(goal - center)
+        return goal + direction * 800
+    end,
+    vacuum = function (dimensions, goal)
+        local center = dimensions / 2
+        return center
+    end
+}
+
+local TimeFromSpeed = function (speed)
+    return function (dimensions, initial, final)
+        return Vector2.Dist(initial.position, final.position) / speed
     end
 end
+local interpolator = require "anim"
 
 Effect.Build = function (self, str, opts)
     local effect = setmetatable({}, self)
-    effect.dimensions = opts.dimensions or resolution
-    effect.particles = text.BuildParticlesWithWidth(str, effect.dimensions.x)
-    effect.color = type(opts.color) == "string"
+
+    local stages = { {}, {}, {} }
+
+    local positioner = type(opts.position) == "string"
+        and assert(positions[opts.position])
+        or opts.position
+        or positions.random
+
+    local colorer = type(opts.color) == "string"
                  and assert(coloring[opts.color])
                  or opts.color
                  or DEFAULT_COLOR
-    effect.lifetime = opts.lifetime
-                    or opts.speed and LifetimeFromSpeed(opts.speed)
-                    or DEFAULT_LIFETIME
-    effect.position = type(opts.position) == "string"
-                    and assert(positions[opts.position])
-                    or opts.position
-                    or positions.random
 
-    for i, pt in ipairs(effect.particles) do
-        local goal = Vector2(0, (effect.dimensions.y - effect.particles.height) / 2)
-        pt.goal = goal + pt.offset
-        pt.effect = effect
-        pt.color = Get(effect.color or DEFAULT_COLOR, pt)
-        pt.position = Get(effect.position, pt)
-        pt.lifetime = Get(effect.lifetime, pt)
-        pt.delta = (pt.goal - pt.position) / pt.lifetime
+    effect.dimensions = opts.dimensions or resolution
+
+    local time = opts.time
+                    or opts.speed and TimeFromSpeed(opts.speed)
+                    or DEFAULT_LIFETIME
+
+    local text_particles = text.BuildParticlesWithWidth(str, effect.dimensions.x)
+    local goal = Vector2(0, (effect.dimensions.y - text_particles.height) / 2)
+    for i,v in ipairs(text_particles) do
+        local final_position = goal + v.offset
+        local color = Get(colorer or DEFAULT_COLOR, effect.dimensions, final_position)
+        stages[2][i] = {
+            position = final_position,
+            color = color,
+            radius = v.radius,
+        }
+        stages[1][i] = {
+            position = Get(positioner, effect.dimensions, final_position),
+            color = color,
+            radius = 1,
+        }
+        stages[3][i] = {
+            position = Get(to_positions.disperse, effect.dimensions, final_position),
+            color = color,
+            radius = 0,
+        }
+
+        stages[1][i].time = Get(time, effect.dimensions, stages[1][i], stages[2][i])
+        stages[2][i].time = Get(time, effect.dimensions, stages[2][i], stages[3][i])
     end
 
-    effect.start_time = Seconds()
+    effect.stages = stages
+    effect.anim = interpolator.Build(effect.stages[1], effect.stages[2])
+
     return effect
 end
 
 Effect.Update = function (effect, dt)
-    local time = Seconds() - effect.start_time
-    for _,pt in ipairs(effect.particles) do
-        if time < pt.lifetime then
-            pt.position = pt.position + pt.delta * dt
-        else
-            pt.position = pt.goal
-        end
-        RenderBubble(pt.position, pt.color, pt.radius)
+    local time
+    for i, position, color, radius in effect.anim:Interpolate(time) do
+        RenderPop(position, color, radius)
     end
+    if effect.anim:IsComplete() and effect.do_disperse and effect.anim.initial == effect.stages[1] then
+        effect.anim = interpolator.Build(effect.stages[2], effect.stages[3])
+    end
+end
+
+Effect.Disperse = function (effect)
+    effect.do_disperse = true
 end
 
 return Effect

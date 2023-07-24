@@ -74,6 +74,17 @@ Dump = function (t)
     print("-------------------")
 end
 
+Deepcopy = function (t)
+    if type(t) ~= "table" then return t end
+    local new = {}
+    for k,v in pairs(t) do
+        new[k] = Deepcopy(v)
+    end
+    return new
+end
+
+Lerp = function (a, b, t) return (b - a) * t + a end
+
 ----------------------------
 --------- Vector2 ----------
 ----------------------------
@@ -91,7 +102,6 @@ Vector2 = ffi.metatype("Vector2", Parent {
     __unm = function (v) return Vector2(-v.x, -v.y) end,
 
     __tostring = function (v)
-        CheckVec2(v)
         return string.format("Vector2(%.2f, %.2f)", v.x, v.y)
     end,
 
@@ -106,6 +116,7 @@ Vector2 = ffi.metatype("Vector2", Parent {
     DeltaY = function (v, dy) v.y = v.y + dy end,
     Unpack = function(v) return tonumber(v.x), tonumber(v.y) end,
     Angle = function (theta) return Vector2(math.cos(theta), math.sin(theta)) end,
+    Lerp = Lerp,
 })
 
 ----------------------------
@@ -132,8 +143,10 @@ Color = ffi.metatype("Color", Parent {
     random = function()
         return Color(math.random(), math.random(), math.random())
     end,
-    __add = function(a, b) return Color(a.r+b.r, a.g+b.g, a.b+b.b) end,
-    __div = function(a, x) return Color(a.r/x, a.g/x, a.b/x) end,
+    __add = function(a, b) return Color(a.r+b.r, a.g+b.g, a.b+b.b, a.a+b.a) end,
+    __sub = function(a, b) return Color(a.r-b.r, a.g-b.g, a.b-b.b, a.a-b.a) end,
+    __div = function(a, x) return Color(a.r/x, a.g/x, a.b/x, a.a/x) end,
+    __mul = function(a, x) return Color(a.r*x, a.g*x, a.b*x, a.a*x) end,
 
     -- Translated from
     -- https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
@@ -165,12 +178,7 @@ Color = ffi.metatype("Color", Parent {
         return ffi.new("Pixel", math.floor(c.r*255), math.floor(c.g*255), math.floor(c.b*255), math.floor(c.a*255))
     end,
     Unpack = function(c) return c.r, c.g, c.b, c.a end,
-    Mix = function(a, b, f)
-        return Color(a.r * (1 - f) + b.r * f,
-                     a.g * (1 - f) + b.g * f,
-                     a.b * (1 - f) + b.b * f,
-                     a.a * (1 - f) + a.a * f)
-    end,
+    Lerp = Lerp,
 })
 
 ----------------------------

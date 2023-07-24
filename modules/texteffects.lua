@@ -11,7 +11,7 @@ local VAR = {
     POSITION = "left",
     COLOR = Color.Hsl(300, 1.0, 0.5),
     COLORING = "solid",
-    LIFETIME = 4,
+    TIME = 4,
     SPEED = 400,
     LIMITER = "speed",
 }
@@ -31,9 +31,10 @@ local BuildText = function ()
     effect = Effect:Build(VAR.TEXT, {
         color=VAR.COLORING == "solid" and VAR.COLOR or VAR.COLORING,
         position=VAR.POSITION,
-        lifetime=VAR.LIMITER == "lifetime" and VAR.LIFETIME or nil,
+        time=VAR.LIMITER == "time" and VAR.TIME or nil,
         speed=VAR.LIMITER == "speed" and VAR.SPEED or nil,
     })
+    effect:Disperse()
 end
 
 return {
@@ -46,9 +47,9 @@ return {
             "left", "random", "above", "constant",
         }},
         { id="LIMITER", name="Limiter", type="options", callback=BuildText, options = {
-            "lifetime", "speed"
+            "time", "speed"
         } },
-        { id="LIFETIME", name="Lifetime", type="range", min=0.25, max=6, callback=BuildText },
+        { id="TIME", name="Time", type="range", min=0.25, max=6, callback=BuildText },
         { id="SPEED", name="Speed", type="range", min=50, max=2000, callback=BuildText },
         { id="COLORING", name="Coloring", type="options", callback=BuildText, options = {
             "rainbow", "solid",
