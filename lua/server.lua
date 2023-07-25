@@ -92,8 +92,8 @@ local BuildConfigItem = function (var)
         })
 
     elseif var.type == "action" then
-        return (string.gsub([[<div>
-            <button type="button" id="$id" class="config">$name</button>
+        return (string.gsub([[
+            <button type="button" id="$id" name="$id" class="config">$name</button>
         ]], "%$(%w+)", var))
 
     else
@@ -116,9 +116,11 @@ local PerformTweak = function (stream, parser)
 
     -- All data is in format ID=something
     local id, value = body:match("^([_%w]+)=(.*)$")
+    print(id, tweak[id])
     if not id or not tweak[id] then
         print("Invalid tweak input: ", body)
         BuildHeaders(stream, 400, "text/plain", true)
+        return
     end
 
     -- Apply parser to value
@@ -136,6 +138,15 @@ local PerformTweak = function (stream, parser)
     else
         print("Unable to parse value: " + value + "")
         BuildHeaders(stream, 400, "text/plain", true)
+    end
+end
+
+local ffi = require "ffi"
+local ValueToJson = function (v)
+    if ffi.istype(Color, v) then
+        return v:ToHexString()
+    else
+        return tostring(v)
     end
 end
 
@@ -178,6 +189,10 @@ local function Reply(server, stream) -- luacheck: ignore 212
     elseif path == "/api/tweak/color" and req_method == "POST" then
         PerformTweak(stream, Color.Hex)
 
+    elseif path == "/api/tweak/action" and req_method == "POST" then
+        print("action recieved")
+        PerformTweak(stream, tostring)
+
     elseif path == "/api/tweaks" and req_method == "GET" then
         BuildHeaders(stream, 200, "text/html")
         local html = ConfigHtml()
@@ -197,11 +212,12 @@ local function Reply(server, stream) -- luacheck: ignore 212
         for i = 1, #tweak do
             local value = GetValue(tweak[i])
             if value then
-                s = s .. "\""..tweak[i].id.."\": \""..tostring(value).."\" "
-                if i < #tweak then s = s .. "," end
+                if i > 1 then s = s .. ", " end
+                s = s .. "\""..tweak[i].id.."\": \""..ValueToJson(value).."\""
             end
         end
         s = s .. "}"
+        print(s)
         assert(stream:write_chunk(s, true))
 
     elseif path == "/action/reload" and req_method == "POST" then
@@ -234,6 +250,7 @@ server = assert(http_server.listen {
             msg = msg .. ": " .. tostring(err)
         end
         assert(io.stderr:write(msg, "\n"))
+        os.exit(1);
     end;
 })
 

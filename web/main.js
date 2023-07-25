@@ -51,6 +51,14 @@ function attachListeners() {
                     body: `${config.name}=${config.value}`
                 })
             }
+
+        } else if (config.type == "button") {
+            config.onclick = (e) => {
+                fetch("/api/tweak/action", {
+                    method: "POST",
+                    body: `${config.name}=${config.value}`
+                })
+            }
         } else {
             console.log("unknown tweak type", config.type)
         }

@@ -34,6 +34,9 @@ local BuildText = function ()
         time=VAR.LIMITER == "time" and VAR.TIME or nil,
         speed=VAR.LIMITER == "speed" and VAR.SPEED or nil,
     })
+end
+
+local Disperse = function ()
     effect:Disperse()
 end
 
@@ -55,6 +58,8 @@ return {
             "rainbow", "solid",
         } },
         { id="COLOR", name="Solid Color", type="color", callback=BuildText },
+        { id="_RESET", name="Reset", type="action", callback=BuildText },
+        { id="_DISPERSE", name="Disperse", type="action", callback=Disperse },
     },
 
     OnStart = BuildText,
@@ -64,4 +69,10 @@ return {
         -- TODO: GIFs
         -- GifAddFrame("test.gif", i, i / FPS)
     end,
+
+    OnKey = function (key, down)
+        if key == "Return" and down then
+            Disperse()
+        end
+    end
 }
