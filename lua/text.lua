@@ -107,6 +107,7 @@ TextRenderer.PutstringWithWidth = function(pos, str, width, color)
     return scale * TextRenderer.GLYPH_HEIGHT
 end
 
+-- TODO: return generator instead of table
 ---@param str string to render on screen
 ---@param width number expected width of whole string
 ---@return table particles array with each particle's `offset` and `radius`
