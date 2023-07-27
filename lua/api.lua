@@ -253,6 +253,16 @@ CreateWindow = function(name, width, height)
     return ffi.gc(C.create_window(name, width, height), C.destroy_window)
 end
 
+Warning = function (...)
+    io.stderr:write("WARNING: ", ...)
+    io.stderr:write("\n")
+end
+
+Info = function (...)
+    io.stderr:write("INFO: ", ...)
+    io.stderr:write("\n")
+end
+
 ----------------------------
 ------ Background ----------
 ----------------------------

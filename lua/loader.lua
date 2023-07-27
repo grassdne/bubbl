@@ -7,20 +7,24 @@ local FileExists = function (name)
 end
 
 
-loader.LoadModule = function (module)
+loader.LoadModule = function (module_source_file)
     TheServer = require "server"
+    local module
 
-    local module_name_lua = "modules/"..module..".lua"
-    local module_name_c = "./modules/"..module..".so"
+    local module_name_lua = "modules/"..module_source_file..".lua"
+    local module_name_c = "./modules/"..module_source_file..".so"
     if FileExists(module_name_lua) then
         local mod, err = loadfile(module_name_lua)
         if not mod then
-            print("Error loading module "..module)
-            print(err)
+            Warning("Error loading module_source_file ", module_source_file, "\n", err)
             return;
         end
-        -- TODO: DEPRECATED: modules putting info in global table
-        loader.active_module = mod() or _G
+        local ok, result = xpcall(mod, debug.traceback)
+        if not ok then
+            Warning("Error starting module ", module_source_file, "\n", result)
+            return;
+        end
+        module = result
     elseif FileExists(module_name_c) then
         local ffi = require "ffi"
         -- Little hack to unload the cached c library
@@ -33,13 +37,13 @@ loader.LoadModule = function (module)
         _loaded_c_module = lib
         ffi.cdef("void init(Window *window)")
         lib.init(window)
-        loader.active_module = {
+        module = {
             Draw = function(dt)
                 lib.on_update(dt)
             end,
         }
     else
-        print("Could not find module "..module)
+        print("Could not find module "..module_source_file)
         print("Tried: "..module_name_lua)
         print("       "..module_name_c)
         print()
@@ -47,20 +51,18 @@ loader.LoadModule = function (module)
         return;
     end
 
-    if loader.active_module.resolution then
-        Size(loader.active_module.resolution:Unpack())
+    if module.resolution then
+        Size(module.resolution:Unpack())
     end
-    loader.active_module.source = module
+    module.source = module_source_file
 
-    TheServer:MakeConfig(loader.active_module.tweak)
-    local title = loader.active_module.title
-    local size = loader.active_module.resolution
+    TheServer:MakeConfig(module.tweak)
+    local title = module.title
+    local size = module.resolution
     if title then Title(title) end
     if size then Size(size:Unpack()) end
 
-    loader.Callback("OnStart")
-
-    return loader.active_module
+    return module
 end
 
 loader.HotReload = function (module)
@@ -71,7 +73,22 @@ loader.HotReload = function (module)
     package.loaded["loader"] = nil
     package.loaded["effects"] = nil
     package.loaded["text"] = nil
-    loader.LoadModule(assert(loader.active_module and loader.active_module.source))
+    local m = loader.LoadModule(assert(loader.active_module and loader.active_module.source))
+    if m then
+        loader.active_module = m
+    else
+        Warning("Hot reload failed")
+    end
+    loader.Callback("OnStart")
+
+end
+
+loader.Start = function (module)
+    loader.active_module = loader.LoadModule(module)
+    if not loader.active_module then
+        os.exit(1);
+    end
+    loader.Callback("OnStart")
 end
 
 -- optional, asyncronous, protected call
@@ -81,8 +98,7 @@ loader.Callback = function(name, ...)
         local co = coroutine.create(fn)
         local ok, err = coroutine.resume(co, ...)
         if not ok then
-            print("Error inside "..name.." callback!")
-            print(debug.traceback(co, err))
+            Warning("Error inside ", name, " callback!\n", debug.traceback(co, err))
         end
     end
 end

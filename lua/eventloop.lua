@@ -19,7 +19,7 @@ end
 
 local draw
 
-loader.LoadModule(arg[1] or DEFAULT_MODULE)
+loader.Start(arg[1] or DEFAULT_MODULE)
 
 while not ShouldQuit() do
     local now = Seconds()
@@ -36,10 +36,8 @@ while not ShouldQuit() do
     local ok, err = coroutine.resume(draw, dt)
 
     if not ok then
-        print("Error inside Draw!")
-        print(debug.traceback(draw, err))
-
-        print("Disabling Draw... fix it and hot reload, or restart.")
+        Warning("Error inside Draw!\n", debug.traceback(draw, err))
+        Warning("Disabling Draw... fix it and hot reload, or restart.")
         loader.active_module = {
             source = loader.active_module.source,
             Draw = function ()
