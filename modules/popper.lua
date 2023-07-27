@@ -1,4 +1,4 @@
-local Text = require "text"
+local text = require "text"
 local Effect = require "effects"
 local BUBBLE_COUNT = 10
 
@@ -42,15 +42,62 @@ local Class = function (init)
     return class
 end
 
+local TEXT_COLOR = Color.Hsl(260, 1, 0.2)
+
+local score = BUBBLE_COUNT
 local pop_effects, bubbles
-local score = 0
 local scene
 local Game, Won
 local tutorial_text = Effect:Build("CLICK or press SPACE over bubbles to POP them", {
     speed = resolution.x,
     position = "left",
-    color = Color.Hsl(0, 1, 0.5)
+    color = TEXT_COLOR,
 })
+
+local SCORE_WIDTH = 100
+local SCORE_ANIM_TIME = 1
+local the_text = {
+    Build = function (self, str)
+        self.particles = text.BuildParticlesWithWidth(str, 500)
+        self.next = nil
+    end;
+
+    Update = function (self, dt)
+        local base_position = Vector2(0, resolution.y - self.particles.height)
+
+        if not self.transition_start then
+            for i=1, #self.particles do
+                RenderPop(base_position + self.particles[i].offset, TEXT_COLOR, self.particles[i].radius)
+            end
+        else
+            local next_base_position = Vector2(0, resolution.y - self.next.height)
+            local t = (Seconds() - self.transition_start) / SCORE_ANIM_TIME
+            for i=1, #self.particles do
+                local to = (i-1) % #self.next + 1
+                local position = Vector2.Lerp(base_position + self.particles[i].offset, next_base_position + self.next[to].offset, t)
+                local radius = Lerp(self.particles[i].radius, self.next[to].radius, t)
+                RenderPop(position, TEXT_COLOR, radius)
+            end
+            if t > 1 then
+                self.particles = self.next
+                self.next = nil
+                self.transition_start = nil
+            end
+        end
+    end;
+
+    Transform = function (self, str)
+        local new = text.BuildParticlesWithWidth(str, SCORE_WIDTH)
+        -- Add excess particles
+        for i=#self.particles+1, #new do
+            local pt = self.particles[(i-1) % #self.particles + 1]
+            table.insert(self.particles, Deepcopy(pt))
+        end
+        self.next = new
+        self.transition_start = Seconds()
+    end;
+}
+the_text:Build("CLICK or press SPACE over bubbles to POP them")
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -91,7 +138,7 @@ local Bubble = Parent {
         return p
     end,
     Color = function (bubble)
-        return Color.Hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS)
+        return Color.Hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS, 1)
     end,
     Velocity = function (bubble)
         return bubble.velocity
@@ -121,7 +168,6 @@ local ParticleUpdatePosition = function (point, dt)
 end
 
 local SpawnBubble = function (self, pos)
-    score = score + 1
     table.insert(bubbles, Bubble:New(pos or RandomPosition(), RandomVelocity(), RandomRadius()))
 end
 
@@ -163,9 +209,8 @@ local PopEffectFromBubble = function (self, bubble)
 end
 
 local PopBubble = function(self, i)
-    score = score - 1
     local bubble = table.remove(bubbles, i)
-    if score <= 0 then
+    if #bubbles <= 0 then
         scene = Won(bubble)
     else
         PopEffectFromBubble(self, bubble)
@@ -290,8 +335,14 @@ function Game:Draw(dt)
         })
     end
 
-    Text.PutstringWithWidth(Vector2(0,0), tostring(score), 100, WEBCOLORS.BLACK)
-    tutorial_text:Update(dt)
+    if score ~= #bubbles then
+        -- Score was updated
+        score = #bubbles
+        the_text:Transform(tostring(score))
+    end
+    --text.PutstringWithWidth(Vector2(0,0), tostring(#bubbles), 100, WEBCOLORS.BLACK)
+    --tutorial_text:Update(dt)
+    the_text:Update()
 end
 
 local WIN_EFFECT_PERIOD = 1
@@ -299,7 +350,7 @@ Won = Class(function (self, bubble)
     self.color = bubble:Color()
     local str = "Play again?"
     -- TODO: iterator rather than table returned by build_string_with_width
-    self.particles = Text.BuildParticlesWithWidth(str, resolution.x)
+    self.particles = text.BuildParticlesWithWidth(str, resolution.x)
     local center = Vector2(0, resolution.y - self.particles.height) / 2
     for i, particle in ipairs(self.particles) do
         particle.position = bubble.position + RandomPositionInRadius(bubble:Radius())
