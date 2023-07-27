@@ -7,24 +7,20 @@ local FileExists = function (name)
 end
 
 
-loader.LoadModule = function (module_source_file)
+loader.LoadModule = function (module_name)
     TheServer = require "server"
     local module
 
-    local module_name_lua = "modules/"..module_source_file..".lua"
-    local module_name_c = "./modules/"..module_source_file..".so"
-    if FileExists(module_name_lua) then
-        local mod, err = loadfile(module_name_lua)
-        if not mod then
-            Warning("Error loading module_source_file ", module_source_file, "\n", err)
-            return;
-        end
-        local ok, result = xpcall(mod, debug.traceback)
-        if not ok then
-            Warning("Error starting module ", module_source_file, "\n", result)
-            return;
-        end
-        module = result
+    local require_path = "modules."..module_name
+    package.loaded[require_path] = nil
+    local ok, result = xpcall(require, debug.traceback, require_path)
+    if not ok then
+        Warning("Error loading module: ", module_name, "\n", result)
+        return;
+    end
+    module = result
+        --[[
+        --TODO: support C modules again
     elseif FileExists(module_name_c) then
         local ffi = require "ffi"
         -- Little hack to unload the cached c library
@@ -42,19 +38,12 @@ loader.LoadModule = function (module_source_file)
                 lib.on_update(dt)
             end,
         }
-    else
-        print("Could not find module "..module_source_file)
-        print("Tried: "..module_name_lua)
-        print("       "..module_name_c)
-        print()
-        print(string.format("Usage: %s elastic|rainbow|svg|swirl", arg[0]))
-        return;
-    end
+        --]]
 
     if module.resolution then
         Size(module.resolution:Unpack())
     end
-    module.source = module_source_file
+    module.source = module_name
 
     TheServer:MakeConfig(module.tweak)
     local title = module.title
@@ -70,7 +59,7 @@ loader.HotReload = function (module)
     -- Unlock global table
     setmetatable(_G, nil)
     --package.loaded["server"] = nil
-    package.loaded["loader"] = nil
+    --package.loaded["loader"] = nil
     package.loaded["effects"] = nil
     package.loaded["text"] = nil
     local m = loader.LoadModule(assert(loader.active_module and loader.active_module.source))

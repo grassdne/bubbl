@@ -27,6 +27,9 @@ local VAR = {
     BUBBLE_LIGHTNESS = 0.5,
 }
 
+print "heyyo"
+io.stdout:flush()
+
 local Class = function (init)
     local class = {}
     setmetatable(class, {
