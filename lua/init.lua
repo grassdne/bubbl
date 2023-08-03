@@ -18,7 +18,7 @@ ffi.cdef(content)
 math.randomseed(os.time())
 
 -- Modules
-package.path = "./lua/?.lua;" .. package.path
+package.path = "./lua/?.lua;" .. "./lua/?/init.lua" .. package.path
 -- Dependencies
 package.path = "./deps/lua_modules/share/lua/5.1/?.lua;" .. package.path
 package.cpath = "./deps/lua_modules/lib64/lua/5.1/?.so;" .. package.cpath
