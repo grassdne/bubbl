@@ -1,115 +1,34 @@
-local text = require "text"
 local Effect = require "effects"
-local INITIAL_BUBBLE_COUNT = 20
 
-local BGSHADER_MAX_ELEMS = 10
+local INITIAL_BUBBLE_COUNT = 20
 local BUBBLE_RAD_BASE = 30
 local BUBBLE_RAD_VARY = 25
-local MAX_GROWTH = 200
-local MIN_GROWTH_RATE = 50
-local MAX_GROWTH_RATE = 225
-local TRANS_IMMUNE_PERIOD = 1
-local TRANS_TIME = 1
-local POP_EXPAND_MULT = 2.0
+local BUBBLE_SPEED_VARY = 200
+local BUBBLE_SPEED_BASE = 200
+
 local POP_LAYER_WIDTH = 10.0
 local POP_PARTICLE_LAYOUT = 5
 local POP_LIFETIME = 1.0
 local POP_PT_RADIUS = 7.0
 local POP_PT_RADIUS_DELTA = 4.0
-local TRANSFORM_TIME = 1.0
 local POP_PARTICLE_SPEED = 300
 
-local BUBBLE_SPEED_VARY = 200
-local BUBBLE_SPEED_BASE = 200
-
-local BUBBL_SPAWN_ANIM_TIME = 0.1
-
-local VAR = {
-    BUBBLE_SATURATION = 0.9,
-    BUBBLE_LIGHTNESS = 0.5,
-}
-
-local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.8)
+local SCORE_WIDTH = 150
 
 local score = INITIAL_BUBBLE_COUNT
 local pop_effects = {}
 local bubbles = {}
+
 -- We use this in the win condition
 local last_popped_bubble
 
 ---@type "playing" | "won"
 local game_state = "playing"
 
-local SCORE_WIDTH = 150
-local SCORE_ANIM_TIME = 0.5
-local GenText = function (opts)
-    local particles = text.BuildParticlesWithWidth(opts.str, opts.width)
-    particles.base_position = Vector2(resolution.x - opts.width, resolution.y - particles.height) / 2
-    return random.shuffle(particles)
-end
-local the_text = {
-    Build = function (self, build_opts)
-        self.particles = {}
-        self.next = nil
-        -- Keeping a single element queue keeps us from needing
-        -- to interrupt the current transition
-        self.queue = nil
-        self:QueueTransform(build_opts)
-    end;
-
-    Update = function (self, dt)
-        if self.queue and not self.next then
-            -- Move up queue'd transition
-            self.next = self.queue
-            self.queue = nil
-            self.next.transition_start = Seconds()
-        end
-
-        if not self.next then
-            -- No active animation
-            for i=1, #self.particles do
-                RenderPop(self.particles.base_position + self.particles[i].offset, TEXT_COLOR, self.particles[i].radius)
-            end
-        else -- Perform transition animation
-            -- There is no mutated state during an animation
-            -- only an interpolation based on t
-            local t = (Seconds() - self.next.transition_start) / SCORE_ANIM_TIME
-
-            -- "Move" particles from self.particles to self.next
-            for i=1, math.min(#self.particles, #self.next) do
-                local position = Vector2.Lerp(self.particles.base_position + self.particles[i].offset, self.next.base_position + self.next[i].offset, t)
-                local radius = Lerp(self.particles[i].radius, self.next[i].radius, t)
-                RenderPop(position, TEXT_COLOR, radius)
-            end
-
-            -- Destroy excess particles
-            -- when #self.particles > #self.next
-            for i=#self.next+1, #self.particles do
-                local radius = Lerp(self.particles[i].radius, 0, t)
-                RenderPop(self.particles.base_position + self.particles[i].offset, TEXT_COLOR, radius)
-            end
-
-            -- Build new particles
-            -- when #self.particles < #self.next
-            for i=#self.particles+1, #self.next do
-                local radius = Lerp(0, self.next[i].radius, t)
-                RenderPop(self.next.base_position + self.next[i].offset, TEXT_COLOR, radius)
-            end
-
-            local transition_completed = t > 1
-            if transition_completed then
-                self.particles = self.next
-                self.next = nil
-            end
-        end
-    end;
-
-    QueueTransform = function (self, build_opts)
-        local new = GenText(build_opts)
-        self.queue = new
-    end;
-}
-the_text:Build { str="CLICK or press SPACE over bubbles to POP them", width=resolution.x }
+local VAR = require "modules.popper.tweak"
+local the_text = require "modules.popper.text"
+local Bubble = require "modules.popper.bubble"
+local background = require "modules.popper.background"
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -126,46 +45,6 @@ local RandomPosition = function()
     return Vector2(math.random(), math.random()):Scale(resolution)
 end
 
-local BgShaderLoader = function()
-    local contents = ReadEntireFile("shaders/elasticbubbles_bg.frag")
-    return string.format("#version 330\n#define MAX_ELEMENTS %d\n%s", BGSHADER_MAX_ELEMS, contents)
-end
-
-local Particle = Parent {
-    New = function (Self, pos, velocity)
-        local p = setmetatable({}, Self)
-        p.velocity = velocity
-        p.pos = pos
-        return p
-    end;
-}
-
-local Bubble = Parent {
-    New = function (Self, position, velocity, radius)
-        local p = setmetatable({}, Self)
-        p.position = position
-        p.radius = radius
-        p.hue = math.random()
-        p.velocity = velocity
-        p.birth = Seconds()
-        return p
-    end,
-    Color = function (bubble)
-        return Color.Hsl(bubble.hue*360, VAR.BUBBLE_SATURATION, VAR.BUBBLE_LIGHTNESS, 1)
-    end,
-    Velocity = function (bubble)
-        return bubble.velocity
-    end,
-    Radius = function (bubble)
-        local time = Seconds()
-        local t = math.min(1, (time - bubble.birth) / BUBBL_SPAWN_ANIM_TIME)
-        return Lerp(0, bubble.radius, t)
-    end,
-    Render = function (bubble)
-        RenderBubble(bubble.position, bubble:Color(), bubble:Radius())
-    end,
-}
-
 local SpawnBubble = function (pos)
     table.insert(bubbles, Bubble:New(pos or RandomPosition(), RandomVelocity(), RandomRadius()))
 end
@@ -180,7 +59,7 @@ local CreatePopEffect = function (center, color, size, bubble_velocity)
         color = color,
 
         -- Center bubble
-        [1] = Particle:New(center, ParticleVelocity(bubble_velocity))
+        [1] = { pos=center, velocity=ParticleVelocity(bubble_velocity) }
     }
 
     local distance = 0
@@ -192,11 +71,10 @@ local CreatePopEffect = function (center, color, size, bubble_velocity)
             local theta = 2*PI / num_particles_in_layer * i
             local dir = Vector2(math.cos(theta), math.sin(theta))
 
-            -- Before velocity was in direction dir
-            --local velocity = dir * (POP_EXPAND_MULT * distance / POP_LIFETIME)
-            -- instead make it random
-            local velocity = ParticleVelocity(bubble_velocity)
-            table.insert(pop, Particle:New(dir * distance + center, velocity))
+            table.insert(pop, {
+                pos = dir * distance + center,
+                velocity = ParticleVelocity(bubble_velocity),
+            })
         end
     end
     pop.start_time = Seconds()
@@ -337,22 +215,7 @@ return {
         end
 
         if game_state == "playing" then
-            --- Draw background ---
-            if #bubbles > 0 then
-                table.sort(bubbles, function(a, b) return a:Radius() > b:Radius() end)
-                local colors, positions = {}, {}
-                for i=1, math.min(BGSHADER_MAX_ELEMS, #bubbles) do
-                    local bub = bubbles[i]
-                    colors[i] = bub:Color()
-                    positions[i] = bub.position
-                end
-                RunBgShader("elastic", BgShaderLoader, {
-                    resolution = resolution,
-                    num_elements = #bubbles,
-                    colors = colors,
-                    positions = positions,
-                })
-            end
+            background.Draw(bubbles)
 
             if score ~= #bubbles then
                 -- Score was updated
@@ -360,18 +223,14 @@ return {
                 the_text:QueueTransform({ str=tostring(score), width=SCORE_WIDTH })
             end
         elseif game_state == "won" then
-            RunBgShader("elastic", BgShaderLoader, {
-                resolution = resolution,
-                num_elements = 1,
-                colors = { last_popped_bubble:Color() },
-                positions = { resolution / 2 },
-            })
+            background.Draw({ last_popped_bubble })
         end
 
         the_text:Update()
     end,
 
     OnStart = function()
+        the_text:Build { str="CLICK or press SPACE over bubbles to POP them", width=resolution.x }
         Start()
     end,
 }

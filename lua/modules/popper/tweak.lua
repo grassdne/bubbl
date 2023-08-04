@@ -1,0 +1,5 @@
+return {
+    BUBBLE_SATURATION = 0.9,
+    BUBBLE_LIGHTNESS = 0.5,
+}
+
