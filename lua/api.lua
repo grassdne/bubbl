@@ -145,8 +145,8 @@ Color = ffi.metatype("Color", Parent {
     end,
     __add = function(a, b) return Color(a.r+b.r, a.g+b.g, a.b+b.b, a.a+b.a) end,
     __sub = function(a, b) return Color(a.r-b.r, a.g-b.g, a.b-b.b, a.a-b.a) end,
+    __mul = function(a, b) return Color(a.r*b.r, a.g*b.g, a.b*b.b, a.a*b.a) end,
     __div = function(a, x) return Color(a.r/x, a.g/x, a.b/x, a.a/x) end,
-    __mul = function(a, x) return Color(a.r*x, a.g*x, a.b*x, a.a*x) end,
 
     -- Translated from
     -- https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative

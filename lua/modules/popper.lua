@@ -1,6 +1,6 @@
 local text = require "text"
 local Effect = require "effects"
-local BUBBLE_COUNT = 10
+local BUBBLE_COUNT = 20
 
 local BGSHADER_MAX_ELEMS = 10
 local BUBBLE_RAD_BASE = 30
@@ -22,13 +22,12 @@ local POP_PARTICLE_SPEED = 300
 local BUBBLE_SPEED_VARY = 200
 local BUBBLE_SPEED_BASE = 200
 
+local BUBBL_SPAWN_ANIM_TIME = 0.1
+
 local VAR = {
     BUBBLE_SATURATION = 0.9,
     BUBBLE_LIGHTNESS = 0.5,
 }
-
-print "heyyo"
-io.stdout:flush()
 
 local Class = function (init)
     local class = {}
@@ -45,62 +44,83 @@ local Class = function (init)
     return class
 end
 
-local TEXT_COLOR = Color.Hsl(260, 1, 0.2)
+local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.8)
 
 local score = BUBBLE_COUNT
 local pop_effects, bubbles
 local scene
 local Game, Won
-local tutorial_text = Effect:Build("CLICK or press SPACE over bubbles to POP them", {
-    speed = resolution.x,
-    position = "left",
-    color = TEXT_COLOR,
-})
 
-local SCORE_WIDTH = 100
-local SCORE_ANIM_TIME = 1
+local SCORE_WIDTH = 150
+local SCORE_ANIM_TIME = 0.5
+local GenText = function (opts)
+    local particles = text.BuildParticlesWithWidth(opts.str, opts.width)
+    particles.base_position = Vector2(resolution.x - opts.width, resolution.y - particles.height) / 2
+    return random.shuffle(particles)
+end
 local the_text = {
-    Build = function (self, str)
-        self.particles = text.BuildParticlesWithWidth(str, 500)
+    Build = function (self, build_opts)
+        self.particles = {}
         self.next = nil
+        -- Keeping a single element queue keeps us from needing
+        -- to interrupt the current transition
+        self.queue = nil
+        self:QueueTransform(build_opts)
     end;
 
     Update = function (self, dt)
-        local base_position = Vector2(0, resolution.y - self.particles.height)
+        if self.queue and not self.next then
+            -- Move up queue'd transition
+            self.next = self.queue
+            self.queue = nil
+            self.next.transition_start = Seconds()
+        end
 
-        if not self.transition_start then
+        if not self.next then
+            -- No active animation
             for i=1, #self.particles do
-                RenderPop(base_position + self.particles[i].offset, TEXT_COLOR, self.particles[i].radius)
+                RenderPop(self.particles.base_position + self.particles[i].offset, TEXT_COLOR, self.particles[i].radius)
             end
-        else
-            local next_base_position = Vector2(0, resolution.y - self.next.height)
-            local t = (Seconds() - self.transition_start) / SCORE_ANIM_TIME
-            for i=1, #self.particles do
-                local to = (i-1) % #self.next + 1
-                local position = Vector2.Lerp(base_position + self.particles[i].offset, next_base_position + self.next[to].offset, t)
-                local radius = Lerp(self.particles[i].radius, self.next[to].radius, t)
+        else -- Perform transition animation
+            -- There is no mutated state during an animation
+            -- only an interpolation based on t
+            local t = (Seconds() - self.next.transition_start) / SCORE_ANIM_TIME
+
+            -- "Move" particles from self.particles to self.next
+            for i=1, math.min(#self.particles, #self.next) do
+                local position = Vector2.Lerp(self.particles.base_position + self.particles[i].offset, self.next.base_position + self.next[i].offset, t)
+                local radius = Lerp(self.particles[i].radius, self.next[i].radius, t)
                 RenderPop(position, TEXT_COLOR, radius)
             end
-            if t > 1 then
+
+            -- Destroy excess particles
+            -- when #self.particles > #self.next
+            for i=#self.next+1, #self.particles do
+                local radius = Lerp(self.particles[i].radius, 0, t)
+                RenderPop(self.particles.base_position + self.particles[i].offset, TEXT_COLOR, radius)
+            end
+
+            -- Build new particles
+            -- when #self.particles < #self.next
+            for i=#self.particles+1, #self.next do
+                local radius = Lerp(0, self.next[i].radius, t)
+                RenderPop(self.next.base_position + self.next[i].offset, TEXT_COLOR, radius)
+            end
+
+            local transition_completed = t > 1
+            if transition_completed then
                 self.particles = self.next
                 self.next = nil
-                self.transition_start = nil
             end
         end
     end;
 
-    Transform = function (self, str)
-        local new = text.BuildParticlesWithWidth(str, SCORE_WIDTH)
-        -- Add excess particles
-        for i=#self.particles+1, #new do
-            local pt = self.particles[(i-1) % #self.particles + 1]
-            table.insert(self.particles, Deepcopy(pt))
-        end
-        self.next = new
-        self.transition_start = Seconds()
+    QueueTransform = function (self, build_opts)
+        local new = GenText(build_opts)
+        self.queue = new
     end;
 }
-the_text:Build("CLICK or press SPACE over bubbles to POP them")
+the_text:Build { str="CLICK or press SPACE over bubbles to POP them", width=resolution.x }
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -138,6 +158,7 @@ local Bubble = Parent {
         p.radius = radius
         p.hue = math.random()
         p.velocity = velocity
+        p.birth = Seconds()
         return p
     end,
     Color = function (bubble)
@@ -147,7 +168,9 @@ local Bubble = Parent {
         return bubble.velocity
     end,
     Radius = function (bubble)
-        return bubble.radius
+        local time = Seconds()
+        local t = math.min(1, (time - bubble.birth) / BUBBL_SPAWN_ANIM_TIME)
+        return Lerp(0, bubble.radius, t)
     end,
     Render = function (bubble)
         RenderBubble(bubble.position, bubble:Color(), bubble:Radius())
@@ -213,10 +236,9 @@ end
 
 local PopBubble = function(self, i)
     local bubble = table.remove(bubbles, i)
+    PopEffectFromBubble(self, bubble)
     if #bubbles <= 0 then
         scene = Won(bubble)
-    else
-        PopEffectFromBubble(self, bubble)
     end
 end
 
@@ -275,7 +297,6 @@ end)
 
 function Game:Click (pos)
     local i = BubbleAtPoint(self, pos)
-    tutorial_text:Disperse()
     if i then
         PopBubble(self, i)
     else
@@ -341,26 +362,26 @@ function Game:Draw(dt)
     if score ~= #bubbles then
         -- Score was updated
         score = #bubbles
-        the_text:Transform(tostring(score))
+        the_text:QueueTransform({ str=tostring(score), width=SCORE_WIDTH })
     end
-    --text.PutstringWithWidth(Vector2(0,0), tostring(#bubbles), 100, WEBCOLORS.BLACK)
-    --tutorial_text:Update(dt)
+
     the_text:Update()
 end
 
 local WIN_EFFECT_PERIOD = 1
 Won = Class(function (self, bubble)
     self.color = bubble:Color()
-    local str = "Play again?"
+    the_text:QueueTransform({ str="Play again?", width=resolution.x })
+    -- local str = "Play again?"
     -- TODO: iterator rather than table returned by build_string_with_width
-    self.particles = text.BuildParticlesWithWidth(str, resolution.x)
-    local center = Vector2(0, resolution.y - self.particles.height) / 2
-    for i, particle in ipairs(self.particles) do
-        particle.position = bubble.position + RandomPositionInRadius(bubble:Radius())
-        particle.goal = center + particle.offset
-        local difference = particle.goal - particle.position
-        particle.delta = difference / WIN_EFFECT_PERIOD
-    end
+    -- self.particles = text.BuildParticlesWithWidth(str, resolution.x)
+    -- local center = Vector2(0, resolution.y - self.particles.height) / 2
+    -- for i, particle in ipairs(self.particles) do
+    --     particle.position = bubble.position + RandomPositionInRadius(bubble:Radius())
+    --     particle.goal = center + particle.offset
+    --     local difference = particle.goal - particle.position
+    --     particle.delta = difference / WIN_EFFECT_PERIOD
+    -- end
 end)
 
 function Won:Draw(dt)
@@ -370,10 +391,11 @@ function Won:Draw(dt)
         colors = self.color,
         positions = { resolution / 2 },
     })
-    for i, particle in ipairs(self.particles) do
-        ParticleUpdatePosition(particle, dt)
-        RenderPop(particle.position, self.color, particle.radius)
-    end
+    the_text:Update()
+    -- for i, particle in ipairs(self.particles) do
+    --     ParticleUpdatePosition(particle, dt)
+    --     RenderPop(particle.position, self.color, particle.radius)
+    -- end
 end
 
 function Won:Click()
