@@ -29,21 +29,6 @@ local VAR = {
     BUBBLE_LIGHTNESS = 0.5,
 }
 
-local Class = function (init)
-    local class = {}
-    setmetatable(class, {
-        __call = function (self, ...)
-            local t = setmetatable({}, self)
-            init(t, ...)
-            return t
-        end,
-    })
-    -- Class is the metatable of its instance
-    -- and its __index table
-    class.__index = class
-    return class
-end
-
 local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.8)
 
 local score = INITIAL_BUBBLE_COUNT
@@ -180,22 +165,6 @@ local Bubble = Parent {
         RenderBubble(bubble.position, bubble:Color(), bubble:Radius())
     end,
 }
-
-local RandomPositionInRadius = function (max_distance)
-    local theta = math.random() * 2 * math.pi
-    local r = math.random() * max_distance
-    return Vector2.Angle(theta) * r
-end
-
-local ParticleUpdatePosition = function (point, dt)
-    local next_position = point.position + point.delta * dt
-    local diff = point.goal - point.position
-    if diff.x * point.delta.x > 0 or diff.y * point.delta.y > 0 then
-        point.position = next_position
-    else
-        point.position = point.goal
-    end
-end
 
 local SpawnBubble = function (pos)
     table.insert(bubbles, Bubble:New(pos or RandomPosition(), RandomVelocity(), RandomRadius()))
