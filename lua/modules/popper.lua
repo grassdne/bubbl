@@ -1,6 +1,6 @@
 local text = require "text"
 local Effect = require "effects"
-local BUBBLE_COUNT = 20
+local INITIAL_BUBBLE_COUNT = 20
 
 local BGSHADER_MAX_ELEMS = 10
 local BUBBLE_RAD_BASE = 30
@@ -46,10 +46,14 @@ end
 
 local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.8)
 
-local score = BUBBLE_COUNT
-local pop_effects, bubbles
-local scene
-local Game, Won
+local score = INITIAL_BUBBLE_COUNT
+local pop_effects = {}
+local bubbles = {}
+-- We use this in the win condition
+local last_popped_bubble
+
+---@type "playing" | "won"
+local game_state = "playing"
 
 local SCORE_WIDTH = 150
 local SCORE_ANIM_TIME = 0.5
@@ -193,7 +197,7 @@ local ParticleUpdatePosition = function (point, dt)
     end
 end
 
-local SpawnBubble = function (self, pos)
+local SpawnBubble = function (pos)
     table.insert(bubbles, Bubble:New(pos or RandomPosition(), RandomVelocity(), RandomRadius()))
 end
 
@@ -230,16 +234,19 @@ local CreatePopEffect = function (center, color, size, bubble_velocity)
     return pop
 end
 
-local PopEffectFromBubble = function (self, bubble)
+local PopEffectFromBubble = function (bubble)
     table.insert(pop_effects, CreatePopEffect(bubble.position, bubble:Color(), bubble:Radius(), bubble:Velocity()))
 end
 
-local PopBubble = function(self, i)
-    local bubble = table.remove(bubbles, i)
-    PopEffectFromBubble(self, bubble)
-    if #bubbles <= 0 then
-        scene = Won(bubble)
-    end
+local Won = function ()
+    game_state = "won"
+    the_text:QueueTransform({ str="Play again?", width=resolution.x })
+end
+
+local PopBubble = function(i)
+    last_popped_bubble = table.remove(bubbles, i)
+    PopEffectFromBubble(last_popped_bubble)
+    if #bubbles <= 0 then Won() end
 end
 
 local IsCollision = function (a, b)
@@ -279,7 +286,7 @@ local MoveBubble = function (bubble, dt)
     end
 end
 
-local BubbleAtPoint = function (self, pos)
+local BubbleAtPoint = function (pos)
     for i, b in ipairs(bubbles) do
         if pos:Dist(b.position) < b:Radius() then
             return i, b
@@ -287,138 +294,115 @@ local BubbleAtPoint = function (self, pos)
     end
 end
 
-Game = Class(function (self)
+local function Start()
     bubbles = {}
-    pop_effects = {}
-    for i=1, BUBBLE_COUNT do
-        SpawnBubble(self)
-    end
-end)
-
-function Game:Click (pos)
-    local i = BubbleAtPoint(self, pos)
-    if i then
-        PopBubble(self, i)
-    else
-        SpawnBubble(self, pos)
+    for i=1, INITIAL_BUBBLE_COUNT do
+        SpawnBubble()
     end
 end
-function Game:Draw(dt)
-    local time = Seconds()
-    --- Move bubbles ---
-    for _, bubble in ipairs(bubbles) do
-        MoveBubble(bubble, dt)
-        EnsureBubbleInBounds(bubble)
-    end
 
-    --- Handle collisions ---
-    for _, a in ipairs(bubbles) do
-        for _, b in ipairs(bubbles) do
-            if IsCollision(a, b) then
-                SwapVelocities(a, b)
-                SeparateBubbles(a, b)
-            end
+local function Click (pos)
+    if game_state == "playing" then
+        local i = BubbleAtPoint(pos)
+        if i then
+            PopBubble(i)
+        else
+            SpawnBubble(pos)
         end
+    elseif game_state == "won" then
+        -- Restart!
+        game_state = "playing"
+        Start()
     end
-
-    --- Render bubbles ---
-    for i, bubble in ipairs(bubbles) do bubble:Render() end
-
-    -- Pop effects are hopefully in chronological order
-    for i = #pop_effects, 1, -1 do
-        if time - pop_effects[i].start_time < POP_LIFETIME then
-            break
-        end
-        pop_effects[i] = nil
-    end
-    --- Update pop effect particles ---
-    for _, pop in ipairs(pop_effects) do
-        pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
-        local age = time - pop.start_time
-        pop.color.a = 1 - age / POP_LIFETIME
-        for _, pt in ipairs(pop) do
-            pt.pos = pt.pos + pt.velocity * dt
-            RenderPop(pt.pos, pop.color, pop.pt_radius)
-        end
-    end
-
-    --- Draw background ---
-    if #bubbles > 0 then
-        table.sort(bubbles, function(a, b) return a:Radius() > b:Radius() end)
-        local colors, positions = {}, {}
-        for i=1, math.min(BGSHADER_MAX_ELEMS, #bubbles) do
-            local bub = bubbles[i]
-            colors[i] = bub:Color()
-            positions[i] = bub.position
-        end
-        RunBgShader("elastic", BgShaderLoader, {
-            resolution = resolution,
-            num_elements = #bubbles,
-            colors = colors,
-            positions = positions,
-        })
-    end
-
-    if score ~= #bubbles then
-        -- Score was updated
-        score = #bubbles
-        the_text:QueueTransform({ str=tostring(score), width=SCORE_WIDTH })
-    end
-
-    the_text:Update()
-end
-
-local WIN_EFFECT_PERIOD = 1
-Won = Class(function (self, bubble)
-    self.color = bubble:Color()
-    the_text:QueueTransform({ str="Play again?", width=resolution.x })
-    -- local str = "Play again?"
-    -- TODO: iterator rather than table returned by build_string_with_width
-    -- self.particles = text.BuildParticlesWithWidth(str, resolution.x)
-    -- local center = Vector2(0, resolution.y - self.particles.height) / 2
-    -- for i, particle in ipairs(self.particles) do
-    --     particle.position = bubble.position + RandomPositionInRadius(bubble:Radius())
-    --     particle.goal = center + particle.offset
-    --     local difference = particle.goal - particle.position
-    --     particle.delta = difference / WIN_EFFECT_PERIOD
-    -- end
-end)
-
-function Won:Draw(dt)
-    RunBgShader("elastic", BgShaderLoader, {
-        resolution = resolution,
-        num_elements = 1,
-        colors = self.color,
-        positions = { resolution / 2 },
-    })
-    the_text:Update()
-    -- for i, particle in ipairs(self.particles) do
-    --     ParticleUpdatePosition(particle, dt)
-    --     RenderPop(particle.position, self.color, particle.radius)
-    -- end
-end
-
-function Won:Click()
-    scene = Game()
 end
 
 return {
     title = "Popper",
 
     -- TODO: why doesn't OnMouseDown pass a Vector2
-    OnMouseDown = function(x, y) scene:Click(Vector2(x, y)) end,
+    OnMouseDown = function(x, y) Click(Vector2(x, y)) end,
 
     OnKey = function(key, down)
         if key == "Space" and down then
-            scene:Click(MousePosition())
+            Click(MousePosition())
         end
     end,
 
     Draw = function (dt)
-        scene:Draw(dt)
+        local time = Seconds()
+        --- Move bubbles ---
+        for _, bubble in ipairs(bubbles) do
+            MoveBubble(bubble, dt)
+            EnsureBubbleInBounds(bubble)
+        end
+
+        --- Handle collisions ---
+        for _, a in ipairs(bubbles) do
+            for _, b in ipairs(bubbles) do
+                if IsCollision(a, b) then
+                    SwapVelocities(a, b)
+                    SeparateBubbles(a, b)
+                end
+            end
+        end
+
+        --- Render bubbles ---
+        for i, bubble in ipairs(bubbles) do bubble:Render() end
+
+        -- Pop effects are hopefully in chronological order
+        for i = #pop_effects, 1, -1 do
+            if time - pop_effects[i].start_time < POP_LIFETIME then
+                break
+            end
+            pop_effects[i] = nil
+        end
+        --- Update pop effect particles ---
+        for _, pop in ipairs(pop_effects) do
+            pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
+            local age = time - pop.start_time
+            pop.color.a = 1 - age / POP_LIFETIME
+            for _, pt in ipairs(pop) do
+                pt.pos = pt.pos + pt.velocity * dt
+                RenderPop(pt.pos, pop.color, pop.pt_radius)
+            end
+        end
+
+        if game_state == "playing" then
+            --- Draw background ---
+            if #bubbles > 0 then
+                table.sort(bubbles, function(a, b) return a:Radius() > b:Radius() end)
+                local colors, positions = {}, {}
+                for i=1, math.min(BGSHADER_MAX_ELEMS, #bubbles) do
+                    local bub = bubbles[i]
+                    colors[i] = bub:Color()
+                    positions[i] = bub.position
+                end
+                RunBgShader("elastic", BgShaderLoader, {
+                    resolution = resolution,
+                    num_elements = #bubbles,
+                    colors = colors,
+                    positions = positions,
+                })
+            end
+
+            if score ~= #bubbles then
+                -- Score was updated
+                score = #bubbles
+                the_text:QueueTransform({ str=tostring(score), width=SCORE_WIDTH })
+            end
+        elseif game_state == "won" then
+            RunBgShader("elastic", BgShaderLoader, {
+                resolution = resolution,
+                num_elements = 1,
+                colors = { last_popped_bubble:Color() },
+                positions = { resolution / 2 },
+            })
+        end
+
+        the_text:Update()
     end,
 
     OnStart = function()
-        scene = Game()
+        Start()
     end,
 }
