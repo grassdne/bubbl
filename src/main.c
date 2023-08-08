@@ -28,9 +28,6 @@
 #define SCREEN_WIDTH 1600
 #define SCREEN_HEIGHT 900
 
-bool verbose;
-#define VPRINTF(...) if (verbose) printf(__VA_ARGS__)
-
 // How about we just do everything in seconds please and thank you
 double get_time(void) { return SDL_GetTicks64() * 0.001; }
 
@@ -274,12 +271,15 @@ SDL_Window *create_window(const char *window_name, int width, int height)
     int version = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
     printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
-    if (SDL_GL_SetSwapInterval(-1) < 0) {
-        VPRINTF("Adaptive VSync not supported. Retrying with VSync..");
-        if (SDL_GL_SetSwapInterval(1) < 0) {
-            fprintf(stderr, "WARNING: unable to set VSync: %s\n", SDL_GetError());
+    if (getenv("USE_VSYNC")) {
+        fprintf(stderr, "INFO: Attempting to set VSync\n");
+        if (SDL_GL_SetSwapInterval(-1) < 0) {
+            fprintf(stderr, "WARNING: Adaptive VSync not supported. Retrying with VSync..\n");
+            if (SDL_GL_SetSwapInterval(1) < 0) {
+                fprintf(stderr, "WARNING: unable to set VSync: %s\n", SDL_GetError());
+            }
+        
         }
-
     }
 
 	//else if (!GLEW_ARB_shading_language_100 || !GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader || !GLEW_ARB_shader_objects) {
@@ -334,7 +334,6 @@ void update_screen(SDL_Window *window)
 
 int main(int argc, char **argv) {
     (void)argc;
-    verbose = argv[1] && argv[1][0] == '-' && argv[1][1] == 'v';
 
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
