@@ -1,6 +1,10 @@
-local INITIAL_BUBBLE_COUNT = 20
+local VAR = require "modules.popper.tweak"
+local the_text = require "modules.popper.text"
+local Bubble = require "modules.popper.bubble"
+local background = require "modules.popper.background"
+
 local BUBBLE_RAD_BASE = 30
-local BUBBLE_RAD_VARY = 25
+local BUBBLE_RAD_VARY = 30
 local BUBBLE_SPEED_VARY = 200
 local BUBBLE_SPEED_BASE = 200
 
@@ -11,9 +15,9 @@ local POP_PT_RADIUS = 7.0
 local POP_PT_RADIUS_DELTA = 4.0
 local POP_PARTICLE_SPEED = 300
 
-local SCORE_WIDTH = 150
+local SCORE_WIDTH = 0.2
 
-local score = INITIAL_BUBBLE_COUNT
+local score = VAR.INITIAL_BUBBLE_COUNT
 local pop_effects = {}
 local bubbles = {}
 
@@ -22,11 +26,6 @@ local last_popped_bubble
 
 ---@type "playing" | "won"
 local game_state = "playing"
-
-local VAR = require "modules.popper.tweak"
-local the_text = require "modules.popper.text"
-local Bubble = require "modules.popper.bubble"
-local background = require "modules.popper.background"
 
 local RandomVelocity = function()
     local Dimension = function()
@@ -85,7 +84,8 @@ end
 
 local Won = function ()
     game_state = "won"
-    the_text:QueueTransform({ str="Play again?", width=resolution.x })
+    the_text:QueueTransform({ str="Continue?", width=1 })
+    VAR.INITIAL_BUBBLE_COUNT = VAR.INITIAL_BUBBLE_COUNT + 1
 end
 
 local PopBubble = function(i)
@@ -140,8 +140,9 @@ local BubbleAtPoint = function (pos)
 end
 
 local function Start()
+    game_state = "playing"
     bubbles = {}
-    for i=1, INITIAL_BUBBLE_COUNT do
+    for i=1, VAR.INITIAL_BUBBLE_COUNT do
         SpawnBubble()
     end
 end
@@ -156,13 +157,17 @@ local function Click (pos)
         end
     elseif game_state == "won" then
         -- Restart!
-        game_state = "playing"
         Start()
     end
 end
 
 return {
     title = "Popper",
+
+    tweak = {
+        vars = VAR,
+        { id="INITIAL_BUBBLE_COUNT", name="Count", type="range", min=1, max=100, step=1, callback=Start },
+    },
 
     -- TODO: why doesn't OnMouseDown pass a Vector2
     OnMouseDown = function(x, y) Click(Vector2(x, y)) end,
@@ -174,6 +179,8 @@ return {
     end,
 
     Draw = function (dt)
+        the_text:Update()
+
         local time = Seconds()
         --- Move bubbles ---
         for _, bubble in ipairs(bubbles) do
@@ -223,12 +230,10 @@ return {
         elseif game_state == "won" then
             background.Draw({ last_popped_bubble })
         end
-
-        the_text:Update()
     end,
 
     OnStart = function()
-        the_text:Build { str="CLICK or press SPACE over bubbles to POP them", width=resolution.x }
+        the_text:Build { str="CLICK or press SPACE over bubbles to POP them", width=1 }
         Start()
     end,
 }
