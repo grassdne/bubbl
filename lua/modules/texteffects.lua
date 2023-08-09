@@ -5,7 +5,6 @@ local GENERATE_FRAMES = false
 local PERIOD = 10
 local MAX_PERIOD = 5
 
-
 local VAR = {
     TEXT = "bubbl",
     POSITION = "left",
@@ -25,7 +24,6 @@ local Update = function (dt)
     background:draw()
     effect:Update(dt)
 end
-
 
 local BuildText = function ()
     effect = Effect:Build(VAR.TEXT, {
@@ -63,16 +61,17 @@ return {
     },
 
     OnStart = BuildText,
+    OnWindowResize = BuildText,
 
     Draw = function (dt)
         Update(dt)
         -- TODO: GIFs
         -- GifAddFrame("test.gif", i, i / FPS)
-    end,
+    end;
 
     OnKey = function (key, down)
         if key == "Return" and down then
             Disperse()
         end
-    end
+    end;
 }
