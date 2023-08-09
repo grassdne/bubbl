@@ -1,5 +1,3 @@
-local Effect = require "effects"
-
 local INITIAL_BUBBLE_COUNT = 20
 local BUBBLE_RAD_BASE = 30
 local BUBBLE_RAD_VARY = 25
