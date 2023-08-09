@@ -92,7 +92,7 @@ local BuildConfigItem = function (var)
         })
 
     elseif var.type == "action" then
-        return (string.gsub([[
+        return (string.gsub([[<div>
             <button type="button" id="$id" name="$id" class="config">$name</button>
         ]], "%$(%w+)", var))
 
@@ -228,9 +228,8 @@ local function Reply(server, stream) -- luacheck: ignore 212
     elseif path == "/api/module" and req_method == "POST" then
         local name = stream:get_body_as_string(0.01)
         local loader = require "loader"
-        loader.LoadModule(name)
+        loader.Start(name)
         BuildHeaders(stream, 200, "text/plain", true)
-
 
     else
         BuildHeaders(stream, 404, "text/html")
