@@ -3,6 +3,7 @@ Start a local HTTP Server.
 Tweaking can be done on a web browser over the network!
 ]]
 
+local loader = require "loader"
 local Server = {}
 
 local config_html = ""
@@ -107,7 +108,11 @@ local ConfigHtml = function ()
     for i,v in ipairs(tweak) do
         table.insert(items, BuildConfigItem(v))
     end
-    return table.concat(items)
+    local content = table.concat(items)
+    local div = Substitute([[<div id="$id">]], {
+        id=tweak.name
+    })
+    return div..content.."</div>"
 end
 
 local PerformTweak = function (stream, parser)
@@ -199,7 +204,6 @@ local function Reply(server, stream) -- luacheck: ignore 212
 
     elseif path == "/api/action" and req_method == "POST" then
         BuildHeaders(stream, 200, "text/plain", true)
-        local loader = require "loader"
         local id = stream:get_body_as_string(0.01)
         assert(tweak[id], "received unknown action var id")
         local callback = assert(tweak[id].callback, "action missing callback")
@@ -220,12 +224,10 @@ local function Reply(server, stream) -- luacheck: ignore 212
 
     elseif path == "/action/reload" and req_method == "POST" then
         BuildHeaders(stream, 200, "text/plain", true)
-        local loader = require "loader"
         loader.HotReload()
 
     elseif path == "/api/module" and req_method == "POST" then
         local name = stream:get_body_as_string(0.01)
-        local loader = require "loader"
         loader.Start(name)
         BuildHeaders(stream, 200, "text/plain", true)
 
@@ -281,9 +283,10 @@ function Server:Close()
     server:close()
 end
 
-function Server:MakeConfig(_tweak)
+function Server:MakeConfig(name, _tweak)
     tweak = _tweak or {}
     tweak.vars = tweak.vars or {}
+    tweak.name = name
     for i,v in ipairs(tweak) do
         -- use tweak as hash map too
         tweak[v.id] = v

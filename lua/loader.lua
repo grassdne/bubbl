@@ -45,7 +45,7 @@ loader.LoadModule = function (module_name)
     end
     module.source = module_name
 
-    TheServer:MakeConfig(module.tweak)
+    TheServer:MakeConfig(module_name, module.tweak)
     local title = module.title
     local size = module.resolution
     if title then Title(title) end

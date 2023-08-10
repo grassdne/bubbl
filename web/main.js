@@ -1,3 +1,7 @@
+const EFFECTS = [ "elasticbubbles", "swirl", "rainbow", "texteffects", "popper" ];
+
+const moduleOptions = document.getElementById("modules");
+
 async function requestUpdate() {
     const response = await fetch("/api/update", {
         method: "POST",
@@ -67,27 +71,32 @@ function attachListeners() {
 
 const tweaksContainer = document.getElementById("module-tweaks");
 
+function setupModules(current) {
+    moduleOptions.onchange = () => {
+        LoadModule(moduleOptions.value)
+    }
+
+    moduleOptions.innerHTML = EFFECTS
+        .map(name => `<option value="${name}">${name}</option>`)
+        .join('');
+
+    moduleOptions.value = current;
+}
+
 function GetTweaks() {
     fetch("/api/tweaks", { method: "GET" })
         .then(response => response.text())
         .then(text => tweaksContainer.innerHTML = text)
-        .then(() => attachListeners());
+        .then(() => {
+            attachListeners();
+            setupModules(tweaksContainer.children[0].id);
+        });
 }
 
 function LoadModule(module) {
     console.log(module);
     fetch("/api/module", { method: "POST", body: module })
         .then(() => GetTweaks());
-}
-
-{
-    const EFFECTS = [ "elasticbubbles", "swirl", "rainbow", "texteffects" ];
-
-    const moduleOptions = document.getElementById("modules");
-
-    moduleOptions.innerHTML = EFFECTS
-        .map(name => `<button type="button" name=${name} onclick="LoadModule(this.name)">${name}</button>`)
-        .join('');
 }
 
 GetTweaks();

@@ -4,6 +4,7 @@ body {
     --hl: hsl(267 33% 20%);
     background-color: var(--bg);
     color: var(--fg);
+    text-align: center;
 }
 
 input[type=range] {
@@ -27,11 +28,21 @@ button:active {
     background-color: hsl(267 33% 15%);
 }
 
+select {
+	padding: 20px;
+	margin: 10px;
+	border: none;
+	color: var(--fg);
+	border-radius: 10px;
+	background-color: hsl(267 33% 0%);
+	font-size: 20px;
+}
+
 #module-tweaks {
-	margin-left: auto;
-	margin-right: auto;
 	max-width: 600px;
 	text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #module-tweaks > * {
@@ -39,7 +50,4 @@ button:active {
 }
 
 #modules {
-	margin-left: auto;
-	margin-right: auto;
-	width: fit-content;
 }
