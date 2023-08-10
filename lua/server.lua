@@ -116,7 +116,6 @@ local PerformTweak = function (stream, parser)
 
     -- All data is in format ID=something
     local id, value = body:match("^([_%w]+)=(.*)$")
-    print(id, tweak[id])
     if not id or not tweak[id] then
         print("Invalid tweak input: ", body)
         BuildHeaders(stream, 400, "text/plain", true)
@@ -217,7 +216,6 @@ local function Reply(server, stream) -- luacheck: ignore 212
             end
         end
         s = s .. "}"
-        print(s)
         assert(stream:write_chunk(s, true))
 
     elseif path == "/action/reload" and req_method == "POST" then
