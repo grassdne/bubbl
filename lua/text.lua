@@ -5,6 +5,7 @@ local TextRenderer = {}
 TextRenderer.GLYPH_WIDTH = 153
 TextRenderer.GLYPH_HEIGHT = 256
 
+-- TODO: use an atlas file
 local glyph_files = {
     [" "] = "_space.svg",
     ["."] = "_period.svg",
