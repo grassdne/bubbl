@@ -2,38 +2,22 @@
 
 local TextRenderer = {}
 
-TextRenderer.GLYPH_WIDTH = 153
+TextRenderer.GLYPH_WIDTH = 135
 TextRenderer.GLYPH_HEIGHT = 256
-
--- TODO: use an atlas file
-local glyph_files = {
-    [" "] = "_space.svg",
-    ["."] = "_period.svg",
-    [":"] = "_colon.svg",
-    [","] = "_comma.svg",
-    [";"] = "_semicolon.svg",
-    ["("] = "_openparenthesis.svg",
-    [")"] = "_openparenthesis.svg",
-    ["["] = "_opensquarebrackets.svg",
-    ["]"] = "_closesquarebrackets.svg",
-    ["*"] = "_star.svg",
-    ["!"] = "_exclamation.svg",
-    ["?"] = "_question.svg",
-    ["\'"] = "_singlequote.svg",
-    ["\""] = "_doublequote.svg",
-}
-for a = string.byte('A'), string.byte('Z') do
-    glyph_files[string.char(a)] = string.char(a)..'.svg'
-end
-for a = string.byte('a'), string.byte('z') do
-    glyph_files[string.char(a)] = string.char(a)..'.svg'
-end
-for a = string.byte('0'), string.byte('9') do
-    glyph_files[string.char(a)] = string.char(a)..'.svg'
-end
 
 local glyphs = {}
 
+local FONT_DIR = "glyphs/Liberation Mono2/"
+
+local glyph_files = {}
+local atlas = io.open(FONT_DIR.."atlas")
+while atlas:read('l') == '' do
+    local glyph = atlas:read('l')
+    local file = atlas:read('l')
+    glyph_files[glyph] = file
+end
+atlas:close()
+Dump(glyph_files)
 
 local NextSvgCircle = function (get_match)
     local cx, cy, r, fill = get_match()
@@ -51,21 +35,19 @@ end
 TextRenderer.LoadGlyphs = function()
     for char, file in pairs(glyph_files) do
         -- TODO: support having multiple fonts
-        local f = io.open("glyphs/Liberation Mono/"..file)
-        if f then
-            local contents = f:read("*a")
-            local circles = {}
-            for pos, radius, color in TextRenderer.SvgIterCircles(contents) do
-                table.insert(circles, {
-                    pos=pos,
-                    radius=radius,
-                })
-            end
-            circles.width, circles.height = contents:match("<svg width=\"(%d+)\" height=\"(%d+)\">")
-            if not circles.width or not circles.height then print("WARNING: "..file.." missing svg dimensions") end
-            glyphs[char] = circles
-            f:close()
+        local f = assert(io.open(FONT_DIR..file))
+        local contents = f:read("*a")
+        local circles = {}
+        for pos, radius, color in TextRenderer.SvgIterCircles(contents) do
+            table.insert(circles, {
+                pos=pos,
+                radius=radius,
+            })
         end
+        circles.width, circles.height = contents:match("<svg width=\"(%d+)\" height=\"(%d+)\">")
+        if not circles.width or not circles.height then print("WARNING: "..file.." missing svg dimensions") end
+        glyphs[char] = circles
+        f:close()
     end
 end
 
