@@ -4,11 +4,24 @@
 A WIP set of animations, simulations, and games with a common theme.
 
 ### Dependencies
-SDL2, LuaJIT, OpenGL 3.3
+OpenGL 3.3, LuaJIT and LuaRocks, SDL2
+
+Optional: Cargo for Rust library to generate GIFs, libpng for generating PNGs
+
+### To-Do
+- [x] Custom extensible graphics renderer
+- [x] Modular system
+- [x] Hot reloading
+- [x] Web interface
+- [ ] GIF generation
+- [ ] 3-D
+- [ ] More primitives
+- [ ] More simulations
+- [ ] More games
 
 ### Fedora Example
 ```bash
-sudo dnf install SDL2-devel glew-devel
+sudo dnf install SDL2-devel luajit-devel luarocks
 ./build.lua
 ./bubbl
 ```
