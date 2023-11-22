@@ -2,17 +2,18 @@
 
 local TextRenderer = {}
 
-TextRenderer.GLYPH_WIDTH = 135
+-- TextRenderer.GLYPH_WIDTH = 135
 TextRenderer.GLYPH_HEIGHT = 256
 
 local glyphs = {}
 
-local FONT_DIR = "glyphs/Liberation Mono2/"
+local FONT_DIR = "glyphs/Lora/"
 
 local glyph_files = {}
 local atlas = io.open(FONT_DIR.."atlas")
 while atlas:read('l') == '' do
-    local glyph = atlas:read('l')
+    -- TODO: unicode
+    local glyph = string.char(atlas:read('l'))
     local file = atlas:read('l')
     glyph_files[glyph] = file
 end
@@ -63,6 +64,7 @@ local PutCharWithScale = function (pos, char, scale, color)
             circle.radius * scale
         )
     end
+    return circles.width * scale
 end
 
 ---@param pos Vector2 screen position of bottom left of rendered text
@@ -70,11 +72,19 @@ end
 ---@param width number
 ---@param color Color|nil color of text, defaults to black
 TextRenderer.PutCharWithWidth = function(pos, char, width, color)
-    PutCharWithScale(pos, char, width / TextRenderer.GLYPH_WIDTH, color)
+    PutCharWithScale(pos, char, width / Glyph(char).width, color)
+end
+
+local GetStringWidth = function (str)
+    local w = 0
+    for i=1, #str do
+        w = w + Glyph(str:sub(i,i)).width
+    end
+    return w
 end
 
 local StringScale = function (str, width)
-    return width / (#str * TextRenderer.GLYPH_WIDTH)
+    return width / GetStringWidth(str)
 end
 
 ---@param pos Vector2 screen position of bottom left of rendered text
@@ -83,9 +93,9 @@ end
 ---@param color Color|nil color of text, defaults to black
 TextRenderer.PutstringWithWidth = function(pos, str, width, color)
     local scale = StringScale(str, width)
+    local x = pos.x
     for i=1, #str do
-        local x = pos.x + (i-1) * scale * TextRenderer.GLYPH_WIDTH
-        PutCharWithScale(Vector2(x, pos.y), str:sub(i,i), scale, color)
+        x = x + PutCharWithScale(Vector2(x, pos.y), str:sub(i,i), scale, color)
     end
     return scale * TextRenderer.GLYPH_HEIGHT
 end
@@ -97,16 +107,17 @@ end
 TextRenderer.BuildParticlesWithWidth = function (str, width)
     local particles = {}
     local scale = StringScale(str, width)
+    local x = 0
     for i=1, #str do
         local c = str:sub(i,i)
         local glyph = Glyph(c)
-        local x = (i-1) * scale * TextRenderer.GLYPH_WIDTH
         for _,circle in ipairs(glyph) do
             table.insert(particles, {
                 offset = Vector2(x, 0) + circle.pos * scale,
                 radius = circle.radius * scale
             })
         end
+        x = x + glyph.width * scale
     end
     -- metadata
     particles.height = scale * TextRenderer.GLYPH_HEIGHT

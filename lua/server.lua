@@ -266,7 +266,7 @@ local OnStart = function ()
     if ip then
         print(string.format("Web interface at http://localhost:%d or http://%s:%d", bound_port, ip, bound_port))
     else
-        print(string.format("Web interface at http://localhost:%d %s", bound_port))
+        print(string.format("Web interface at http://localhost:%d", bound_port))
     end
 end
 local started = false

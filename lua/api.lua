@@ -67,11 +67,21 @@ Parent = function (t)
     return t
 end
 
+local Dumper
+Dumper = function (x, indent)
+    if type(x) == "table" then
+        print()
+        for k,v in pairs(x) do
+            io.write(indent, tostring(k), ": ")
+            Dumper(v, indent..'\t')
+        end
+    else
+        print(x)
+    end
+end
 --TODO: fully implement
-Dump = function (t)
-    print("-------------------")
-    for k,v in pairs(t) do print(k,v) end
-    print("-------------------")
+Dump = function (v)
+    Dumper(v, '\t')
 end
 
 Deepcopy = function (t)

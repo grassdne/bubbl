@@ -1,5 +1,3 @@
-local Text = require "text"
-
 local GENERATE_FRAMES = false
 local PERIOD = 10
 local MAX_PERIOD = 5
@@ -174,6 +172,7 @@ local BuildText = function ()
         time=VAR.LIMITER == "time" and VAR.TIME or nil,
         speed=VAR.LIMITER == "speed" and VAR.SPEED or nil,
     })
+    assert(effect)
 end
 
 local Disperse = function ()
