@@ -131,7 +131,41 @@ typedef struct GifskiSettings {
   int16_t repeat;
 } GifskiSettings;
 
-typedef int GifskiError;
+enum GifskiError {
+  GIFSKI_OK = 0,
+  /** one of input arguments was NULL */
+  GIFSKI_NULL_ARG,
+  /** a one-time function was called twice, or functions were called in wrong order */
+  GIFSKI_INVALID_STATE,
+  /** internal error related to palette quantization */
+  GIFSKI_QUANT,
+  /** internal error related to gif composing */
+  GIFSKI_GIF,
+  /** internal error - unexpectedly aborted */
+  GIFSKI_THREAD_LOST,
+  /** I/O error: file or directory not found */
+  GIFSKI_NOT_FOUND,
+  /** I/O error: permission denied */
+  GIFSKI_PERMISSION_DENIED,
+  /** I/O error: file already exists */
+  GIFSKI_ALREADY_EXISTS,
+  /** invalid arguments passed to function */
+  GIFSKI_INVALID_INPUT,
+  /** misc I/O error */
+  GIFSKI_TIMED_OUT,
+  /** misc I/O error */
+  GIFSKI_WRITE_ZERO,
+  /** misc I/O error */
+  GIFSKI_INTERRUPTED,
+  /** misc I/O error */
+  GIFSKI_UNEXPECTED_EOF,
+  /** progress callback returned 0, writing aborted */
+  GIFSKI_ABORTED,
+  /** should not happen, file a bug */
+  GIFSKI_OTHER,
+};
+
+typedef enum GifskiError GifskiError;
 
 gifski *gifski_new(const GifskiSettings *settings);
 GifskiError gifski_add_frame_rgba(gifski *handle,

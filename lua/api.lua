@@ -428,8 +428,10 @@ GifAddFrame = function (file_name, frame_number, timestamp)
         print("ERROR: Unable to read screen content")
         return
     end
+    print(resolution.x, resolution.y)
     local err = gifski.gifski_add_frame_rgba(gifskis[file_name], frame_number, resolution.x, resolution.y, pixels, timestamp)
-    if err > 0 then print("ERROR: (Code "..err..") Unable to add GIF frame to "..file_name) end
+    if err ~= "GIFSKI_OK" then print("ERROR: (Code "..err..") Unable to add GIF frame to "..file_name) end
+    print(file_name.." adding frame "..frame_number)
 end
 
 GifFinish = function (file_name)
@@ -443,9 +445,13 @@ GifFinish = function (file_name)
     end
     assert(type(file_name) == "string" and gifskis[file_name],
            "invalid file name passed to GifFinish")
-    if not gifski.gifski_finish(gifskis[file_name]) then
+    print(gifskis[file_name])
+    local err = gifski.gifski_finish(gifskis[file_name])
+    if err ~= "GIFSKI_OK" then
         print("ERROR: Unable to create GIF "..file_name)
+        print("Error code: "..tostring(err))
     end
+    print(file_name.." is completed!!")
 end
 
 
