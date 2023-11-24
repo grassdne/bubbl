@@ -14,9 +14,7 @@ typedef struct {
     const char* frag;
 } ShaderDatas;
 
-void build_shaders(GLuint program, ShaderDatas shader_datas);
-void bind_quad_vertex_array(void);
-GLint get_bound_array_buffer(void);
+void init_framebuffer();
 
 void shaderInit(Shader *sh);
 void shaderLinkProgram(Shader *sh);
