@@ -27,7 +27,7 @@ while not ShouldQuit() do
     UpdateCurrentTick()
     last_time = now
 
-    ClearScreen()
+    StartDrawing()
 
     RunScheduler()
     TheServer:Update()

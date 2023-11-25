@@ -80,7 +80,7 @@ void render_pop(Particle particle);
 double get_time(void);
 bool screenshot(Window *window, const char *file_name);
 void flush_renderers(void);
-void clear_screen(void);
+void start_drawing(Window *window);
 void bg_draw(int texture, void *data, int width, int height);
 
 bool should_quit(void);

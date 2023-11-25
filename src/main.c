@@ -25,13 +25,18 @@
 #include "renderer_defs.h"
 #include "bg.h"
 
-#define SCREEN_WIDTH 1600
-#define SCREEN_HEIGHT 900
+// We're first rendering to an intermediary color texture which must be done through
+// a Frame Buffer Object. This is then blit to the screen.
+// I think this is how people normally do things?
+// Anyways, we do this for two reasons:
+// 1. Post-processing effects (TODO)
+// 2. GIF generation doesn't require the screen or need to get
+//    ruined when e.g. screen is resized
+static GLuint intermediary_framebuffer = 0;
+static GLuint intermediary_color_texture = 0;
 
 // How about we just do everything in seconds please and thank you
 double get_time(void) { return SDL_GetTicks64() * 0.001; }
-
-//static int windowed_xpos, windowed_ypos;
 
 float scale;
 const float QUAD[] = { 1.0,  1.0, -1.0,  1.0, 1.0, -1.0, -1.0, -1.0 };
@@ -80,10 +85,54 @@ static void createargtable (lua_State *L, char **argv, int argc) {
   lua_setglobal(L, "arg");
 }
 
+static void allocate_intermediary_color_texture(SDL_Window *window) {
+    glBindTexture(GL_TEXTURE_2D, intermediary_color_texture);
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+}
 
-void clear_screen(void) {
+static void init_intermediary_framebuffer(SDL_Window *window) {
+    glGenFramebuffers(1, &intermediary_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediary_framebuffer);
+
+    glGenTextures(1, &intermediary_color_texture);
+
+    glBindTexture(GL_TEXTURE_2D, intermediary_color_texture);
+
+    allocate_intermediary_color_texture(window);
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    
+    // Is this needed?
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, intermediary_color_texture, 0);
+
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, DrawBuffers);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        printf("Error: unable to build intermediary_framebuffer\n");
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+static void clear_screen(void) {
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void start_drawing(SDL_Window *window) {
+    glBindFramebuffer(GL_FRAMEBUFFER, intermediary_framebuffer);
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    glViewport(0,0,w,h);
+    clear_screen();
 }
 
 bool quit = false;
@@ -142,7 +191,6 @@ Event poll_event(SDL_Window *window)
                 if (is_fullscreen) {
                     is_fullscreen = false;
                     SDL_SetWindowFullscreen(window, 0);
-                    SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
                 }
                 else {
                     is_fullscreen = true;
@@ -188,11 +236,14 @@ Event poll_event(SDL_Window *window)
             if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
                 SDL_GL_GetDrawableSize(window, &w, &h);
                 glViewport(0, 0, w, h);
+                allocate_intermediary_color_texture(window);
+
                 return (Event) {
                     .type = EVENT_RESIZE,
                     .resize.width = w,
                     .resize.height = h,
                 };
+
             }
             break;
         }
@@ -228,15 +279,24 @@ void get_screen_pixels(SDL_Window *window, uint8_t *pixels) {
     vertical_flip_pixels(pixels, w, h);
 }
 
+void get_framebuffer_pixels(SDL_Window *window, uint8_t *pixels) {
+    (void)window;
+    int w, h; SDL_GetWindowSize(window, &w, &h);
+    flush_renderers();
+    glBindTexture(GL_TEXTURE_2D, intermediary_color_texture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    vertical_flip_pixels(pixels, w, h);
+}
+
 bool screenshot(SDL_Window *window, const char *file_name)
 {
     int w, h; SDL_GetWindowSize(window, &w, &h);
-    flush_renderers();
     const int ncomps = 4;
     const size_t stride = w * ncomps;
     uint8_t *pixeldata = malloc(h * stride);
 
-    get_screen_pixels(window, pixeldata);
+    /* get_screen_pixels(window, pixeldata); */
+    get_framebuffer_pixels(window, pixeldata);
 
     png_image image = {
         .version = PNG_IMAGE_VERSION,
@@ -302,6 +362,7 @@ SDL_Window *create_window(const char *window_name, int width, int height)
 
     init_renderers();
     bg_init();
+    init_intermediary_framebuffer(window);
     return window;
 }
 
@@ -329,6 +390,11 @@ Vector2 get_mouse_position(SDL_Window *window)
 
 void update_screen(SDL_Window *window)
 {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, intermediary_framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     SDL_GL_SwapWindow(window);
 }
 

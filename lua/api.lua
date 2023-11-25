@@ -229,8 +229,8 @@ FlushRenderers = function()
     C.flush_renderers()
 end
 
-ClearScreen = function()
-    C.clear_screen()
+StartDrawing = function()
+    C.start_drawing(window)
 end
 
 UpdateScreen = function (window)
