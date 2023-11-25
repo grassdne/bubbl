@@ -10,6 +10,7 @@ local VAR = {
     TIME = 4,
     SPEED = 400,
     LIMITER = "speed",
+    FONT = "Lora-VariableFont",
 }
 
 local particles
@@ -23,7 +24,15 @@ local Effect = Parent {}
 
 local DEFAULT_COLOR = Color.Hex "#000000"
 local DEFAULT_LIFETIME = 2
-local DISPERSE_TIME = 0.5
+local DISPERSE_TIME = 1
+local GIF_FILENAME = "gifs/testing.gif"
+local GIF_LENGTH = 2.5
+local GENERATING_FRAMES = false
+
+local frame = 0
+local FPS = 50
+local Seconds = GENERATING_FRAMES and function () return frame / FPS end
+                                   or _G.Seconds
 
 local Get = function (v, ...)
     if type(v) == "function" then return v(...) end
@@ -133,7 +142,7 @@ Effect.Build = function (self, str, opts)
     return effect
 end
 
-Effect.Update = function (effect, dt)
+Effect.Update = function (effect)
     local time = Seconds() - effect.initial.time
     local finished_count = 0
     for i=1, #effect.initial do
@@ -160,12 +169,15 @@ Effect.Disperse = function (effect)
     effect.do_disperse = true
 end
 
-local Update = function (dt)
+local Update = function ()
     background:draw()
-    effect:Update(dt)
+    effect:Update()
 end
 
+local started_generating_frames = false
 local BuildText = function ()
+    text.SetFont(VAR.FONT)
+    frame = 0
     effect = Effect:Build(VAR.TEXT, {
         color=VAR.COLORING == "solid" and VAR.COLOR or VAR.COLORING,
         position=VAR.POSITION,
@@ -173,8 +185,22 @@ local BuildText = function ()
         speed=VAR.LIMITER == "speed" and VAR.SPEED or nil,
     })
     assert(effect)
+    if GENERATING_FRAMES then
+        if started_generating_frames then GifFinish(GIF_FILENAME) end
+        GifNew(GIF_FILENAME)
+        started_generating_frames = true
+    end
 end
 
+-- BuildText = function ()
+--     effect = assert(Effect:Build("Congratulations.", {
+--         color="rainbow",
+--         position="above",
+--         time=1,
+--         speed=nil,
+--     }))
+-- end
+--
 local Disperse = function ()
     effect:Disperse()
 end
@@ -199,15 +225,28 @@ return {
         { id="COLOR", name="Solid Color", type="color", callback=BuildText },
         { id="_RESET", name="Reset", type="action", callback=BuildText },
         { id="_DISPERSE", name="Disperse", type="action", callback=Disperse },
+
+        { id="FONT", name="Font", type="options", options = {
+            "Lora-VariableFont", "LiberationSans-Regular", "LiberationMono-Regular",
+            "LiberationMono-cluster", "funky",
+        }, callback=BuildText },
     },
 
-    OnStart = BuildText,
+    OnStart = function()
+        BuildText()
+    end,
     OnWindowResize = BuildText,
 
     Draw = function (dt)
-        Update(dt)
-        -- TODO: GIFs
-        -- GifAddFrame("test.gif", i, i / FPS)
+        Update()
+        if GENERATING_FRAMES then
+            -- TODO: GIFs
+            local time = Seconds()
+            if time < GIF_LENGTH then
+                GifAddFrame(GIF_FILENAME, frame, time)
+            end
+            frame = frame + 1
+        end
     end;
 
     OnKey = function (key, down)
