@@ -231,7 +231,9 @@ local function Reply(server, stream) -- luacheck: ignore 212
 
     else
         BuildHeaders(stream, 404, "text/html")
-        assert(stream:write_chunk("Error 404", true))
+        if not stream:write_chunk("Error 404", true) then
+            print("TODO: fails with \"broken pipe\"")
+        end
     end
 
 end
