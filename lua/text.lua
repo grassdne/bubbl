@@ -135,5 +135,8 @@ TextRenderer.BuildParticlesWithWidth = function (str, width)
 end
 
 TextRenderer.SetFont("Lora-VariableFont")
+-- TextRenderer.SetFont("LiberationSans-Regular")
+-- TextRenderer.SetFont("LiberationMono-Regular")
+-- TextRenderer.SetFont("funky")
 
 return TextRenderer

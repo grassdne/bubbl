@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<svg width="63" height="256">
+  <circle cx="31" cy="59" r="10" fill="#800080" />
+  <circle cx="31" cy="79" r="10" fill="#800080" />
+  <circle cx="31" cy="99" r="10" fill="#800080" />
+  <circle cx="31" cy="119" r="10" fill="#800080" />
+  <circle cx="31" cy="139" r="10" fill="#800080" />
+  <circle cx="31" cy="159" r="10" fill="#800080" />
+  <circle cx="31" cy="179" r="10" fill="#800080" />
+  <circle cx="29" cy="197" r="8" fill="#800080" />
+</svg>

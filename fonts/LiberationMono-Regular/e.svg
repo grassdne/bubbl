@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<svg width="135" height="256">
+  <circle cx="25" cy="126" r="11" fill="#800080" />
+  <circle cx="27" cy="149" r="10" fill="#800080" />
+  <circle cx="108" cy="122" r="10" fill="#800080" />
+  <circle cx="26" cy="105" r="9" fill="#800080" />
+  <circle cx="35" cy="87" r="9" fill="#800080" />
+  <circle cx="35" cy="167" r="9" fill="#800080" />
+  <circle cx="100" cy="88" r="9" fill="#800080" />
+  <circle cx="104" cy="167" r="9" fill="#800080" />
+  <circle cx="48" cy="178" r="8" fill="#800080" />
+  <circle cx="49" cy="77" r="8" fill="#800080" />
+  <circle cx="90" cy="178" r="8" fill="#800080" />
+  <circle cx="108" cy="104" r="8" fill="#800080" />
+  <circle cx="43" cy="124" r="7" fill="#800080" />
+  <circle cx="57" cy="124" r="7" fill="#800080" />
+  <circle cx="63" cy="182" r="7" fill="#800080" />
+  <circle cx="64" cy="73" r="7" fill="#800080" />
+  <circle cx="71" cy="124" r="7" fill="#800080" />
+  <circle cx="78" cy="74" r="7" fill="#800080" />
+  <circle cx="85" cy="124" r="7" fill="#800080" />
+  <circle cx="76" cy="180" r="6" fill="#800080" />
+  <circle cx="90" cy="76" r="5" fill="#800080" />
+</svg>
