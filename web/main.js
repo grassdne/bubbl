@@ -34,7 +34,7 @@ function attachListeners() {
                     body: `${config.getAttribute("id")}=${config.value}`,
                 })
             }
-        } else if (config.type == "radio") {
+        } else if (config instanceof HTMLSelectElement) {
             config.oninput = () => {
                 fetch("/api/tweak/string", {
                     method: "POST",
@@ -56,7 +56,7 @@ function attachListeners() {
                 })
             }
 
-        } else if (config.type == "button") {
+        } else if (config instanceof HTMLButtonElement) {
             config.onclick = (e) => {
                 fetch("/api/tweak/action", {
                     method: "POST",

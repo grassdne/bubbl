@@ -53,21 +53,19 @@ local BuildConfigItem = function (var)
         })
 
     elseif var.type == "options" then
-        local s = "<fieldset><legend>"..var.name.."</legend>"
-        s = s .. "<div>"
+        local s = Substitute([[<div>
+        <label for="$id">$name</label>
+        <select id="$id" name="$id" type="options" value="$default" class="config">]], {
+            id=var.id, name=var.name, default=GetValue(var),
+        })
         for i, option in ipairs(assert(var.options)) do
-            s = s .. Substitute([[
-                <input type="radio" id="$id" name="$name" value="$option" class="config" $checked>
-                <label for="$id">$option</label>
-            ]], {
-                name=var.id,
+            s = s .. Substitute([[ <option value="$option">$option</option> ]], {
                 option=option,
-                id=var.id.."-"..option,
-                checked=GetValue(var) == option and "checked" or "",
             })
-          
         end
-        s = s .. "</div></fieldset>"
+        s = s .. "</select>"
+        s = s .. "</div>"
+        print(s)
         return s
 
     elseif var.type == "string" then
