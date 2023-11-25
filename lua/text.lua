@@ -24,7 +24,7 @@ local current_font
 
 TextRenderer.LoadGlyphs = function(font_name)
     local glyph_files = {}
-    local directory = "glyphs/"..font_name.."/"
+    local directory = "fonts/"..font_name.."/"
     local atlas = assert(io.open(directory.."atlas"))
     while atlas:read('l') == '' do
         -- TODO: unicode
