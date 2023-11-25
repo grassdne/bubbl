@@ -157,11 +157,12 @@ Effect.Update = function (effect)
     end
     if not effect.finished and finished_count == #effect.initial and effect.initial == effect.stages[1] then
         effect.finished = true
-        ScheduleFn(function ()
-            effect.initial, effect.final = unpack(effect.stages, 2)
-            effect.initial.time = Seconds()
-            effect.finished = false
-        end, DISPERSE_TIME)
+    end
+
+    if effect.finished and effect.do_disperse then
+        effect.initial, effect.final = unpack(effect.stages, 2)
+        effect.initial.time = Seconds()
+        effect.finished = false
     end
 end
 
@@ -223,7 +224,7 @@ return {
             "rainbow", "solid",
         } },
         { id="COLOR", name="Solid Color", type="color", callback=BuildText },
-        { id="_RESET", name="Reset", type="action", callback=BuildText },
+        { id="_RESET", name="Restart", type="action", callback=BuildText },
         { id="_DISPERSE", name="Disperse", type="action", callback=Disperse },
 
         { id="FONT", name="Font", type="options", options = {
