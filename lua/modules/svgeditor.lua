@@ -1,5 +1,5 @@
 local SVGEDITOR = {
-    FILE = arg[1] or "img.svg",
+    FILE = arg[2] or "img.svg",
     COLOR = WEBCOLORS.PURPLE,
 }
 
@@ -8,6 +8,7 @@ local scale = 1
 local circles = {}
 local is_shift_down = false
 local is_ctrl_down = false
+local is_a_down = false
 local selection_start
 local drag_start
 local rotate = nil
@@ -20,12 +21,13 @@ local KEY_LITTLE_MOVEMENT = 5
 
 local TextRenderer = require "text"
 local draw = require "draw"
-local GLYPH_WIDTH = 135
+local glyph_height = TextRenderer.GLYPH_HEIGHT
+local glyph_width = 135 -- default
 
 local get_draw_box_base_position = function ()
     local center = resolution / 2
-    local width = GLYPH_WIDTH * scale
-    local height = TextRenderer.GLYPH_HEIGHT * scale
+    local width = glyph_width * scale
+    local height = glyph_height * scale
     return Vector2(center.x - width/2, center.y - height/2)
 end
 
@@ -73,12 +75,12 @@ local Draw = function(dt)
     -- Render circles
     for _,pt in ipairs(circles) do
         local color = Color(SVGEDITOR.COLOR)
-        color.a = selected[pt] and 0.5 or 0
-        RenderPop(pt:absolute_position(), SVGEDITOR.COLOR, pt.radius * scale)
+        color.a = selected[pt] and 0.5 or 1
+        RenderPop(pt:absolute_position(), color, pt.radius * scale)
     end
 
     local base = get_draw_box_base_position()
-    draw.RectOutline(base.x, base.y, GLYPH_WIDTH*scale, TextRenderer.GLYPH_HEIGHT*scale, WEBCOLORS.BLACK)
+    draw.RectOutline(base.x, base.y, glyph_width*scale, glyph_height*scale, WEBCOLORS.BLACK)
 
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
@@ -94,10 +96,12 @@ local Draw = function(dt)
      end
 
     -- Testing text
-    local y = 0
-    for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
-        local height = TextRenderer.PutstringWithWidth(Vector2(0,y), str, resolution.x, SVGEDITOR.COLOR)
-        y = y + height
+    if is_a_down then
+        local y = 0
+        for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
+            local height = TextRenderer.PutstringWithWidth(Vector2(0,y), str, resolution.x, SVGEDITOR.COLOR)
+            y = y + height
+        end
     end
 end
 
@@ -105,13 +109,13 @@ local fmt = string.format
 local SaveToSVG = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
-    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", GLYPH_WIDTH, TextRenderer.GLYPH_HEIGHT))
+    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", glyph_width, glyph_height))
     
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:Unpack()
-        if x > 0 and x < GLYPH_WIDTH and y > 0 and y < TextRenderer.GLYPH_HEIGHT then
+        if x > 0 and x < glyph_width and y > 0 and y < glyph_height then
             f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                    x, TextRenderer.GLYPH_HEIGHT - y, circle.radius, SVGEDITOR.COLOR:ToHexString()))
+                    x, glyph_height - y, circle.radius, SVGEDITOR.COLOR:ToHexString()))
         end
     end
 
@@ -157,18 +161,23 @@ local ZOOM_SPEED = 0.2
 local ZOOM_MIN = 0.1
 local ZOOM_MAX = 10
 
-local try_load_file = function(path)
+local TryLoadFile = function(path)
     local f = io.open(path)
-    if not f then return false end
+    if not f then
+        print("Did not find file "..path)
+        return false
+    end
     local center = resolution / 2
-    for pos, radius in TextRenderer.svg_iter_circles(assert(f:read("*a"))) do
+    local content = f:read("*a")
+    glyph_width, glyph_height = TextRenderer.SvgGetSize(content)
+    for pos, radius in TextRenderer.SvgIterCircles(content) do
         table.insert(circles, Circle:New(pos, radius))
     end
     f:close()
     return true
 end
 
-try_load_file(SVGEDITOR.FILE)
+TryLoadFile(SVGEDITOR.FILE)
 
 return {
     title = "SVG Editor",
@@ -242,6 +251,8 @@ return {
             for circle in pairs(selected) do
                 circle.pos.x = circle.pos.x + KEY_MOVEMENT
             end
+        elseif key == "A" then
+            is_a_down = is_down
         end
     end,
 

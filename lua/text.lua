@@ -22,6 +22,11 @@ end
 
 local current_font
 
+TextRenderer.SvgGetSize = function (contents)
+    local width, height = contents:match("<svg width=\"(%d+)\" height=\"(%d+)\">")
+    return assert(tonumber(width)), assert(tonumber(height))
+end
+
 TextRenderer.LoadGlyphs = function(font_name)
     local glyph_files = {}
     local directory = "fonts/"..font_name.."/"
@@ -46,7 +51,7 @@ TextRenderer.LoadGlyphs = function(font_name)
                 radius=radius,
             })
         end
-        circles.width, circles.height = contents:match("<svg width=\"(%d+)\" height=\"(%d+)\">")
+        circles.width, circles.height = TextRenderer.SvgGetSize(contents)
         if not circles.width or not circles.height then print("WARNING: "..file.." missing svg dimensions") end
         glyphs[char] = circles
         f:close()
