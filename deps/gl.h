@@ -4175,7 +4175,6 @@ GLAD_API_CALL int gladLoadGL( GLADloadfunc load);
 #ifdef __cplusplus
 }
 #endif
-#endif
 
 /* Source */
 #ifdef GLAD_GL_IMPLEMENTATION
@@ -5981,3 +5980,4 @@ int gladLoadGL( GLADloadfunc load) {
 
 #endif /* GLAD_GL_IMPLEMENTATION */
 
+#endif
