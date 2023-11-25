@@ -1,53 +1,67 @@
 body {
     --bg: hsl(0 0% 10%);
     --fg: hsl(0 0% 90%);
-    --hl: hsl(267 33% 20%);
+    --color-extreme: hsl(0 0% 0%);
+    --color-active-1: hsl(267 33% 5%);
+    --color-active-2: hsl(267 33% 15%);
+    --margin: 1em;
+
     background-color: var(--bg);
     color: var(--fg);
     text-align: center;
 }
 
-input[type=range] {
-    width: 100%;
+input {
+	font-size: 20px;
+	margin: var(--margin);
+    padding: 10px;
+	/* border: none; */
+	color: var(--fg);
+	border-radius: 10px;
+	background-color: var(--bg);
+	font-size: 20px;
 }
 
 button {
 	padding: 20px;
-	margin: 2em 10px;
+	margin: var(--margin);
 	border: none;
 	color: var(--fg);
 	border-radius: 10px;
-	background-color: hsl(267 33% 0%);
+	background-color: var(--color-extreme);
 	font-size: 20px;
 }
 
 button:hover {
-    background-color: hsl(267 33% 10%);
+    background-color: var(--color-active-1);
 }
 button:active {
-    background-color: hsl(267 33% 15%);
+    background-color: var(--color-active-2);
 }
 
 select {
-	padding: 20px;
-	margin: 10px;
-	border: none;
+	padding: 10px;
+	margin: var(--margin);
+	/* border: none; */
 	color: var(--fg);
 	border-radius: 10px;
-	background-color: hsl(267 33% 0%);
+	/* background-color: hsl(267 33% 0%); */
+	background-color: var(--bg);
 	font-size: 20px;
 }
 
 #module-tweaks {
-	max-width: 600px;
 	text-align: center;
     margin-left: auto;
     margin-right: auto;
 }
 
-#module-tweaks div {
+#module-tweaks > div {
     margin-top: 2em;
 }
 
 #modules {
+    border: none;
+    background-color: var(--color-extreme);
+    padding: 20px;
 }
