@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<svg width="114" height="256">
+  <circle cx="27" cy="151" r="12" fill="#800080" />
+  <circle cx="25" cy="50" r="10" fill="#800080" />
+  <circle cx="25" cy="70" r="10" fill="#800080" />
+  <circle cx="25" cy="90" r="10" fill="#800080" />
+  <circle cx="25" cy="110" r="10" fill="#800080" />
+  <circle cx="25" cy="173" r="10" fill="#800080" />
+  <circle cx="25" cy="193" r="10" fill="#800080" />
+  <circle cx="50" cy="142" r="10" fill="#800080" />
+  <circle cx="24" cy="129" r="9" fill="#800080" />
+  <circle cx="65" cy="156" r="9" fill="#800080" />
+  <circle cx="76" cy="171" r="9" fill="#800080" />
+  <circle cx="87" cy="186" r="9" fill="#800080" />
+  <circle cx="61" cy="127" r="8" fill="#800080" />
+  <circle cx="72" cy="115" r="8" fill="#800080" />
+  <circle cx="83" cy="103" r="8" fill="#800080" />
+  <circle cx="94" cy="92" r="7" fill="#800080" />
+  <circle cx="97" cy="199" r="7" fill="#800080" />
+</svg>

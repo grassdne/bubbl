@@ -5,20 +5,7 @@ local TextRenderer = {}
 -- TextRenderer.GLYPH_WIDTH = 135
 TextRenderer.GLYPH_HEIGHT = 256
 
-local glyphs = {}
-
-local FONT_DIR = "glyphs/Lora/"
-
-local glyph_files = {}
-local atlas = io.open(FONT_DIR.."atlas")
-while atlas:read('l') == '' do
-    -- TODO: unicode
-    local glyph = string.char(atlas:read('l'))
-    local file = atlas:read('l')
-    glyph_files[glyph] = file
-end
-atlas:close()
-Dump(glyph_files)
+local fonts = {}
 
 local NextSvgCircle = function (get_match)
     local cx, cy, r, fill = get_match()
@@ -33,10 +20,24 @@ TextRenderer.SvgIterCircles = function (contents)
     return NextSvgCircle, get_match
 end
 
-TextRenderer.LoadGlyphs = function()
+local current_font
+
+TextRenderer.LoadGlyphs = function(font_name)
+    local glyph_files = {}
+    local directory = "fonts/"..font_name.."/"
+    local atlas = assert(io.open(directory.."atlas"))
+    while atlas:read('l') == '' do
+        -- TODO: unicode
+        local glyph = string.char(atlas:read('l'))
+        local file = atlas:read('l')
+        glyph_files[glyph] = file
+    end
+    atlas:close()
+
+    local glyphs = {}
     for char, file in pairs(glyph_files) do
         -- TODO: support having multiple fonts
-        local f = assert(io.open(FONT_DIR..file))
+        local f = assert(io.open(directory..file))
         local contents = f:read("*a")
         local circles = {}
         for pos, radius, color in TextRenderer.SvgIterCircles(contents) do
@@ -50,9 +51,18 @@ TextRenderer.LoadGlyphs = function()
         glyphs[char] = circles
         f:close()
     end
+
+    fonts[font_name] = glyphs
 end
 
-local Glyph = function (char) return glyphs[char] or glyphs[' '] end
+TextRenderer.SetFont = function (font)
+    current_font = font
+    if not fonts[current_font] then
+        TextRenderer.LoadGlyphs(current_font)
+    end
+end
+
+local Glyph = function (char) return fonts[current_font][char] or fonts[current_font][' '] end
 
 local PutCharWithScale = function (pos, char, scale, color)
     color = color or WEBCOLORS.BLACK
@@ -124,6 +134,9 @@ TextRenderer.BuildParticlesWithWidth = function (str, width)
     return particles
 end
 
-TextRenderer.LoadGlyphs()
+TextRenderer.SetFont("Lora-VariableFont")
+-- TextRenderer.SetFont("LiberationSans-Regular")
+-- TextRenderer.SetFont("LiberationMono-Regular")
+-- TextRenderer.SetFont("funky")
 
 return TextRenderer
