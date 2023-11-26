@@ -436,7 +436,6 @@ GifAddFrame = function (file_name, frame_number, timestamp)
         print("ERROR: Unable to read screen content")
         return
     end
-    print(resolution.x, resolution.y)
     local err = gifski.gifski_add_frame_rgba(gifskis[file_name], frame_number, resolution.x, resolution.y, pixels, timestamp)
     if err ~= "GIFSKI_OK" then print("ERROR: (Code "..err..") Unable to add GIF frame to "..file_name) end
     print(file_name.." adding frame "..frame_number)
