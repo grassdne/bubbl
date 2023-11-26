@@ -1,5 +1,5 @@
 local VAR = {
-    EFFECT_TYPE = "rain",
+    EFFECT_TYPE = "blow",
     COLORING = "solid",
     COLOR = Color.Hex "#99c1f1",
     TEXT = "bubbl",
@@ -91,7 +91,7 @@ local effect_types = {
         end,
     },
 
-    ["wind"] = Transition {
+    ["blow"] = Transition {
         Particle = function (dimensions, target_position, target_color, target_radius)
             local SPEED = dimensions.x / 2
 
@@ -119,7 +119,7 @@ local effect_types = {
         end,
     },
 
-    ["rain"] = Transition {
+    ["pour"] = Transition {
         Particle = function (dimensions, target_position, target_color, target_radius)
             local SPEED = dimensions.y
             local STRETCH_Y = 2
