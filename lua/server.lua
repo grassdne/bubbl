@@ -65,7 +65,6 @@ local BuildConfigItem = function (var)
         end
         s = s .. "</select>"
         s = s .. "</div>"
-        print(s)
         return s
 
     elseif var.type == "string" then

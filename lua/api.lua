@@ -95,6 +95,14 @@ end
 
 Lerp = function (a, b, t) return (b - a) * t + a end
 
+TableKeys = function (t)
+    local keys = {}
+    for k,v in pairs(t) do
+        table.insert(keys, k)
+    end
+    return keys
+end
+
 ----------------------------
 --------- Vector2 ----------
 ----------------------------
