@@ -459,6 +459,7 @@ GifFinish = function (file_name)
         print("ERROR: Unable to create GIF "..file_name)
         print("Error code: "..tostring(err))
     end
+    gifskis[file_name] = nil
     print(file_name.." is completed!!")
 end
 
