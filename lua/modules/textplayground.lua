@@ -175,7 +175,72 @@ local effect_types = {
                 transition_length = time_to_target,
             }
         end,
-    }
+    },
+
+
+    ["slick"] = Transition {
+        Particle = function (dimensions, target_position, target_color, target_radius)
+            local STRETCH_Y = 2
+            local HOLD_TIME = 0.25
+            local SPEED = dimensions:Length() / 2
+            local TRANSITION_TIME = 1.5
+
+            local DISPERSE_TIME = 0.5
+            local DISPERSE_DISTANCE = 0.15
+            local disperse_direction = Vector2.Angle(math.random() * 2*PI)
+            local disperse_distance = dimensions:Length() * DISPERSE_DISTANCE
+            local disperse_position = target_position + disperse_direction * disperse_distance
+
+            local initial_position = Vector2(target_position.x, target_position.y * STRETCH_Y + target_position.x)
+            return {
+                position = initial_position,
+                color = target_color,
+                radius = 0,
+                hold_time = 0,
+            }, {
+                position = target_position,
+                color = target_color,
+                radius = target_radius,
+                transition_length = TRANSITION_TIME,
+                hold_time = HOLD_TIME,
+            }, {
+                position = disperse_position,
+                color = target_color,
+                radius = 0,
+                transition_length = DISPERSE_TIME,
+            }
+        end,
+    },
+    ["pop"] = Transition {
+        Particle = function (dimensions, target_position, target_color, target_radius)
+            local TIME = 2
+            local ENLARGE_FACTOR = 1.5
+            local DELAY = 0.2
+            local DISPERSE_TIME = 1
+            local DISPERSE_DISTANCE = 0.25
+            local disperse_direction = Vector2.Angle(math.random() * 2*PI)
+            local disperse_distance = dimensions:Length() * DISPERSE_DISTANCE
+            local disperse_position = target_position + disperse_direction * disperse_distance
+
+            return {
+                position = target_position,
+                color = target_color,
+                radius = 0,
+                hold_time = DELAY,
+            }, {
+                position = target_position,
+                color = target_color,
+                radius = target_radius * ENLARGE_FACTOR,
+                transition_length = TIME,
+                hold_time = 0,
+            }, {
+                position = disperse_position,
+                color = target_color,
+                radius = 0,
+                transition_length = DISPERSE_TIME,
+            }
+        end,
+    },
 }
 
 local Rainbow = function (dimensions, position)
