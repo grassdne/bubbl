@@ -4,9 +4,16 @@ local VAR = {
     COLOR = Color.Hex "#99c1f1",
     TEXT = "bubbl",
     FONT = "Lora-VariableFont",
+    GIF_FILENAME = "playground.gif",
 }
 
 local Text = require "text"
+
+local GENERATING_FRAMES = false
+-- So we can override when generating gif
+local Seconds = _G.Seconds
+local frame = 0
+local FPS = 50
 
 local Get = function (value, ...)
     if type(value) == "function" then
@@ -261,6 +268,12 @@ NextStage = function ()
 end
 
 Start = function ()
+    if GENERATING_FRAMES then
+        frame = 0
+        Seconds = function () return frame / FPS end
+    else
+        Seconds = _G.Seconds
+    end
     Text.SetFont(VAR.FONT)
     local effect_builder = effect_types[VAR.EFFECT_TYPE]
 
@@ -275,10 +288,26 @@ end
 local Draw = function ()
     background:draw()
     local running = effect_types[VAR.EFFECT_TYPE].Draw(effect)
+
+    if GENERATING_FRAMES then
+        local time = Seconds()
+        GifAddFrame(VAR.GIF_FILENAME, frame, time)
+        frame = frame + 1
+    end
+
     if not running then
+        if GENERATING_FRAMES then
+            GifFinish(VAR.GIF_FILENAME)
+            GENERATING_FRAMES = false
+        end
         -- Restart
         Start()
     end
+end
+
+local GenerateGif = function ()
+    GENERATING_FRAMES = true
+    Start()
 end
 
 return {
@@ -298,5 +327,6 @@ return {
             "Lora-VariableFont", "LiberationSans-Regular", "LiberationMono-Regular",
             "LiberationMono-cluster", "funky",
         }, callback=Start },
+        { id="_GENERATE_GIF", name="Generate GIF", type="action", callback=GenerateGif },
     },
 }
