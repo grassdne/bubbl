@@ -453,7 +453,6 @@ GifFinish = function (file_name)
     end
     assert(type(file_name) == "string" and gifskis[file_name],
            "invalid file name passed to GifFinish")
-    print(gifskis[file_name])
     local err = gifski.gifski_finish(gifskis[file_name])
     if err ~= "GIFSKI_OK" then
         print("ERROR: Unable to create GIF "..file_name)
