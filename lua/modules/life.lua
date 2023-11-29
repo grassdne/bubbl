@@ -1,5 +1,3 @@
-Title "Game of Life"
-
 local COLOR_DEAD = Color.Hsl(0, 1.0, 0.9)
 local COLOR_ALIVE = Color.Hsl(120, 0.5, 0.5)
 local ROWS = 40
@@ -39,30 +37,33 @@ end
 
 local field = {}
 
-OnStart = function()
-    for row=1, ROWS do
-        field[row] = {}
-        for col=1, COLS do
-            field[row][col] = math.random() < 0.3 and "alive" or "dead"
-        end
-    end
-    while true do
-        Suspend(INTERVAL)
-        field = NextGeneration(field)
-    end
-end
+return {
+    title = "Game of Life",
 
-Draw = function(dt)
-    local spacing_x = resolution.x / COLS
-    local spacing_y = resolution.y / ROWS
-    local size = math.min(spacing_x, spacing_y) / 2
-    for row=1, ROWS do
-        for col=1, COLS do
-            local x = col * spacing_x - size
-            local y = row * spacing_y - size
-            local color = field[row][col] == "alive" and COLOR_ALIVE or COLOR_DEAD
-            RenderBubble(Vector2(x, y), color, size)
+    OnStart = function()
+        for row=1, ROWS do
+            field[row] = {}
+            for col=1, COLS do
+                field[row][col] = math.random() < 0.3 and "alive" or "dead"
+            end
         end
-    end
-end
+        while true do
+            Suspend(INTERVAL)
+            field = NextGeneration(field)
+        end
+    end,
 
+    Draw = function(dt)
+        local spacing_x = resolution.x / COLS
+        local spacing_y = resolution.y / ROWS
+        local size = math.min(spacing_x, spacing_y) / 2
+        for row=1, ROWS do
+            for col=1, COLS do
+                local x = col * spacing_x - size
+                local y = row * spacing_y - size
+                local color = field[row][col] == "alive" and COLOR_ALIVE or COLOR_DEAD
+                RenderBubble(Vector2(x, y), color, size)
+            end
+        end
+    end,
+}
