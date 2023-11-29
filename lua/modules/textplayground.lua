@@ -270,6 +270,7 @@ end
 Start = function ()
     if GENERATING_FRAMES then
         frame = 0
+        VAR.GIF_FILENAME = VAR.TEXT..".gif"
         Seconds = function () return frame / FPS end
     else
         Seconds = _G.Seconds
@@ -297,7 +298,7 @@ local Draw = function ()
 
     if not running then
         if GENERATING_FRAMES then
-            GifFinish(VAR.GIF_FILENAME)
+            GifFinish()
             GENERATING_FRAMES = false
         end
         -- Restart
