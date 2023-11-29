@@ -14,10 +14,13 @@ Optional: Cargo for Rust library to generate GIFs, libpng for generating PNGs
 - [x] Hot reloading
 - [x] Web interface
 - [ ] GIF generation
+- [ ] Testing
+- [ ] Post-processing effects
 - [ ] 3-D
 - [ ] More primitives
 - [ ] More simulations
 - [ ] More games
+- [ ] Android
 
 ### Fedora Example
 ```bash
