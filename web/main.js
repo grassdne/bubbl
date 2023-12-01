@@ -1,4 +1,5 @@
-const EFFECTS = [ "elasticbubbles", "swirl", "rainbow", "texteffects", "textplayground", "popper" ];
+const EFFECTS = [ "elasticbubbles", "swirl", "rainbow", "texteffects",
+                  "textplayground", "popper", "builder" ];
 
 const moduleOptions = document.getElementById("modules");
 
