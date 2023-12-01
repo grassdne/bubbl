@@ -195,15 +195,11 @@ local effect_types = {
     ["slick"] = Transition {
         Particle = function (dimensions, target_position, target_color, target_radius)
             local STRETCH_Y = 2
-            local HOLD_TIME = 0.25
+            local HOLD_TIME = 0.1
             local SPEED = dimensions:Length() / 2
             local TRANSITION_TIME = 1.5
-
-            local DISPERSE_TIME = 0.5
-            local DISPERSE_DISTANCE = 0.15
-            local disperse_direction = Vector2.Angle(math.random() * 2*PI)
-            local disperse_distance = dimensions:Length() * DISPERSE_DISTANCE
-            local disperse_position = target_position + disperse_direction * disperse_distance
+            local DISPERSE_TIME = 1
+            local disperse_position = target_position
 
             local initial_position = Vector2(target_position.x, target_position.y * STRETCH_Y + target_position.x)
             return {
