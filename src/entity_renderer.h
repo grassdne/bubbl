@@ -2,6 +2,7 @@
 #define SHADER_POP_H
 #include "common.h"
 #include "shaderutil.h"
+#include "renderer_defs.h"
 
 typedef struct {
     int id;
@@ -34,15 +35,8 @@ typedef struct {
     GLuint vbo;
 } EntityRenderer;
 
-typedef enum {
-    ENTITY_BUBBLE,
-    ENTITY_POP,
-    COUNT_ENTITY_TYPES,
-} EntityType;
-
 void entity_init(EntityRenderer *r, const EntityRendererData data);
 void flush_entities(EntityRenderer *r);
 void render_entity(EntityRenderer *restrict r, const void *restrict entity);
-void flush_renderer(EntityType type);
 
 #endif

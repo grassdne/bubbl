@@ -1,3 +1,10 @@
+/*
+ * This is our "write-and-forget" OpenGL 'entity' renderer.
+ * The rendering system has gone through many iterations
+ * as I experiment and explore to finally come to this.
+ * I believe it's a batch renderer.
+ */
+
 #include "entity_renderer.h"
 #include "SDL_video.h"
 #include <stdio.h>

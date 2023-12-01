@@ -2,6 +2,12 @@
 #define ENTITY_RENDERERS_H
 #include "common.h"
 
+typedef enum {
+    ENTITY_BUBBLE,
+    ENTITY_POP,
+    COUNT_ENTITY_TYPES,
+} EntityType;
+
 typedef struct {
     Vector2 pos;
     Color color;
@@ -22,5 +28,6 @@ void render_bubble(Bubble bubble);
 
 void init_renderers(void);
 void flush_renderers(void);
+void flush_renderer(EntityType type);
 
 #endif

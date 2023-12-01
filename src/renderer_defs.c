@@ -1,3 +1,10 @@
+/*
+ * These are the definitions for rendering different kinds of
+ * "entities" that can be batch rendered. Adding a new entity
+ * is just adding a new entry into the entity table and adding
+ * a helper functions to easily render entities.
+*/
+
 #include "entity_renderer.h"
 #include "renderer_defs.h"
 
