@@ -80,19 +80,19 @@ local Draw = function(dt)
     end
 
     local base = get_draw_box_base_position()
-    draw.RectOutline(base.x, base.y, glyph_width*scale, glyph_height*scale, WEBCOLORS.BLACK)
+    draw.RectOutline(base, glyph_width*scale, glyph_height*scale, WEBCOLORS.BLACK)
 
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
         local botleft = AbsolutePosition(Vector2(x1, y1))
         local topright = AbsolutePosition(Vector2(x2, y2))
-        draw.RectOutline(botleft.x, botleft.y, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
+        draw.RectOutline(botleft, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
     end
 
      if rotate then
          local axis = AbsolutePosition(rotate.axis_position)
          local mouse = MousePosition()
-         draw.Line(axis.x, axis.y, mouse.x, mouse.y, SVGEDITOR.COLOR)
+         draw.Line(axis, mouse, SVGEDITOR.COLOR)
      end
 
     -- Testing text
