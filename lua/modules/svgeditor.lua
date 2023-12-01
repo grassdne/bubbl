@@ -1,8 +1,3 @@
-local SVGEDITOR = {
-    FILE = arg[2] or "img.svg",
-    COLOR = WEBCOLORS.PURPLE,
-}
-
 local scale = 1
 
 local circles = {}
@@ -15,7 +10,12 @@ local rotate = nil
 
 local selected = {}
 
-local BASE_SIZE = 20
+local VAR = {
+    SIZE = 20,
+    FILE = "img.svg",
+    COLOR = WEBCOLORS.PURPLE,
+}
+
 local KEY_MOVEMENT = 20
 local KEY_LITTLE_MOVEMENT = 5
 
@@ -46,6 +46,7 @@ local Circle = {
         local c = setmetatable({}, self)
         c.pos = pos
         c.radius = radius
+        c.color = VAR.COLOR
         c.focused = is_focused
         return c
     end,
@@ -73,10 +74,10 @@ end
 
 local Draw = function(dt)
     -- Render circles
-    for _,pt in ipairs(circles) do
-        local color = Color(SVGEDITOR.COLOR)
-        color.a = selected[pt] and 0.5 or 1
-        RenderPop(pt:absolute_position(), color, pt.radius * scale)
+    for _,circle in ipairs(circles) do
+        local color = Color(circle.color)
+        color.a = selected[circle] and 0.5 or 1
+        RenderPop(circle:absolute_position(), color, circle.radius * scale)
     end
 
     local base = get_draw_box_base_position()
@@ -86,20 +87,21 @@ local Draw = function(dt)
         local x1, y1, x2, y2 = GetSelection()
         local botleft = AbsolutePosition(Vector2(x1, y1))
         local topright = AbsolutePosition(Vector2(x2, y2))
-        draw.RectOutline(botleft, topright.x - botleft.x, topright.y - botleft.y, SVGEDITOR.COLOR)
+        draw.RectOutline(botleft, topright.x - botleft.x, topright.y - botleft.y, VAR.COLOR)
     end
 
      if rotate then
          local axis = AbsolutePosition(rotate.axis_position)
          local mouse = MousePosition()
-         draw.Line(axis, mouse, SVGEDITOR.COLOR)
+         draw.Line(axis, mouse, VAR.COLOR)
      end
 
     -- Testing text
     if is_a_down then
+        TextRenderer.SetFont("funky")
         local y = 0
         for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
-            local height = TextRenderer.PutstringWithWidth(Vector2(0,y), str, resolution.x, SVGEDITOR.COLOR)
+            local height = TextRenderer.PutstringWithWidth(Vector2(0,y), str, resolution.x, VAR.COLOR)
             y = y + height
         end
     end
@@ -115,7 +117,7 @@ local SaveToSVG = function(file_path)
         local x, y = circle.pos:Unpack()
         if x > 0 and x < glyph_width and y > 0 and y < glyph_height then
             f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                    x, glyph_height - y, circle.radius, SVGEDITOR.COLOR:ToHexString()))
+                    x, glyph_height - y, circle.radius, VAR.COLOR:ToHexString()))
         end
     end
 
@@ -177,11 +179,17 @@ local TryLoadFile = function(path)
     return true
 end
 
-TryLoadFile(SVGEDITOR.FILE)
+local Start = function ()
+    circles = {}
+    selected = {}
+    TryLoadFile(VAR.FILE)
+end
 
 return {
     title = "SVG Editor",
     Draw = Draw,
+
+    OnStart = Start,
 
     OnMouseDown = function(x, y)
         local pos = NormalPosition(Vector2(x, y))
@@ -200,7 +208,7 @@ return {
                 selected[found] = true
             elseif not next(selected) then
                 -- Creating new cicle
-                local circle = Circle:New(pos, BASE_SIZE, true)
+                local circle = Circle:New(pos, VAR.SIZE, true)
                 table.insert(circles, circle)
                 selected = {}
             else
@@ -215,7 +223,7 @@ return {
 
     OnKey = function(key, is_down)
         if key == "Return" and is_down then
-            SaveToSVG(SVGEDITOR.FILE)
+            SaveToSVG(VAR.FILE)
         elseif key == "Backspace" and is_down then
             for v in pairs(selected) do
                 local i = assert(ArrayFind(circles, v))
@@ -228,7 +236,7 @@ return {
             is_ctrl_down = is_down
         elseif key == "C" and is_down then
             local new_selected = {}
-            local OFFSET = Vector2(BASE_SIZE, BASE_SIZE)
+            local OFFSET = Vector2(VAR.SIZE, VAR.SIZE)
             for v in pairs(selected) do
                 local new_circle = Circle:New(v.pos + OFFSET, v.radius, true)
                 table.insert(circles, new_circle)
@@ -301,4 +309,23 @@ return {
             end
         end
     end,
+
+    tweak = {
+        vars = VAR,
+        { id="SIZE", name = "Circle Size", type="range", min=3, max=40, callback=function ()
+            for circle in pairs(selected) do
+                circle.radius = VAR.SIZE
+            end
+        end },
+        { id="COLOR", name = "Circle Color", type="color", callback=function ()
+            for circle in pairs(selected) do
+                circle.color = VAR.COLOR
+            end
+        end},
+        { id="FILE", name = "File Name", type="string" },
+        { id="SAVE", name = "Save SVG", type="action", callback=function ()
+            SaveToSVG(VAR.FILE)
+        end },
+        { id="RELOAD", name = "Reload", type="action", callback=Start },
+    },
 }
