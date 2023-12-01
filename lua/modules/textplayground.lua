@@ -330,7 +330,7 @@ return {
         { id="PARTICLE_TYPE", name="Particle Type", type="options", options = TableKeys(particle_renderers) },
         { id="FONT", name="Font", type="options", options = {
             "Lora-VariableFont", "LiberationSans-Regular", "LiberationMono-Regular",
-            "LiberationMono-cluster", "funky",
+            "LiberationMono-cluster", "ugly",
         }, callback=Start },
         { id="_GENERATE_GIF", name="Generate GIF", type="action", callback=GenerateGif },
     },

@@ -98,7 +98,7 @@ local Draw = function(dt)
 
     -- Testing text
     if is_a_down then
-        TextRenderer.SetFont("funky")
+        TextRenderer.SetFont("ugly")
         local y = 0
         for _,str in ipairs{"over the lazy dog", "the quick brown fox jumps"} do
             local height = TextRenderer.PutstringWithWidth(Vector2(0,y), str, resolution.x, VAR.COLOR)

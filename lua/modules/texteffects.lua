@@ -229,7 +229,7 @@ return {
 
         { id="FONT", name="Font", type="options", options = {
             "Lora-VariableFont", "LiberationSans-Regular", "LiberationMono-Regular",
-            "LiberationMono-cluster", "funky",
+            "LiberationMono-cluster", "ugly",
         }, callback=BuildText },
     },
 

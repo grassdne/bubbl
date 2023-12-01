@@ -143,6 +143,6 @@ TextRenderer.SetFont("Lora-VariableFont")
 -- TextRenderer.SetFont("LiberationSans-Regular")
 -- TextRenderer.SetFont("LiberationMono-Regular")
 -- TextRenderer.SetFont("LiberationMono-cluster")
--- TextRenderer.SetFont("funky")
+-- TextRenderer.SetFont("ugly")
 
 return TextRenderer
