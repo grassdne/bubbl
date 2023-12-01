@@ -1,4 +1,9 @@
-#include "bg.h"
+/**
+ * This is a simple renderer to put a rectangle of pixels
+ * over the whole screen.
+*/
+
+#include "background_renderer.h"
 #include "shaderutil.h"
 #include <stdio.h>
 

@@ -33,7 +33,7 @@
 
 #include "common.h"
 #include "renderer_defs.h"
-#include "bg.h"
+#include "background_renderer.h"
 
 // We're first rendering to an intermediary color texture which must be done through
 // a Frame Buffer Object. This is then blit to the screen.
