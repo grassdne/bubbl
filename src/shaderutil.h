@@ -1,3 +1,8 @@
+/**
+ * A utility for building a shader program much more
+ * conveniently.
+*/
+
 #ifndef SHADER_UTIL_H
 #define SHADER_UTIL_H
 #include <gl.h>
@@ -5,22 +10,13 @@
 #define UNI_DECL(N) GLint N;
 #define UNI_GETS(NAME) (sh)->uniforms.NAME = glGetUniformLocation((sh)->shader.program, #NAME);
 
-#define CHECK_GL_ERROR() checkGlError(__FILE__, __LINE__)
+#define CHECK_GL_ERROR() check_gl_error(__FILE__, __LINE__)
 
 typedef struct { GLuint program; GLuint vao; } Shader;
 
-typedef struct {
-    const char* vert;
-    const char* frag;
-} ShaderDatas;
-
-void init_framebuffer();
-
-void shaderInit(Shader *sh);
-void shaderLinkProgram(Shader *sh);
-
-void checkGlError(const char *file, const int line);
-
-void shaderBuildProgram(Shader *sh, ShaderDatas d);
+void shader_program_from_files(Shader *sh, const char *vertex_filename, const char *fragment_filename);
+void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
+void run_shader_program(Shader *shader);
+void use_shader_program(Shader *shader);
 
 #endif

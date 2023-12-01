@@ -6,10 +6,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
     [ENTITY_POP] = {
         .particle_size = sizeof(Particle),
-        .shaders = {
-            .vert = "shaders/popbubble_quad.vert",
-            .frag = "shaders/popbubble.frag",
-        },
+        .vert = "shaders/popbubble_quad.vert",
+        .frag = "shaders/popbubble.frag",
         .attributes = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Particle, pos) },
             { .id=2, GL_FLOAT, .count=4, offsetof(Particle, color) },
@@ -19,10 +17,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
     [ENTITY_BUBBLE] = {
         .particle_size = sizeof(Bubble),
-        .shaders = {
-            .vert = "shaders/bubble_quad.vert",
-            .frag = "shaders/bubble.frag",
-        },
+        .vert = "shaders/bubble_quad.vert",
+        .frag = "shaders/bubble.frag",
         .attributes = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Bubble, pos) },
             { .id=2, GL_FLOAT, .count=1, offsetof(Bubble, rad) },

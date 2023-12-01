@@ -367,7 +367,7 @@ RunBgShader = function(id, frag_shader, data)
             error("expected string file name or function for frag_shader", 2)
         end
         assert(type(id) == "string")
-        C.create_shader_program(program, id, bg_vertex_shader_source, frag_source)
+        C.shader_program_from_source(program, id, bg_vertex_shader_source, frag_source)
         shaders[id] = { program, {} }
     end
     local program, uniforms = unpack(shaders[id])

@@ -94,7 +94,7 @@ Event poll_event(Window *window);
 void update_screen(Window *window);
 Vector2 get_mouse_position(Window *window);
 
-void create_shader_program(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
+void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
 void run_shader_program(Shader *shader);
 void use_shader_program(Shader *shader);
 int glGetUniformLocation(unsigned int program, const char *name);

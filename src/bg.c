@@ -4,12 +4,8 @@
 
 static Shader shader;
 
-static const ShaderDatas BG_SHADERS = {
-    .vert = "shaders/blit.vert",
-    .frag = "shaders/blit.frag",
-};
 void bg_init(void) {
-   shaderBuildProgram(&shader, BG_SHADERS); 
+   shader_program_from_files(&shader, "shaders/blit.vert", "shaders/blit.frag"); 
 }
 
 int bg_create_texture(void *data, int width, int height)

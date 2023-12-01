@@ -13,7 +13,8 @@ typedef struct {
 #define ENTITY_RENDERER_DATA_MAX_ATTRIBUTES 16
 typedef struct {
     size_t particle_size;
-    ShaderDatas shaders;
+    const char *frag;
+    const char *vert;
     Attribute attributes[ENTITY_RENDERER_DATA_MAX_ATTRIBUTES];
 } EntityRendererData;
 

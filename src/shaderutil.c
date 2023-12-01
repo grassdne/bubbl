@@ -1,10 +1,14 @@
+/**
+ * Some basic utility for working with OpenGL shader programs.
+ */
+
 #include "shaderutil.h"
 #include <stdlib.h>
 #include "common.h"
 #include <stdio.h>
 #include <assert.h>
 
-char* malloc_file_source(const char* fpath) {
+static char* malloc_file_source(const char* fpath) {
     FILE* f;
     if ((f = fopen(fpath, "r")) == NULL) {
         fprintf(stderr, "Unable to open file (%s): %s\n", fpath, ERROR());
@@ -38,7 +42,7 @@ static const char* shaderTypeCStr(GLenum shaderType) {
 }
 
 
-GLuint load_shader(GLenum shaderType, const char* source, const char *from) {
+static GLuint load_shader(GLenum shaderType, const char* source, const char *from) {
     fflush(stdout);
     GLuint shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, &source, NULL);
@@ -56,27 +60,19 @@ GLuint load_shader(GLenum shaderType, const char* source, const char *from) {
     return shader;
 }
 
-GLint get_bound_array_buffer(void) {
-    GLint id;
-    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &id);
-    return id;
-}
-
-void build_shader(GLuint program, const char *source, GLenum type, const char *id) {
+static void build_shader(GLuint program, const char *source, GLenum type, const char *id) {
     GLuint shader = load_shader(type, source, id);
     if (!shader) exit(1);
     glAttachShader(program, shader);
 }
 
-void build_shader_from_file(GLuint program, const char *file_name, GLenum type) {
+static void build_shader_from_file(GLuint program, const char *file_name, GLenum type) {
     char *source = malloc_file_source(file_name);
     build_shader(program, source, type, file_name);
     free(source);
 }
 
-#define VERT_POS_ATTRIB_INDEX 0
-
-const char* getGlErrMsg(GLenum err) {
+static const char* get_gl_error_message(GLenum err) {
     switch (err) {
         case GL_INVALID_ENUM: return "(GL_INVALID_ENUM) invalid argument for enumerated parameter";
         case GL_INVALID_VALUE: return "(GL_INVALID_VALUE) numeric argument out of range";
@@ -87,18 +83,9 @@ const char* getGlErrMsg(GLenum err) {
     }
 }
 
-#define CHECK_GL_ERROR() checkGlError(__FILE__, __LINE__)
+#define VERT_POS_ATTRIB_INDEX 0
 
-void checkGlError(const char *file, const int line) {
-    GLenum err = glGetError();
-    if (err) {
-        fprintf(stderr, "%s:%d: %s\n", file, line, getGlErrMsg(err));
-        exit(1);
-    }
-
-}
-
-void shaderInit(Shader *sh) {
+void shader_init(Shader *sh) {
     GLuint vbo; /* Don't need to hold on to this VBO name, it's in the VAO */
     // Gen
     glGenBuffers(1, &vbo);
@@ -115,9 +102,11 @@ void shaderInit(Shader *sh) {
     // Cleanup
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    sh->program = glCreateProgram();
 }
 
-void shaderLinkProgram(Shader *sh) {
+static void link_shader_program(Shader *sh) {
     glLinkProgram(sh->program);
 
     GLint linked = 0;
@@ -131,25 +120,27 @@ void shaderLinkProgram(Shader *sh) {
     }
 }
 
-void shaderBuildProgram(Shader *sh, ShaderDatas shd) {
-    shaderInit(sh);
-    sh->program = glCreateProgram();
-    assert(shd.vert);
-    assert(shd.frag);
-    build_shader_from_file(sh->program, shd.vert, GL_VERTEX_SHADER); 
-    build_shader_from_file(sh->program, shd.frag, GL_FRAGMENT_SHADER); 
-    shaderLinkProgram(sh);
+void check_gl_error(const char *file, const int line) {
+    GLenum err = glGetError();
+    if (err) {
+        fprintf(stderr, "%s:%d: %s\n", file, line, get_gl_error_message(err));
+        exit(1);
+    }
 }
 
-void create_shader_program(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source)
-{
-    shaderInit(shader);
-    shader->program = glCreateProgram();
+void shader_program_from_files(Shader *sh, const char *vert_filename, const char *frag_filename) {
+    shader_init(sh);
+    build_shader_from_file(sh->program, vert_filename, GL_VERTEX_SHADER); 
+    build_shader_from_file(sh->program, frag_filename, GL_FRAGMENT_SHADER); 
+    link_shader_program(sh);
+}
 
+void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source)
+{
+    shader_init(shader);
     build_shader(shader->program, fragment_source, GL_FRAGMENT_SHADER, id);
     build_shader(shader->program, vertex_source, GL_VERTEX_SHADER, id);
-
-    shaderLinkProgram(shader);
+    link_shader_program(shader);
 }
 
 void use_shader_program(Shader *shader)
