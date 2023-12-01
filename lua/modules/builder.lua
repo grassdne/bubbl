@@ -21,13 +21,13 @@ local KEY_LITTLE_MOVEMENT = 5
 
 local TextRenderer = require "text"
 local draw = require "draw"
-local glyph_height = TextRenderer.GLYPH_HEIGHT
-local glyph_width = 135 -- default
+local image_height = 256
+local image_width = 256
 
 local get_draw_box_base_position = function ()
     local center = resolution / 2
-    local width = glyph_width * scale
-    local height = glyph_height * scale
+    local width = image_width * scale
+    local height = image_height * scale
     return Vector2(center.x - width/2, center.y - height/2)
 end
 
@@ -81,7 +81,7 @@ local Draw = function(dt)
     end
 
     local base = get_draw_box_base_position()
-    draw.RectOutline(base, glyph_width*scale, glyph_height*scale, WEBCOLORS.BLACK)
+    draw.RectOutline(base, image_width*scale, image_height*scale, WEBCOLORS.BLACK)
 
     if selection_start then
         local x1, y1, x2, y2 = GetSelection()
@@ -111,13 +111,13 @@ local fmt = string.format
 local SaveToSVG = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
-    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", glyph_width, glyph_height))
+    f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", image_width, image_height))
     
     for i,circle in ipairs(circles) do
         local x, y = circle.pos:Unpack()
-        if x > 0 and x < glyph_width and y > 0 and y < glyph_height then
+        if x > 0 and x < image_width and y > 0 and y < image_height then
             f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                    x, glyph_height - y, circle.radius, VAR.COLOR:ToHexString()))
+                    x, image_height - y, circle.radius, VAR.COLOR:ToHexString()))
         end
     end
 
@@ -171,7 +171,7 @@ local TryLoadFile = function(path)
     end
     local center = resolution / 2
     local content = f:read("*a")
-    glyph_width, glyph_height = TextRenderer.SvgGetSize(content)
+    image_width, image_height = TextRenderer.SvgGetSize(content)
     for pos, radius in TextRenderer.SvgIterCircles(content) do
         table.insert(circles, Circle:New(pos, radius))
     end
