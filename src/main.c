@@ -1,3 +1,13 @@
+/* Author: Rustum Zia
+ * This is the engine for Bubbl.
+ * It creates the window and initialized OpenGL and my renderer(s).
+ * It initializes Lua which is where most logic is located.
+ * And it interfaces between everybody.
+ *
+ * Here is how the components of this project generally
+ * relate to each other:
+ * Web interface -> Lua logic -> C engine -> OpenGL shaders
+ */
 #define GLAD_GL_IMPLEMENTATION
 #include "gl.h"
 
