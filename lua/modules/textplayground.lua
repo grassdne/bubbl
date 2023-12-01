@@ -5,6 +5,7 @@ local VAR = {
     TEXT = "bubbl",
     FONT = "Lora-VariableFont",
     GIF_FILENAME = "playground.gif",
+    PARTICLE_TYPE = "spark",
 }
 
 local Text = require "text"
@@ -14,6 +15,11 @@ local GENERATING_FRAMES = false
 local Seconds = _G.Seconds
 local frame = 0
 local FPS = 50
+
+local particle_renderers = {
+    ["spark"] = RenderPop,
+    ["bubble"] = RenderBubble,
+}
 
 local Get = function (value, ...)
     if type(value) == "function" then
@@ -46,6 +52,7 @@ local Transition = function (definition)
             local final = effect.stages[effect.current_stage + 1]
             local finished_count = 0
             local time_passed = Seconds() - initial.start_time
+            local renderfn = particle_renderers[VAR.PARTICLE_TYPE]
 
             for i=1, #initial do
                 local t = math.max(0, math.min(1, (time_passed - initial[i].hold_time) / final[i].transition_length))
@@ -53,7 +60,7 @@ local Transition = function (definition)
                 local position = Lerp(initial[i].position, final[i].position, t)
                 local color = Lerp(initial[i].color, final[i].color, t)
                 local radius = Lerp(initial[i].radius, final[i].radius, t)
-                RenderPop(position, color, radius)
+                renderfn(position, color, radius)
             end
             if finished_count == #final then
                 effect.current_stage = effect.current_stage + 1
@@ -324,6 +331,7 @@ return {
         { id="EFFECT_TYPE", name="Effect", type="options", options = TableKeys(effect_types), callback=Start },
         { id="COLORING", name="Coloring", type="options", options = { "solid", "rainbow" }, callback=Start },
         { id="COLOR", name="Solid Color", type="color", callback=Start },
+        { id="PARTICLE_TYPE", name="Particle Type", type="options", options = TableKeys(particle_renderers) },
         { id="FONT", name="Font", type="options", options = {
             "Lora-VariableFont", "LiberationSans-Regular", "LiberationMono-Regular",
             "LiberationMono-cluster", "funky",
