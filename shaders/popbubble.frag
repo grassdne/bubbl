@@ -9,7 +9,7 @@ in vec2 pos;
 in vec4 color;
 in float radius;
 
-const float MIN_TRANSPARENCY = 0.2;
+const float MIN_TRANSPARENCY = 0.05;
 
 
 void main() {
