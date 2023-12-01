@@ -283,8 +283,18 @@ function Server:Close()
 end
 
 function Server:MakeConfig(name, _tweak)
+    local old_tweak = tweak and tweak.name == name and tweak or {}
     tweak = _tweak or {}
     tweak.vars = tweak.vars or {}
+
+    -- Keep old state on reload
+    for k,v in pairs(tweak.vars) do
+        if old_tweak.vars and old_tweak.vars[k] then
+            print("keeping "..k.." as "..tostring(old_tweak.vars[k]))
+            tweak.vars[k] = old_tweak.vars[k]
+        end
+    end
+
     tweak.name = name
     for i,v in ipairs(tweak) do
         -- use tweak as hash map too
