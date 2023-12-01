@@ -1,3 +1,8 @@
+/*
+ * The C function headers to call from Lua.
+ * see lua/api.lua
+*/
+
 #ifndef API_H
 #define API_H
 #include <stddef.h>
