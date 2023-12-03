@@ -9,8 +9,7 @@ in vec2 pos;
 in vec4 color;
 in float radius;
 
-const float MIN_TRANSPARENCY = 0.05;
-
+const float MIN_TRANSPARENCY = 0.0;
 
 void main() {
     float dist = distance(gl_FragCoord.xy, pos);
