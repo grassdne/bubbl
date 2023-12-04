@@ -42,12 +42,11 @@ local AbsolutePosition = function (pos)
 end
 
 local Circle = {
-    New = function (self, pos, radius, is_focused)
+    New = function (self, pos, radius, color)
         local c = setmetatable({}, self)
         c.pos = pos
         c.radius = radius
-        c.color = VAR.COLOR
-        c.focused = is_focused
+        c.color = color or VAR.COLOR
         return c
     end,
     absolute_position = function (self, absolute)
@@ -108,7 +107,7 @@ local Draw = function(dt)
 end
 
 local fmt = string.format
-local SaveToSVG = function(file_path)
+local SaveToSvg = function(file_path)
     local f = assert(io.open(file_path, 'w'))
     f:write("<?xml version=\"1.0\"?>\n")
     f:write(fmt("<svg width=\"%d\" height=\"%d\">\n", image_width, image_height))
@@ -117,7 +116,7 @@ local SaveToSVG = function(file_path)
         local x, y = circle.pos:Unpack()
         if x > 0 and x < image_width and y > 0 and y < image_height then
             f:write(fmt("  <circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"%s\" />\n",
-                    x, image_height - y, circle.radius, VAR.COLOR:ToHexString()))
+                    x, image_height - y, circle.radius, circle.color:ToHexString()))
         end
     end
 
@@ -172,8 +171,8 @@ local TryLoadFile = function(path)
     local center = resolution / 2
     local content = f:read("*a")
     image_width, image_height = TextRenderer.SvgGetSize(content)
-    for pos, radius in TextRenderer.SvgIterCircles(content) do
-        table.insert(circles, Circle:New(pos, radius))
+    for pos, radius, color in TextRenderer.SvgIterCircles(content) do
+        table.insert(circles, Circle:New(pos, radius, color))
     end
     f:close()
     return true
@@ -208,7 +207,7 @@ return {
                 selected[found] = true
             elseif not next(selected) then
                 -- Creating new cicle
-                local circle = Circle:New(pos, VAR.SIZE, true)
+                local circle = Circle:New(pos, VAR.SIZE, VAR.COLOR)
                 table.insert(circles, circle)
                 selected = {}
             else
@@ -223,7 +222,7 @@ return {
 
     OnKey = function(key, is_down)
         if key == "Return" and is_down then
-            SaveToSVG(VAR.FILE)
+            SaveToSvg(VAR.FILE)
         elseif key == "Backspace" and is_down then
             for v in pairs(selected) do
                 local i = assert(ArrayFind(circles, v))
@@ -238,7 +237,7 @@ return {
             local new_selected = {}
             local OFFSET = Vector2(VAR.SIZE, VAR.SIZE)
             for v in pairs(selected) do
-                local new_circle = Circle:New(v.pos + OFFSET, v.radius, true)
+                local new_circle = Circle:New(v.pos + OFFSET, v.radius, v.color)
                 table.insert(circles, new_circle)
                 new_selected[new_circle] = true
             end
@@ -324,7 +323,7 @@ return {
         end},
         { id="FILE", name = "File Name", type="string" },
         { id="SAVE", name = "Save SVG", type="action", callback=function ()
-            SaveToSVG(VAR.FILE)
+            SaveToSvg(VAR.FILE)
         end },
         { id="RELOAD", name = "Reload", type="action", callback=Start },
     },
