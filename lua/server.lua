@@ -243,7 +243,7 @@ server = assert(http_server.listen {
     onstream = Reply;
     tls = false;
     onerror = function(server, context, op, err, errno) -- luacheck: ignore 212
-        local msg = op .. " on " .. tostring(context) .. " failed"
+        local msg = "[http server] " .. op .. " operation failed"
         if err then
             msg = msg .. ": " .. tostring(err)
         end
