@@ -5,10 +5,16 @@ layout(location = 0) in vec2 vertpos;
 layout(location = 1) in vec2 in_bubble;
 layout(location = 2) in float in_radius;
 layout(location = 3) in vec4 in_color_a;
+layout(location = 4) in vec4 in_color_b;
+layout(location = 5) in vec2 in_trans_angle;
+layout(location = 6) in float in_trans_percent;
 
 out vec2 bubble_pos;
 out float rad;
 out vec4 color_a;
+out vec4 color_b;
+out vec2 trans_angle;
+out float trans_percent;
 
 uniform vec2 resolution;
 
@@ -23,4 +29,7 @@ void main() {
     bubble_pos = in_bubble;
     rad = in_radius;
     color_a = in_color_a;
+    color_b = in_color_b;
+    trans_angle = in_trans_angle;
+    trans_percent = in_trans_percent;
 }

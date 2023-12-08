@@ -206,7 +206,12 @@ Color = ffi.metatype("Color", Parent {
 local BubbleEntity = ffi.typeof("Bubble")
 
 RenderBubble = function (pos, color, rad)
-    C.render_bubble(BubbleEntity(pos, rad, color, color))
+    C.render_bubble(BubbleEntity(pos, rad, color))
+end
+
+local TransBubbleEntity = ffi.typeof("TransBubble")
+RenderTransBubble = function (pos, color, rad, trans_color, trans_angle, trans_percent)
+    C.render_trans_bubble(TransBubbleEntity(pos, rad, color, trans_color, trans_angle, trans_percent))
 end
 
 local ParticleEntity = ffi.typeof("Particle")

@@ -29,10 +29,21 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         .attributes = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Bubble, pos) },
             { .id=2, GL_FLOAT, .count=1, offsetof(Bubble, rad) },
-            { .id=3, GL_FLOAT, .count=4, offsetof(Bubble, color_a) },
-            { .id=4, GL_FLOAT, .count=4, offsetof(Bubble, color_b) },
-            { .id=5, GL_FLOAT, .count=2, offsetof(Bubble, trans_angle) },
-            { .id=6, GL_FLOAT, .count=1, offsetof(Bubble, trans_percent) },
+            { .id=3, GL_FLOAT, .count=4, offsetof(Bubble, color) },
+        }
+    },
+
+    [ENTITY_TRANS_BUBBLE] = {
+        .particle_size = sizeof(TransBubble),
+        .vert = "shaders/transbubble_quad.vert",
+        .frag = "shaders/transbubble.frag",
+        .attributes = {
+            { .id=1, GL_FLOAT, .count=2, offsetof(TransBubble, pos) },
+            { .id=2, GL_FLOAT, .count=1, offsetof(TransBubble, rad) },
+            { .id=3, GL_FLOAT, .count=4, offsetof(TransBubble, color_a) },
+            { .id=4, GL_FLOAT, .count=4, offsetof(TransBubble, color_b) },
+            { .id=5, GL_FLOAT, .count=2, offsetof(TransBubble, trans_angle) },
+            { .id=6, GL_FLOAT, .count=1, offsetof(TransBubble, trans_percent) },
         }
     },
 
@@ -44,6 +55,9 @@ void render_pop(Particle particle) {
 }
 void render_bubble(Bubble bubble) {
     render_entity(&renderers[ENTITY_BUBBLE], &bubble);
+}
+void render_trans_bubble(TransBubble bubble) {
+    render_entity(&renderers[ENTITY_TRANS_BUBBLE], &bubble);
 }
 
 void flush_renderer(EntityType type) {

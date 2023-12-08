@@ -23,10 +23,16 @@ typedef struct  {
     Vector2 pos;
     float rad;
     Color color;
+} Bubble;
+
+typedef struct  {
+    Vector2 pos;
+    float rad;
+    Color color_a;
     Color color_b;
     Vector2 trans_angle;
     float trans_percent;
-} Bubble;
+} TransBubble;
 
 typedef struct {
     uint8_t r, g, b, a;
@@ -78,10 +84,13 @@ typedef struct {
 BgShader* get_bg_shader(void);
 
 void free(void *p);
-void render_bubble(Bubble bubble);
 void flush_bubbles(void);
 void flush_pops(void);
+
+void render_bubble(Bubble bubble);
 void render_pop(Particle particle);
+void render_trans_bubble(TransBubble bubble);
+
 double get_time(void);
 bool screenshot(Window *window, const char *file_name);
 void flush_renderers(void);
