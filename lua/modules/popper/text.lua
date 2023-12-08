@@ -4,6 +4,7 @@ local TEXT_ANIM_TIME = 0.5
 local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.5)
 
 local GenText = function (opts)
+    Text.SetFont("Lora-VariableFont")
     local particles = Text.BuildParticlesWithWidth(opts.str, opts.width)
     particles.base_position = Vector2(1 - opts.width, -particles.height) / 2
     return random.shuffle(particles)
