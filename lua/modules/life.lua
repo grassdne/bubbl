@@ -3,7 +3,9 @@ local COLOR_ALIVE = Color.Hsl(120, 0.5, 0.5)
 local ROWS = 40
 local COLS = 60
 local DENSITY = 0.3
-local INTERVAL = 0.1
+local VAR = {
+    INTERVAL = 0.1,
+}
 
 local CountNeighbors = function (field, row, col, state)
     local count = 0
@@ -48,7 +50,7 @@ return {
             end
         end
         while true do
-            Suspend(INTERVAL)
+            Suspend(VAR.INTERVAL)
             field = NextGeneration(field)
         end
     end,
@@ -66,4 +68,9 @@ return {
             end
         end
     end,
+
+    tweak = {
+        vars = VAR,
+        { id="INTERVAL", name="Interval", type="range", min=0.01, max=0.3 },
+    }
 }
