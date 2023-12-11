@@ -1,5 +1,5 @@
 # Bubbl
-![logo](images/logo.gif)
+![logo](images/bubbl.gif)
 
 A stylized limited 2D game engine.
 
@@ -29,7 +29,11 @@ sudo dnf install SDL2-devel luajit-devel luarocks
 ./bubbl
 ```
 
-![elastic](images/elastic.png)
+![swirl](images/swirl.gif)
+![popper](images/textplayground_the_quick_brown_fox.gif)
+![popper](images/popper_01.png)
+![elasticbubbles](images/elastic.png)
 ![rainbow](images/rainbow.png)
 ![svgeditor](images/svgeditor.png)
-![swirl](images/swirl.gif)
+![swirl](images/swirl_01.png)
+![popper](images/life_01.png)
