@@ -1,7 +1,7 @@
 # Bubbl
 ![logo](images/bubbl.gif)
 
-A stylized limited 2D game engine.
+A stylized limited 2D graphics & game engine.
 
 ### Dependencies
 OpenGL 3.3, LuaJIT and LuaRocks, SDL2
