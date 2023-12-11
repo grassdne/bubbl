@@ -13,6 +13,8 @@ local last_time = Seconds()
 local OnKey = function(key, is_down)
     if key == 'R' and is_down then
         loader.HotReload()
+    elseif key == 'S' and is_down then
+        Screenshot(loader.active_module.source..".png")
     end
     loader.Callback("OnKey", key, is_down)
 end
