@@ -1,14 +1,14 @@
 # Bubbl
 ![logo](images/logo.gif)
 
-A WIP set of animations, simulations, and games with a common theme.
+A stylized limited 2D game engine.
 
 ### Dependencies
 OpenGL 3.3, LuaJIT and LuaRocks, SDL2
 
 Optional: Cargo for Rust library to generate GIFs, libpng for generating PNGs
 
-### To-Do
+### To-Do (never to be implemented as I'm moving on from this project)
 - [x] Custom extensible graphics renderer
 - [x] Modular system
 - [x] Hot reloading
