@@ -1,7 +1,7 @@
 local Text = require "text"
 
 local TEXT_ANIM_TIME = 0.5
-local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.5)
+local TEXT_COLOR = Color.Hsl(260, 1, 0.4, 0.8)
 
 local GenText = function (opts)
     Text.SetFont("Lora-VariableFont")
