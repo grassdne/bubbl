@@ -8,6 +8,10 @@
 #include "entity_renderer.h"
 #include "renderer_defs.h"
 
+Matrix model(void) {
+    
+}
+
 static EntityRenderer renderers[COUNT_ENTITY_TYPES] = { 0 };
 static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
@@ -33,6 +37,17 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         }
     },
 
+    [ENTITY_TEST3D] = {
+        .particle_size = sizeof(Test3D),
+        .vert = "shaders/test3d.vert",
+        .frag = "shaders/test3d.frag",
+        .attributes = {
+            { .id=1, GL_FLOAT, .count=2, offsetof(Test3D, pos) },
+            { .id=2, GL_FLOAT, .count=1, offsetof(Test3D, rad) },
+            { .id=3, GL_FLOAT, .count=4, offsetof(Test3D, color) },
+        }
+    },
+
     [ENTITY_TRANS_BUBBLE] = {
         .particle_size = sizeof(TransBubble),
         .vert = "shaders/transbubble_quad.vert",
@@ -55,6 +70,9 @@ void render_pop(Particle particle) {
 }
 void render_bubble(Bubble bubble) {
     render_entity(&renderers[ENTITY_BUBBLE], &bubble);
+}
+void render_test3d(Test3D bubble) {
+    render_entity(&renderers[ENTITY_TEST3D], &bubble);
 }
 void render_trans_bubble(TransBubble bubble) {
     render_entity(&renderers[ENTITY_TRANS_BUBBLE], &bubble);

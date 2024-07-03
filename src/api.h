@@ -34,6 +34,12 @@ typedef struct  {
     float trans_percent;
 } TransBubble;
 
+typedef struct  {
+    Vector2 pos;
+    float rad;
+    Color color;
+} Test3D;
+
 typedef struct {
     uint8_t r, g, b, a;
 } Pixel;
@@ -88,6 +94,7 @@ void flush_bubbles(void);
 void flush_pops(void);
 
 void render_bubble(Bubble bubble);
+void render_test3d(Test3D bubble);
 void render_pop(Particle particle);
 void render_trans_bubble(TransBubble bubble);
 

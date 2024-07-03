@@ -27,7 +27,7 @@ require "api"
 require "scheduler"
 require "http.server"
 
-resolution = Vector2(600, 300)
+resolution = Vector2(800, 600)
 
 OnQuit = function ()
     -- Finish any remaining GIFs

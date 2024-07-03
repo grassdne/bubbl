@@ -16,3 +16,7 @@ vim.api.nvim_create_autocmd({ "BufNewfile", "BufRead", }, {
     pattern = "*/lua/modules/*.lua", command = "setlocal makeprg=./bubbl\\ %:t:r"
 })
 vim.api.nvim_create_autocmd("FileType", { pattern = "c", command = "setlocal makeprg=./build.lua" })
+
+vim.cmd[[
+set makeprg=./build.lua
+]]

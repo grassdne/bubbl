@@ -70,6 +70,6 @@ if not Execute("pkg-config --exists", pkgs) then
 end
 local pkgflags = Read("pkg-config --cflags", pkgs)
 local pkglibs = Read("pkg-config --libs", pkgs)
-local clibs = ""
-local cflags = "-Wall -Wextra -std=c11 -rdynamic -I deps/"
+local clibs = "-lm"
+local cflags = "-Wall -Wextra -std=c11 -rdynamic -I deps/ -g"
 Execute(cc, "-o bubbl", csrc, user_include_dirs, pkgflags, cflags, user_clib_dirs, pkglibs, clibs)

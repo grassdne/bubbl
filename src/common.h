@@ -25,6 +25,7 @@ typedef struct {
     uint8_t r, g, b, a;
 } Pixel;
 
-typedef struct { float x, y; } Vector2;
+// Now using raymath
+//typedef struct { float x, y; } Vector2;
 
 #endif

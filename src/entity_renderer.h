@@ -17,6 +17,7 @@ typedef struct {
     const char *frag;
     const char *vert;
     Attribute attributes[ENTITY_RENDERER_DATA_MAX_ATTRIBUTES];
+    Matrix (*model)();
 } EntityRendererData;
 
 // Each entity renderer uses up to ENTITIY_BUFFER_SIZE bytes of memory
@@ -27,12 +28,14 @@ typedef struct {
     struct {
         GLint time;
         GLint resolution;
+        GLint transform;
     } uniforms;
     char buffer[ENTITIY_BUFFER_SIZE];
     size_t num_entities;
     size_t buffer_size;
     size_t entity_size;
     GLuint vbo;
+    Matrix (*model_gen)();
 } EntityRenderer;
 
 void entity_init(EntityRenderer *r, const EntityRendererData data);
