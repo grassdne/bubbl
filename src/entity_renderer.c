@@ -44,28 +44,30 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
 
 void flush_entities(EntityRenderer *r)
 {
-    /* Bind */
-    glUseProgram(r->shader.program);
-    glBindVertexArray(r->shader.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
-
     SDL_Window *window = SDL_GL_GetCurrentWindow();
     int w, h;
     SDL_GL_GetDrawableSize(window, &w, &h);
 
-    /* Update */
+    /* Update vertex attributes for `vbo` */
+    glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, ENTITIY_BUFFER_SIZE, r->buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    /* Bind `program` and `vao` */
+    glUseProgram(r->shader.program);
+    glBindVertexArray(r->shader.vao);
+
+    /* Update uniforms for bound `program` */
     glUniform2f(r->uniforms.resolution, w, h);
     glUniform1f(r->uniforms.time, get_time());
 
-    /* Draw */
+    /* Draw with bound `program` and bound `vao` */
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, r->num_entities);
     
     /* Reset */
     r->num_entities = 0;
     glUseProgram(0);
     glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void render_entity(EntityRenderer *restrict r, const void *restrict entity)
