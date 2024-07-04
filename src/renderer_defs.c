@@ -13,7 +13,6 @@
 
 static EntityRenderer renderers[COUNT_ENTITY_TYPES] = { 0 };
 static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
-
     [ENTITY_POP] = {
         .particle_size = sizeof(Particle),
         .vert = "shaders/popbubble_quad.vert",
@@ -42,10 +41,10 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         .frag = "shaders/test3d.frag",
         .attributes = {
             { .id=1, GL_FLOAT, .count=4, offsetof(Test3D, color) },
-            { .id=2, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 0 },
-            { .id=3, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 1 },
-            { .id=4, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 2 },
-            { .id=5, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 3 },
+            { .id=9, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 0 },
+            { .id=10, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 1 },
+            { .id=11, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 2 },
+            { .id=12, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 3 },
         }
     },
 
@@ -65,64 +64,42 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
 };
 
-static Matrix gen_view() {
+static Matrix gen_view(Vector2 resolution) {
+    (void)resolution;
     Vector3 eye = { 0.0f, 0.0f, 1.0f };
     Vector3 target = { 0.0f, 0.0f, 0.0f };
     Vector3 up = { 0.0f, 1.0f, 0.0f };
     return MatrixLookAt(eye, target, up);
 }
 
-Matrix gen_projection2(Vector2 resolution) {
+Matrix gen_projection(Vector2 resolution) {
     return MatrixPerspective(0.5 * PI, resolution.x / resolution.y, 0.1, 100.0);
 }
 
-static Matrix gen_projection1(Vector2 resolution) {
-    (void)resolution;
-    return MatrixPerspective(0.5 * PI, 1.0f, 0.1, 100.0);
-}
-
-Matrix gen_model2(Vector2 resolution, Vector3 position, float radius) {
+Matrix gen_model(Vector2 resolution, Vector3 position, float radius) {
     // radius in [0, 2] scale
     float r = 2.0f * radius / resolution.y;
     // bubble position [-1, 1] scale
-    Vector3 pos = Vector3Scale(position, 2.0f / resolution.y);
-    pos = Vector3Subtract(pos, Vector3One());
-    pos.z = 0.0f;
+    float aspect = resolution.x / resolution.y;
+    Vector3 pos = {
+        .x = position.x / resolution.x * 2.0f * aspect - aspect,
+        .y = position.y / resolution.y * 2.0f - 1.0f,
+        .z = 0.0f,
+    };
 
     Matrix model = MatrixIdentity();
-    /*Vector3 axis = (Vector3) { 1.0f, 0.0f, 0.0f};*/
-    /*model = MatrixMultiply(model, MatrixRotate(axis, DEG2RAD * 0));*/
     model = MatrixMultiply(model, MatrixScale(r, r, r));
+    /*Vector3 axis = (Vector3) { 1.0f, 0.0f, 0.0f};*/
+    /*model = MatrixMultiply(model, MatrixRotate(axis, PI * get_time()));*/
     model = MatrixMultiply(model, MatrixTranslate(pos.x, pos.y, pos.z));
     return model;
 }
 
-static Matrix gen_model1(Vector2 resolution, Vector3 position, float radius) {
-    // radius in [0, 2] scale
-    Vector3 scale = {
-        .x = radius / resolution.x * 2.0f,
-        .y = radius / resolution.y * 2.0f,
-        .z = 1.0f,
-    };
-    // bubble position [-1, 1] scale
-    Vector3 offset = (Vector3) {
-        .x = position.x / resolution.x * 2.0f - 1.0f,
-        .y = position.y / resolution.y * 2.0f - 1.0f,
-        .z = 0.0f
-    };
-
-    Matrix model = MatrixIdentity();
-    Vector3 axis = (Vector3) { 1.0f, 0.0f, 0.0f};
-    model = MatrixMultiply(model, MatrixScale(scale.x, scale.y, scale.z));
-    model = MatrixMultiply(model, MatrixRotate(axis, PI * 2.0f * get_time()));
-    model = MatrixMultiply(model, MatrixTranslate(offset.x, offset.y, offset.z));
-    return model;
-}
 static Matrix gen_transform(Vector2 resolution, Vector3 position, float radius) {
     Matrix transform = MatrixIdentity();
-    transform = MatrixMultiply(transform, gen_model1(resolution, position, radius));
-    transform = MatrixMultiply(transform, gen_view());
-    transform = MatrixMultiply(transform, gen_projection1(resolution));
+    transform = MatrixMultiply(transform, gen_model(resolution, position, radius));
+    transform = MatrixMultiply(transform, gen_view(resolution));
+    transform = MatrixMultiply(transform, gen_projection(resolution));
     return transform;
 }
 
