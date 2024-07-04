@@ -6,14 +6,29 @@ uniform vec2 resolution;
 uniform float time;
 uniform mat4 transform;
 
-layout(location = 1) in vec2 in_bubble;
-layout(location = 2) in float in_radius;
-layout(location = 3) in vec4 in_color_a;
+layout(location = 1) in vec4 in_color_a;
+layout(location = 2) in vec4 mat_0;
+layout(location = 3) in vec4 mat_1;
+layout(location = 4) in vec4 mat_2;
+layout(location = 5) in vec4 mat_3;
 
 out vec4 color_a;
 out vec2 local_coord;
 
 void main() {
+    mat4 transf;
+    transf[0] = mat_0;
+    transf[1] = mat_1;
+    transf[2] = mat_2;
+    transf[3] = mat_3;
+    gl_Position = transf * vec4(vertex_pos, 0.0f, 1.0f);
+
+    color_a = in_color_a;
+    local_coord = vertex_pos.xy;
+}
+
+/*
+void main5() {
     // radius in [0, 2] scale
     vec2 radius_normalized = in_radius / resolution * 2;
     // bubble position [-1, 1] scale
@@ -32,6 +47,7 @@ void main() {
     color_a = in_color_a;
     local_coord = local.xy;
 }
+*/
 
 
 void main_7() {

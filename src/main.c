@@ -366,6 +366,7 @@ SDL_Window *create_window(const char *window_name, int width, int height)
 	//}
 
     if (GL_ARB_debug_output) {
+        printf("Enabling debug output extension\n");
         // OpenGL 4 extension
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
         glDebugMessageCallbackARB(message_callback, NULL);
@@ -373,6 +374,8 @@ SDL_Window *create_window(const char *window_name, int width, int height)
                               /*type*/GL_DEBUG_TYPE_OTHER_ARB,
                               /* severity */GL_DONT_CARE,
                               0, NULL, false);
+    } else {
+        printf("Debug output extension not found!\n");
     }
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

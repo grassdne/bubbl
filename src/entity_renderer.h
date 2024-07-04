@@ -28,9 +28,8 @@ typedef struct {
     struct {
         GLint time;
         GLint resolution;
-        GLint transform;
     } uniforms;
-    char buffer[ENTITIY_BUFFER_SIZE];
+    uint8_t buffer[ENTITIY_BUFFER_SIZE];
     size_t num_entities;
     size_t buffer_size;
     size_t entity_size;

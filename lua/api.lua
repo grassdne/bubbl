@@ -204,11 +204,10 @@ Color = ffi.metatype("Color", Parent {
 ----------------------------
 
 local BubbleEntity = ffi.typeof("Bubble")
-local Test3DEntity = ffi.typeof("Test3D")
 
 RenderBubble = function (pos, color, rad)
-    C.render_test3d(Test3DEntity(pos, rad, color))
-    -- C.render_bubble(BubbleEntity(pos, rad, color))
+    -- C.render_test3d(pos, color, rad)
+    C.render_bubble(BubbleEntity(pos, rad, color))
 end
 
 local TransBubbleEntity = ffi.typeof("TransBubble")
@@ -223,7 +222,7 @@ RenderPop = function (pos, color, radius)
 end
 
 RenderTest3D = function (pos, color, radius)
-    C.render_test3d(Test3DEntity(pos, radius, color))
+    C.render_test3d(pos, color, radius)
 end
 
 

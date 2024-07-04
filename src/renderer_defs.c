@@ -5,12 +5,11 @@
  * a helper functions to easily render entities.
 */
 
+#include "SDL_video.h"
+#include "common.h"
 #include "entity_renderer.h"
+#include "raymath.h"
 #include "renderer_defs.h"
-
-Matrix model(void) {
-    
-}
 
 static EntityRenderer renderers[COUNT_ENTITY_TYPES] = { 0 };
 static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
@@ -42,9 +41,11 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         .vert = "shaders/test3d.vert",
         .frag = "shaders/test3d.frag",
         .attributes = {
-            { .id=1, GL_FLOAT, .count=2, offsetof(Test3D, pos) },
-            { .id=2, GL_FLOAT, .count=1, offsetof(Test3D, rad) },
-            { .id=3, GL_FLOAT, .count=4, offsetof(Test3D, color) },
+            { .id=1, GL_FLOAT, .count=4, offsetof(Test3D, color) },
+            { .id=2, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 0 },
+            { .id=3, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 1 },
+            { .id=4, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 2 },
+            { .id=5, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 3 },
         }
     },
 
@@ -64,6 +65,68 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
 };
 
+static Matrix gen_view() {
+    Vector3 eye = { 0.0f, 0.0f, 1.0f };
+    Vector3 target = { 0.0f, 0.0f, 0.0f };
+    Vector3 up = { 0.0f, 1.0f, 0.0f };
+    return MatrixLookAt(eye, target, up);
+}
+
+Matrix gen_projection2(Vector2 resolution) {
+    return MatrixPerspective(0.5 * PI, resolution.x / resolution.y, 0.1, 100.0);
+}
+
+static Matrix gen_projection1(Vector2 resolution) {
+    (void)resolution;
+    return MatrixPerspective(0.5 * PI, 1.0f, 0.1, 100.0);
+}
+
+Matrix gen_model2(Vector2 resolution, Vector3 position, float radius) {
+    // radius in [0, 2] scale
+    float r = 2.0f * radius / resolution.y;
+    // bubble position [-1, 1] scale
+    Vector3 pos = Vector3Scale(position, 2.0f / resolution.y);
+    pos = Vector3Subtract(pos, Vector3One());
+    pos.z = 0.0f;
+
+    Matrix model = MatrixIdentity();
+    /*Vector3 axis = (Vector3) { 1.0f, 0.0f, 0.0f};*/
+    /*model = MatrixMultiply(model, MatrixRotate(axis, DEG2RAD * 0));*/
+    model = MatrixMultiply(model, MatrixScale(r, r, r));
+    model = MatrixMultiply(model, MatrixTranslate(pos.x, pos.y, pos.z));
+    return model;
+}
+
+static Matrix gen_model1(Vector2 resolution, Vector3 position, float radius) {
+    // radius in [0, 2] scale
+    Vector3 scale = {
+        .x = radius / resolution.x * 2.0f,
+        .y = radius / resolution.y * 2.0f,
+        .z = 1.0f,
+    };
+    // bubble position [-1, 1] scale
+    Vector3 offset = (Vector3) {
+        .x = position.x / resolution.x * 2.0f - 1.0f,
+        .y = position.y / resolution.y * 2.0f - 1.0f,
+        .z = 0.0f
+    };
+
+    Matrix model = MatrixIdentity();
+    Vector3 axis = (Vector3) { 1.0f, 0.0f, 0.0f};
+    model = MatrixMultiply(model, MatrixScale(scale.x, scale.y, scale.z));
+    model = MatrixMultiply(model, MatrixRotate(axis, PI * 2.0f * get_time()));
+    model = MatrixMultiply(model, MatrixTranslate(offset.x, offset.y, offset.z));
+    return model;
+}
+static Matrix gen_transform(Vector2 resolution, Vector3 position, float radius) {
+    Matrix transform = MatrixIdentity();
+    transform = MatrixMultiply(transform, gen_model1(resolution, position, radius));
+    transform = MatrixMultiply(transform, gen_view());
+    transform = MatrixMultiply(transform, gen_projection1(resolution));
+    return transform;
+}
+
+
 // API helper functions
 void render_pop(Particle particle) {
     render_entity(&renderers[ENTITY_POP], &particle);
@@ -71,7 +134,20 @@ void render_pop(Particle particle) {
 void render_bubble(Bubble bubble) {
     render_entity(&renderers[ENTITY_BUBBLE], &bubble);
 }
-void render_test3d(Test3D bubble) {
+void render_test3d(Vector2 position, Color color, float radius) {
+    SDL_Window *window = SDL_GL_GetCurrentWindow();
+    int w, h;
+    SDL_GL_GetDrawableSize(window, &w, &h);
+    Vector2 resolution = { (float)w, (float)h };
+    Vector3 pos = (Vector3){ position.x, position.y, 0.0f };
+
+    Matrix transform = gen_transform(resolution, pos, radius);
+    
+    Test3D bubble = {
+        .color = color,
+        .transform = MatrixTranspose(transform),
+        /*.transform = MatrixTranspose(MatrixIdentity()),*/
+    };
     render_entity(&renderers[ENTITY_TEST3D], &bubble);
 }
 void render_trans_bubble(TransBubble bubble) {

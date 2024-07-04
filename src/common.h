@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <errno.h>
+#include <stdint.h>
 #include <string.h>
 
 #define ERROR() strerror(errno)

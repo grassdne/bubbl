@@ -24,9 +24,8 @@ typedef struct  {
 } Bubble;
 
 typedef struct  {
-    Vector2 pos;
-    float rad;
     Color color;
+    Matrix transform;
 } Test3D;
 
 typedef struct  {
@@ -40,7 +39,7 @@ typedef struct  {
 
 void render_pop(Particle particle);
 void render_bubble(Bubble bubble);
-void render_test3d(Test3D bubble);
+void render_test3d(Vector2 position, Color color, float radius);
 void render_trans_bubble(TransBubble bubble);
 
 void init_renderers(void);

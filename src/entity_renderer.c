@@ -7,7 +7,6 @@
 
 #include "entity_renderer.h"
 #include "SDL_video.h"
-#include "shaderutil.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -19,7 +18,6 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
     shader_program_from_files(&r->shader, data.vert, data.frag);
     r->uniforms.resolution = glGetUniformLocation(r->shader.program, "resolution");
     r->uniforms.time = glGetUniformLocation(r->shader.program, "time");
-    r->uniforms.transform = glGetUniformLocation(r->shader.program, "transform");
 
     r->num_entities = 0;
     r->entity_size = data.particle_size;
@@ -48,27 +46,6 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
     glBindVertexArray(0);
 }
 
-Matrix gen_view() {
-    Vector3 eye = { 0.0f, 0.0f, 1.0f };
-    Vector3 target = { 0.0f, 0.0f, 0.0f };
-    Vector3 up = { 0.0f, 1.0f, 0.0f };
-    return MatrixLookAt(eye, target, up);
-}
-
-Matrix gen_projection() {
-    return MatrixPerspective(0.5 * PI, 600.0/600.0, 0.1, 100.0);
-}
-
-Matrix gen_model() {
-    /*Matrix model = MatrixTranslate();*/
-    return MatrixIdentity();
-    /*return MatrixRotate((Vector3) { 1.0f, 0.0f, 0.0f}, DEG2RAD * -45);*/
-}
-
-Matrix gen_transform() {
-    return MatrixMultiply(MatrixMultiply(gen_model(), gen_view()), gen_projection());
-}
-
 void flush_entities(EntityRenderer *r)
 {
     /* Bind */
@@ -84,9 +61,6 @@ void flush_entities(EntityRenderer *r)
     glBufferSubData(GL_ARRAY_BUFFER, 0, ENTITIY_BUFFER_SIZE, r->buffer);
     glUniform2f(r->uniforms.resolution, w, h);
     glUniform1f(r->uniforms.time, get_time());
-    Matrix transform = gen_transform();
-    static_assert(sizeof(transform) == 16 * sizeof(GLfloat), "Transform matrix should be packed!");
-    glUniformMatrix4fv(r->uniforms.transform, 1, GL_TRUE, (const GLfloat*)&transform);
 
     /* Draw */
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, r->num_entities);
