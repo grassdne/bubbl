@@ -8,35 +8,35 @@
  * relate to each other:
  * Web interface -> Lua logic -> C engine -> OpenGL shaders
  */
-#define GLAD_GL_IMPLEMENTATION
-#include "gl.h"
 
 #define RAYMATH_IMPLEMENTATION
 #include "raymath.h"
 
-#include "SDL_mouse.h"
-#include "SDL_video.h"
-#include "lua.h"
-#include <stdint.h>
-#define _CRT_SECURE_NO_WARNINGS
+#define GLAD_GL_IMPLEMENTATION
+#include "gl.h"
 
-#define SDL_MAIN_HANDLED
-#include <SDL.h>
+#include "background_renderer.h"
+#include "common.h"
+#include "renderer_defs.h"
 
-#include <png.h>
-
-#include "luajit.h"
+#include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include <png.h>
+
+#define _CRT_SECURE_NO_WARNINGS
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+#include "SDL_mouse.h"
+#include "SDL_video.h"
+
+#include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <assert.h>
 
-#include "common.h"
-#include "renderer_defs.h"
-#include "background_renderer.h"
 
 // We're first rendering to an intermediary color texture which must be done through
 // a Frame Buffer Object. This is then blit to the screen.
