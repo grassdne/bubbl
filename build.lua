@@ -63,7 +63,7 @@ end
 
 ----- C -----
 local cc = os.getenv("CC") or "cc"
-local csrc = "src/background_renderer.c src/entity_renderer.c src/main.c src/renderer_defs.c src/shaderutil.c"
+local csrc = "src/main.c src/background_renderer.c src/entity_renderer.c src/renderer_defs.c src/shaderutil.c src/geometry_defs.c"
 
 if not Execute("pkg-config --exists", pkgs) then
     Error("pkg-config could not find one of: %s", pkgs)

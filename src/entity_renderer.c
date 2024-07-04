@@ -13,9 +13,9 @@
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
-    r->vertex_count = data.vertex_count;
+    r->vertex_count = data.geometry->num_vertices;
     shader_program_from_files(&r->shader, data.vert, data.frag);
-    shader_vertices(&r->shader, data.vertices, r->vertex_count * sizeof(GLfloat) * VERTEX_SIZE);
+    shader_vertices(&r->shader, data.geometry);
     r->uniforms.resolution = glGetUniformLocation(r->shader.program, "resolution");
     r->uniforms.time = glGetUniformLocation(r->shader.program, "time");
 

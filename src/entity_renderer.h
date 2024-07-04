@@ -1,6 +1,7 @@
 #ifndef SHADER_POP_H
 #define SHADER_POP_H
 #include "common.h"
+#include "geometry_defs.h"
 #include "shaderutil.h"
 #include "renderer_defs.h"
 
@@ -14,8 +15,7 @@ typedef struct {
 #define ENTITY_RENDERER_DATA_MAX_ATTRIBUTES 16
 typedef struct {
     size_t particle_size;
-    size_t vertex_count;
-    const float *vertices;
+    const Geometry *geometry;
     const char *frag;
     const char *vert;
     Attribute attributes[ENTITY_RENDERER_DATA_MAX_ATTRIBUTES];

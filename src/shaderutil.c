@@ -5,15 +5,9 @@
 #include "shaderutil.h"
 #include <stdlib.h>
 #include "common.h"
+#include "geometry_defs.h"
 #include <stdio.h>
 #include <assert.h>
-
-const float QUAD[] = {
-    1.0,  1.0, 0.0f,
-    -1.0,  1.0, 0.0f,
-    1.0, -1.0, 0.0f,
-    -1.0, -1.0, 0.0f,
-};
 
 static char* malloc_file_source(const char* fpath) {
     FILE* f;
@@ -100,14 +94,14 @@ void shader_init(Shader *sh) {
     glBindVertexArray(0);
 }
 
-void shader_vertices(Shader *sh, const float *vertices, size_t size)
+void shader_vertices(Shader *sh, const Geometry *geometry)
 {
     glBindVertexArray(sh->vao);
     GLuint vbo; /* Don't need to hold on to this VBO name, it's in the VAO */
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, geometry->num_vertices * sizeof(float) * VERTEX_SIZE, geometry->vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(VERT_POS_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glEnableVertexAttribArray(VERT_POS_ATTRIB_INDEX);
 
@@ -117,7 +111,7 @@ void shader_vertices(Shader *sh, const float *vertices, size_t size)
 
 void shader_quad(Shader *sh)
 {
-    shader_vertices(sh, QUAD, sizeof(QUAD));
+    shader_vertices(sh, &QUAD_GEOMETRY);
 }
 
 static void link_shader_program(Shader *sh) {
