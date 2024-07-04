@@ -378,6 +378,7 @@ RunBgShader = function(id, frag_shader, data)
         end
         assert(type(id) == "string")
         C.shader_program_from_source(program, id, bg_vertex_shader_source, frag_source)
+        C.shader_quad(program)
         shaders[id] = { program, {} }
     end
     local program, uniforms = unpack(shaders[id])

@@ -6,16 +6,15 @@
  */
 
 #include "entity_renderer.h"
-#include "SDL_video.h"
+#include "shaderutil.h"
 
-#include <stdio.h>
 #include <assert.h>
-#include <stdlib.h>
-#include <raymath.h>
+#include "SDL_video.h"
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
     shader_program_from_files(&r->shader, data.vert, data.frag);
+    shader_quad(&r->shader);
     r->uniforms.resolution = glGetUniformLocation(r->shader.program, "resolution");
     r->uniforms.time = glGetUniformLocation(r->shader.program, "time");
 

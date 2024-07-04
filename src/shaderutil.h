@@ -5,6 +5,7 @@
 
 #ifndef SHADER_UTIL_H
 #define SHADER_UTIL_H
+#include "common.h"
 #include <gl.h>
 
 #define UNI_DECL(N) GLint N;
@@ -18,5 +19,7 @@ void shader_program_from_files(Shader *sh, const char *vertex_filename, const ch
 void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
 void run_shader_program(Shader *shader);
 void use_shader_program(Shader *shader);
+void shader_vertices(Shader *sh, const float *vertices, size_t size);
+void shader_quad(Shader *sh);
 
 #endif

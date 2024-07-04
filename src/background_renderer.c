@@ -10,7 +10,8 @@
 static Shader shader;
 
 void bg_init(void) {
-   shader_program_from_files(&shader, "shaders/blit.vert", "shaders/blit.frag"); 
+    shader_program_from_files(&shader, "shaders/blit.vert", "shaders/blit.frag"); 
+    shader_quad(&shader);
 }
 
 int bg_create_texture(void *data, int width, int height)

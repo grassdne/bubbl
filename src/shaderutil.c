@@ -86,24 +86,31 @@ static const char* get_gl_error_message(GLenum err) {
 #define VERT_POS_ATTRIB_INDEX 0
 
 void shader_init(Shader *sh) {
-    GLuint vbo; /* Don't need to hold on to this VBO name, it's in the VAO */
-    // Gen
-    glGenBuffers(1, &vbo);
+    sh->program = glCreateProgram();
+
     glGenVertexArrays(1, &sh->vao);
-
-    // Bind
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(sh->vao);
+    glBindVertexArray(0);
+}
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD), QUAD, GL_STATIC_DRAW);
+void shader_vertices(Shader *sh, const float *vertices, size_t size)
+{
+    glBindVertexArray(sh->vao);
+    GLuint vbo; /* Don't need to hold on to this VBO name, it's in the VAO */
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(VERT_POS_ATTRIB_INDEX, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glEnableVertexAttribArray(VERT_POS_ATTRIB_INDEX);
 
-    // Cleanup
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
 
-    sh->program = glCreateProgram();
+void shader_quad(Shader *sh)
+{
+    shader_vertices(sh, QUAD, sizeof(QUAD));
 }
 
 static void link_shader_program(Shader *sh) {
@@ -133,6 +140,7 @@ void shader_program_from_files(Shader *sh, const char *vert_filename, const char
     build_shader_from_file(sh->program, vert_filename, GL_VERTEX_SHADER); 
     build_shader_from_file(sh->program, frag_filename, GL_FRAGMENT_SHADER); 
     link_shader_program(sh);
+    shader_quad(sh);
 }
 
 void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source)
@@ -141,6 +149,7 @@ void shader_program_from_source(Shader *shader, const char *id, const char *vert
     build_shader(shader->program, fragment_source, GL_FRAGMENT_SHADER, id);
     build_shader(shader->program, vertex_source, GL_VERTEX_SHADER, id);
     link_shader_program(shader);
+    shader_quad(shader);
 }
 
 void use_shader_program(Shader *shader)

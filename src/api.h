@@ -112,6 +112,9 @@ Vector2 get_mouse_position(Window *window);
 void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
 void run_shader_program(Shader *shader);
 void use_shader_program(Shader *shader);
+void shader_vertices(Shader *sh, const float *vertices, size_t size);
+void shader_quad(Shader *sh);
+
 int glGetUniformLocation(unsigned int program, const char *name);
 void glUniform4f(int uni, float r, float g, float b, float a);
 void glUniform2f(int uni, float x, float y);
