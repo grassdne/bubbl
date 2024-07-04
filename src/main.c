@@ -53,10 +53,10 @@ double get_time(void) { return SDL_GetTicks64() * 0.001; }
 
 float scale;
 const float QUAD[] = {
-    1.0,  1.0,
-    -1.0,  1.0,
-    1.0, -1.0,
-    -1.0, -1.0
+    1.0,  1.0, 0.0f,
+    -1.0,  1.0, 0.0f,
+    1.0, -1.0, 0.0f,
+    -1.0, -1.0, 0.0f,
 };
 
 static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {

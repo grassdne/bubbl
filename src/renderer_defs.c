@@ -15,6 +15,8 @@ static EntityRenderer renderers[COUNT_ENTITY_TYPES] = { 0 };
 static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
     [ENTITY_POP] = {
         .particle_size = sizeof(Particle),
+        .vertices = QUAD,
+        .vertex_count = 4,
         .vert = "shaders/popbubble_quad.vert",
         .frag = "shaders/popbubble.frag",
         .attributes = {
@@ -26,6 +28,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
     [ENTITY_BUBBLE] = {
         .particle_size = sizeof(Bubble),
+        .vertices = QUAD,
+        .vertex_count = 4,
         .vert = "shaders/bubble_quad.vert",
         .frag = "shaders/bubble.frag",
         .attributes = {
@@ -37,6 +41,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
     [ENTITY_TEST3D] = {
         .particle_size = sizeof(Test3D),
+        .vertices = QUAD,
+        .vertex_count = 4,
         .vert = "shaders/test3d.vert",
         .frag = "shaders/test3d.frag",
         .attributes = {
@@ -50,6 +56,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
 
     [ENTITY_TRANS_BUBBLE] = {
         .particle_size = sizeof(TransBubble),
+        .vertices = QUAD,
+        .vertex_count = 4,
         .vert = "shaders/transbubble_quad.vert",
         .frag = "shaders/transbubble.frag",
         .attributes = {

@@ -14,6 +14,8 @@ typedef struct {
 #define ENTITY_RENDERER_DATA_MAX_ATTRIBUTES 16
 typedef struct {
     size_t particle_size;
+    size_t vertex_count;
+    const float *vertices;
     const char *frag;
     const char *vert;
     Attribute attributes[ENTITY_RENDERER_DATA_MAX_ATTRIBUTES];
@@ -32,6 +34,7 @@ typedef struct {
     size_t num_entities;
     size_t buffer_size;
     size_t entity_size;
+    size_t vertex_count;
     GLuint vbo;
 } EntityRenderer;
 

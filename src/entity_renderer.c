@@ -13,8 +13,9 @@
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
+    r->vertex_count = data.vertex_count;
     shader_program_from_files(&r->shader, data.vert, data.frag);
-    shader_quad(&r->shader);
+    shader_vertices(&r->shader, data.vertices, r->vertex_count * sizeof(GLfloat) * 3);
     r->uniforms.resolution = glGetUniformLocation(r->shader.program, "resolution");
     r->uniforms.time = glGetUniformLocation(r->shader.program, "time");
 
@@ -61,7 +62,7 @@ void flush_entities(EntityRenderer *r)
     glUniform1f(r->uniforms.time, get_time());
 
     /* Draw with bound `program` and bound `vao` */
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, r->num_entities);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, r->vertex_count, r->num_entities);
     
     /* Reset */
     r->num_entities = 0;
