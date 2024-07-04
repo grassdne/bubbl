@@ -16,7 +16,7 @@ out float radius;
 
 void main() {
     // radius in [0, 2] scale
-    vec2 radius_normalized = (in_radius * 4) / resolution * 2;
+    vec2 radius_normalized = in_radius / resolution * 2;
     // position [-1, 1] scale
     vec2 pos_normalized = in_position / resolution * 2.0 - 1;
     // pass in a square around the position
