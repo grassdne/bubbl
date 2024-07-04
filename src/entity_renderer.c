@@ -23,12 +23,8 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
     r->entity_size = data.particle_size;
 
     // Create vertex buffer object
-    if (r->buffer_size > 0) {
-        r->buffer_size = ENTITIY_BUFFER_SIZE / data.particle_size;
-    } else {
-        r->buffer_size = 0;
-    }
 
+    r->buffer_size = ENTITIY_BUFFER_SIZE / data.particle_size;
     glBindVertexArray(r->shader.vao);
     glGenBuffers(1, &r->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
