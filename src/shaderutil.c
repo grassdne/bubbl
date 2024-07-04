@@ -8,6 +8,13 @@
 #include <stdio.h>
 #include <assert.h>
 
+const float QUAD[] = {
+    1.0,  1.0, 0.0f,
+    -1.0,  1.0, 0.0f,
+    1.0, -1.0, 0.0f,
+    -1.0, -1.0, 0.0f,
+};
+
 static char* malloc_file_source(const char* fpath) {
     FILE* f;
     if ((f = fopen(fpath, "r")) == NULL) {

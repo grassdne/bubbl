@@ -8,6 +8,11 @@
 #include "common.h"
 #include <gl.h>
 
+
+#define VERTEX_SIZE 3
+
+extern const float QUAD[4 * VERTEX_SIZE];
+
 #define UNI_DECL(N) GLint N;
 #define UNI_GETS(NAME) (sh)->uniforms.NAME = glGetUniformLocation((sh)->shader.program, #NAME);
 

@@ -13,7 +13,6 @@
 #define STATIC_LEN(arr) (sizeof(arr) / sizeof(arr[0]))
 
 extern float scale;
-extern const float QUAD[4 * 3];
 
 #define SCALECONTENT(p) (p * scale)
 
