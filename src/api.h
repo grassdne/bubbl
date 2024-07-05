@@ -47,7 +47,14 @@ typedef struct {
 // Opaque types
 typedef struct {} BgShader;
 
-typedef struct { unsigned int program; unsigned int vao; } Shader;
+typedef struct {} Geometry;
+
+typedef struct {
+    unsigned int program;
+    unsigned int vao; 
+    unsigned int ebo;
+    const Geometry *geometry;
+} Shader;
 
 typedef struct Window Window;
 
@@ -110,9 +117,8 @@ void update_screen(Window *window);
 Vector2 get_mouse_position(Window *window);
 
 void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
-void run_shader_program(Shader *shader);
+void run_shader_program(Shader *shader, size_t num_instances);
 void use_shader_program(Shader *shader);
-void shader_vertices(Shader *sh, const float *vertices, size_t size);
 void shader_quad(Shader *sh);
 
 int glGetUniformLocation(unsigned int program, const char *name);

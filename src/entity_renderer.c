@@ -13,7 +13,6 @@
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
-    r->vertex_count = data.geometry->num_vertices;
     shader_program_from_files(&r->shader, data.vert, data.frag);
     shader_vertices(&r->shader, data.geometry);
     r->uniforms.resolution = glGetUniformLocation(r->shader.program, "resolution");
@@ -36,10 +35,6 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
         glVertexAttribPointer(attr->id, attr->count, attr->type, GL_FALSE, data.particle_size, (void*)attr->offset);
         glVertexAttribDivisor(attr->id, 1);
     }
-
-    // Unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 }
 
 void flush_entities(EntityRenderer *r)
@@ -51,23 +46,16 @@ void flush_entities(EntityRenderer *r)
     /* Update vertex attributes for `vbo` */
     glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, ENTITIY_BUFFER_SIZE, r->buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    /* Bind `program` and `vao` */
+    /* Update uniforms for program */
     glUseProgram(r->shader.program);
-    glBindVertexArray(r->shader.vao);
-
-    /* Update uniforms for bound `program` */
     glUniform2f(r->uniforms.resolution, w, h);
     glUniform1f(r->uniforms.time, get_time());
 
-    /* Draw with bound `program` and bound `vao` */
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, r->vertex_count, r->num_entities);
+    run_shader_program(&r->shader, r->num_entities);
     
     /* Reset */
     r->num_entities = 0;
-    glUseProgram(0);
-    glBindVertexArray(0);
 }
 
 void render_entity(EntityRenderer *restrict r, const void *restrict entity)

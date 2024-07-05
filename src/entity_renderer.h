@@ -34,7 +34,6 @@ typedef struct {
     size_t num_entities;
     size_t buffer_size;
     size_t entity_size;
-    size_t vertex_count;
     GLuint vbo;
 } EntityRenderer;
 

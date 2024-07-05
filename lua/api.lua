@@ -410,7 +410,7 @@ RunBgShader = function(id, frag_shader, data)
             assert(false, "unknown uniform type")
         end
     end
-    C.run_shader_program(program)
+    C.run_shader_program(program, 1)
 end
 
 ----------------------------

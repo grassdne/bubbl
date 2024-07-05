@@ -40,7 +40,8 @@ void bg_draw(GLuint texture, void *data, int width, int height) {
 
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader.ebo);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);

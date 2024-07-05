@@ -96,17 +96,29 @@ void shader_init(Shader *sh) {
 
 void shader_vertices(Shader *sh, const Geometry *geometry)
 {
+    sh->geometry = geometry;
     glBindVertexArray(sh->vao);
-    GLuint vbo; /* Don't need to hold on to this VBO name, it's in the VAO */
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, geometry->num_vertices * sizeof(float) * VERTEX_SIZE, geometry->vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(VERT_POS_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glEnableVertexAttribArray(VERT_POS_ATTRIB_INDEX);
+    // Buffer of vertices
+    {
+        GLuint vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+        glBufferData(GL_ARRAY_BUFFER, geometry->count * sizeof(float) * VERTEX_SIZE, geometry->vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(VERT_POS_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        glEnableVertexAttribArray(VERT_POS_ATTRIB_INDEX);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    // Buffer of indices
+    {
+        glGenBuffers(1, &sh->ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sh->ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry->count * sizeof(geometry->indices[0]), geometry->indices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
 }
 
 void shader_quad(Shader *sh)
@@ -159,12 +171,18 @@ void use_shader_program(Shader *shader)
     glBindVertexArray(shader->vao);
 }
 
-void run_shader_program(Shader *shader)
+// Is there a cost to calling glDrawElementsInstanced with num_instances=1
+// instead of glDrawElements?
+// Can always optimize later but I think this is elegant
+void run_shader_program(Shader *shader, size_t num_instances)
 {
-    use_shader_program(shader);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glUseProgram(shader->program);
+    glBindVertexArray(shader->vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shader->ebo);
 
-    glBindVertexArray(0);
-    glUseProgram(0);
+    glDrawElementsInstanced(shader->geometry->draw_mode,
+                   shader->geometry->count,
+                   GL_UNSIGNED_INT,
+                   (void*)0, num_instances);
 }
 

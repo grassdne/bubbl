@@ -17,11 +17,16 @@
 
 #define CHECK_GL_ERROR() check_gl_error(__FILE__, __LINE__)
 
-typedef struct { GLuint program; GLuint vao; } Shader;
+typedef struct {
+    GLuint program;
+    GLuint vao;
+    GLuint ebo;
+    const Geometry *geometry;
+} Shader;
 
 void shader_program_from_files(Shader *sh, const char *vertex_filename, const char *fragment_filename);
 void shader_program_from_source(Shader *shader, const char *id, const char *vertex_source, const char *fragment_source);
-void run_shader_program(Shader *shader);
+void run_shader_program(Shader *shader, size_t num_instances);
 void use_shader_program(Shader *shader);
 void shader_vertices(Shader *sh, const Geometry *geometry);
 void shader_quad(Shader *sh);
