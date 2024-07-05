@@ -215,10 +215,8 @@ RenderTransBubble = function (pos, color, rad, trans_color, trans_angle, trans_p
     C.render_trans_bubble(TransBubbleEntity(pos, rad, color, trans_color, trans_angle, trans_percent))
 end
 
-local ParticleEntity = ffi.typeof("Particle")
-
 RenderPop = function (pos, color, radius)
-    C.render_pop(ParticleEntity(pos, color, radius))
+    C.render_pop(pos, color, radius)
 end
 
 RenderTest3D = function (pos, color, radius)

@@ -14,6 +14,8 @@
 
 extern float scale;
 
+extern int drawing_width, drawing_height;
+
 #define SCALECONTENT(p) (p * scale)
 
 double get_time(void);

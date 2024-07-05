@@ -4,17 +4,15 @@ precision highp float;
 
 layout(location = 0) out vec4 outcolor;
 
-in vec2 pos;
-// TODO: should color include alpha?
 in vec4 color;
-in float radius;
+in vec2 local_coord;
 
 const float MIN_TRANSPARENCY = 0.0;
 
 void main() {
-    float dist = distance(gl_FragCoord.xy, pos);
-    if (dist < radius) {
-        outcolor = vec4(color.rgb, mix(1.0, MIN_TRANSPARENCY, dist / radius) * color.a);
+    float dist = distance(local_coord, vec2(0.0f));
+    if (dist < 1.0) {
+        outcolor = vec4(color.rgb, mix(1.0, MIN_TRANSPARENCY, dist / 1.0f) * color.a);
     }
     else {
         discard;

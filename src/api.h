@@ -13,6 +13,13 @@ typedef struct {
     float x, y;
 } Vector2;
 
+typedef struct Matrix {
+    float m0, m4, m8, m12;
+    float m1, m5, m9, m13;
+    float m2, m6, m10, m14;
+    float m3, m7, m11, m15;
+} Matrix;
+
 typedef struct {
     float r, g, b, a;
 } Color;
@@ -37,12 +44,6 @@ typedef struct  {
 typedef struct {
     uint8_t r, g, b, a;
 } Pixel;
-
-typedef struct {
-    Vector2 pos;
-    Color color;
-    float radius;
-} Particle;
 
 // Opaque types
 typedef struct {} BgShader;
@@ -96,7 +97,7 @@ void flush_pops(void);
 
 void render_bubble(Bubble bubble);
 void render_test3d(Vector2 position, Color color, float radius);
-void render_pop(Particle particle);
+void render_pop(Vector2 position, Color color, float radius);
 void render_trans_bubble(TransBubble bubble);
 
 double get_time(void);

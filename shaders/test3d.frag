@@ -25,7 +25,7 @@ float distanceSq(vec2 a, vec2 b) {
 
 void main() {
     float rad = 1.0f;
-    if (distanceSq(local_coord, vec2(0, 0)) < rad * rad) {
+    if (distanceSq(local_coord, vec2(0.0f)) < rad * rad) {
         // There is a little light spot inside the bubble
         // It orbits based on LIGHT_REVOLUTION_TIME
         float theta = time * 2*PI / LIGHT_REVOLUTION_TIME;

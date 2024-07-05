@@ -39,6 +39,6 @@ typedef struct {
 
 void entity_init(EntityRenderer *r, const EntityRendererData data);
 void flush_entities(EntityRenderer *r);
-void render_entity(EntityRenderer *restrict r, const void *restrict entity);
+void render_entity(EntityRenderer *restrict r, const void *restrict entity, Matrix model);
 
 #endif

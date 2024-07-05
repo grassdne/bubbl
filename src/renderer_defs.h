@@ -12,23 +12,28 @@ typedef enum {
 } EntityType;
 
 typedef struct {
-    Vector2 pos;
+    Matrix transform;
+} Entity;
+
+typedef struct {
+    Entity entity;
     Color color;
-    float radius;
 } Particle;
 
 typedef struct  {
+    Entity entity;
     Vector2 pos;
     float rad;
     Color color;
 } Bubble;
 
 typedef struct  {
+    Entity entity;
     Color color;
-    Matrix transform;
 } Test3D;
 
 typedef struct  {
+    Entity entity;
     Vector2 pos;
     float rad;
     Color color_a;
@@ -37,7 +42,7 @@ typedef struct  {
     float trans_percent;
 } TransBubble;
 
-void render_pop(Particle particle);
+void render_pop(Vector2 position, Color color, float radius);
 void render_bubble(Bubble bubble);
 void render_test3d(Vector2 position, Color color, float radius);
 void render_trans_bubble(TransBubble bubble);

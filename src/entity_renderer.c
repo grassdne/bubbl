@@ -6,10 +6,14 @@
  */
 
 #include "entity_renderer.h"
+#include "common.h"
+#include "raymath.h"
 #include "shaderutil.h"
 
 #include <assert.h>
 #include "SDL_video.h"
+
+#define MATRIX_ATTR_LOCATION 9
 
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
@@ -35,6 +39,15 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
         glVertexAttribPointer(attr->id, attr->count, attr->type, GL_FALSE, data.particle_size, (void*)attr->offset);
         glVertexAttribDivisor(attr->id, 1);
     }
+
+    // Matrix attributes (takes up 4 locations)
+    for (int i = 0; i < 4; i++) {
+        int location = MATRIX_ATTR_LOCATION + i;
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, data.particle_size, (void*)(i * sizeof(Vector4)));
+        glVertexAttribDivisor(location, 1);
+    }
+
 }
 
 void flush_entities(EntityRenderer *r)
@@ -58,8 +71,32 @@ void flush_entities(EntityRenderer *r)
     r->num_entities = 0;
 }
 
-void render_entity(EntityRenderer *restrict r, const void *restrict entity)
+Matrix entity_projection(void) {
+    return MatrixPerspective(0.5 * PI,
+                             (float)drawing_width / (float)drawing_height,
+                             0.1,
+                             100.0);
+}
+
+Matrix entity_view(void) {
+    Vector3 eye = { 0.0f, 0.0f, 1.0f };
+    Vector3 target = { 0.0f, 0.0f, 0.0f };
+    Vector3 up = { 0.0f, 1.0f, 0.0f };
+    return MatrixLookAt(eye, target, up);
+}
+
+Matrix entity_transform(Matrix model) {
+    Matrix transform = MatrixIdentity();
+    transform = MatrixMultiply(transform, model);
+    transform = MatrixMultiply(transform, entity_view());
+    transform = MatrixMultiply(transform, entity_projection());
+    return MatrixTranspose(transform);
+}
+
+void render_entity(EntityRenderer *restrict r, const void *restrict entity, Matrix model)
 {
+    Entity *_entity = (Entity*)entity;
+    _entity->transform = entity_transform(model);
     // The size of the entity varies by the renderer
     // So we classically accept a void pointer and copy bytes
 

@@ -53,6 +53,8 @@ double get_time(void) { return SDL_GetTicks64() * 0.001; }
 
 float scale;
 
+int drawing_width=800, drawing_height=600;
+
 static void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     (void)type;
     (void)id;
@@ -187,7 +189,6 @@ typedef struct {
 // Handles and/or return event
 Event poll_event(SDL_Window *window)
 {
-    int w, h; SDL_GetWindowSize(window, &w, &h);
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
@@ -225,7 +226,7 @@ Event poll_event(SDL_Window *window)
                 return (Event) {
                     .type = EVENT_MOUSEBUTTON,
                         .mousebutton.is_down = e.type == SDL_MOUSEBUTTONDOWN,
-                        .mousebutton.position = (Vector2){ e.button.x, h - e.button.y },
+                        .mousebutton.position = (Vector2){ e.button.x, drawing_height - e.button.y },
                 };
             }
             break;
@@ -233,7 +234,7 @@ Event poll_event(SDL_Window *window)
         case SDL_MOUSEMOTION:
             return (Event) {
                 .type = EVENT_MOUSEMOTION,
-                .mousemotion.position = (Vector2){ e.button.x, h - e.button.y },
+                .mousemotion.position = (Vector2){ e.button.x, drawing_height - e.button.y },
             };
             break;
 
@@ -246,14 +247,14 @@ Event poll_event(SDL_Window *window)
 
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-                SDL_GL_GetDrawableSize(window, &w, &h);
-                glViewport(0, 0, w, h);
+                SDL_GL_GetDrawableSize(window, &drawing_width, &drawing_height);
+                glViewport(0, 0, drawing_width, drawing_height);
                 allocate_intermediary_color_texture(window);
 
                 return (Event) {
                     .type = EVENT_RESIZE,
-                    .resize.width = w,
-                    .resize.height = h,
+                    .resize.width = drawing_width,
+                    .resize.height = drawing_height,
                 };
 
             }
@@ -378,6 +379,7 @@ SDL_Window *create_window(const char *window_name, int width, int height)
     init_renderers();
     bg_init();
     init_intermediary_framebuffer(window);
+    SDL_GL_GetDrawableSize(window, &drawing_width, &drawing_height);
     return window;
 }
 
