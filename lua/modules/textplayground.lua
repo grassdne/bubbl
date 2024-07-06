@@ -60,7 +60,7 @@ local Transition = function (definition)
                 local position = Lerp(initial[i].position, final[i].position, t)
                 local color = Lerp(initial[i].color, final[i].color, t)
                 local radius = Lerp(initial[i].radius, final[i].radius, t)
-                renderfn(position, color, radius)
+                renderfn(position:Vector3(), color, radius)
             end
             if finished_count == #final then
                 effect.current_stage = effect.current_stage + 1

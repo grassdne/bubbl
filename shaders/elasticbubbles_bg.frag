@@ -1,10 +1,10 @@
 layout(location = 0) out vec4 outcolor;
 
-uniform vec2 positions[MAX_ELEMENTS];
+uniform vec3 positions[MAX_ELEMENTS];
 uniform vec4 colors[MAX_ELEMENTS];
 uniform float num_elements;
 uniform vec2 resolution;
-const float TRANSPARENCY = 0.33;
+const float TRANSPARENCY = 0.3;
 in float LENGTH;     // Length of resolution (distance botoom left -> top right)
 const float EFFECTIVENESS_FACTOR = 0.22;
 
@@ -17,7 +17,7 @@ void main() {
     for (int i = 0; i < MAX_ELEMENTS; ++i) {
         if (i >= num_elements) break;
 
-        float dist = distance(gl_FragCoord.xy, positions[i]);
+        float dist = distance(gl_FragCoord.xy, positions[i].xy);
         if (dist < closest_dist) {
             closest = i;
             closest_dist = dist;

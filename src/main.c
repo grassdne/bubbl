@@ -18,6 +18,7 @@
 #include "background_renderer.h"
 #include "common.h"
 #include "renderer_defs.h"
+#include "shaderutil.h"
 
 #include <lua.h>
 #include <lualib.h>
@@ -47,6 +48,7 @@
 //    ruined when e.g. screen is resized
 static GLuint intermediary_framebuffer = 0;
 static GLuint intermediary_color_texture = 0;
+static GLuint intermediary_depth_buffer = 0;
 
 // How about we just do everything in seconds please and thank you
 double get_time(void) { return SDL_GetTicks64() * 0.001; }
@@ -99,29 +101,35 @@ static void createargtable (lua_State *L, char **argv, int argc) {
   lua_setglobal(L, "arg");
 }
 
-static void allocate_intermediary_color_texture(SDL_Window *window) {
+static void update_intermediary_framebuffer(SDL_Window *window) {
+    printf("updating size!");
+    (void)window;
     glBindTexture(GL_TEXTURE_2D, intermediary_color_texture);
-    int w, h;
-    SDL_GetWindowSize(window, &w, &h);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, drawing_width, drawing_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, intermediary_depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, drawing_width, drawing_height);
+    CHECK_GL_ERROR();
 }
 
 static void init_intermediary_framebuffer(SDL_Window *window) {
     glGenFramebuffers(1, &intermediary_framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, intermediary_framebuffer);
 
+    // Color texture
     glGenTextures(1, &intermediary_color_texture);
-
     glBindTexture(GL_TEXTURE_2D, intermediary_color_texture);
-
-    allocate_intermediary_color_texture(window);
-    int w, h;
-    SDL_GetWindowSize(window, &w, &h);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, drawing_width, drawing_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
     // Is this needed?
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    // Depth buffer
+    glGenRenderbuffers(1, &intermediary_depth_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, intermediary_depth_buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, drawing_width, drawing_height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, intermediary_depth_buffer);
+
+    update_intermediary_framebuffer(window);
 
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, intermediary_color_texture, 0);
 
@@ -131,14 +139,11 @@ static void init_intermediary_framebuffer(SDL_Window *window) {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         printf("Error: unable to build intermediary_framebuffer\n");
     }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 static void clear_screen(void) {
     glClearColor(1.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void start_drawing(SDL_Window *window) {
@@ -248,8 +253,9 @@ Event poll_event(SDL_Window *window)
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
                 SDL_GL_GetDrawableSize(window, &drawing_width, &drawing_height);
+                printf("drawing_width: %d ;; height: %d\n", drawing_width, drawing_height);
                 glViewport(0, 0, drawing_width, drawing_height);
-                allocate_intermediary_color_texture(window);
+                update_intermediary_framebuffer(window);
 
                 return (Event) {
                     .type = EVENT_RESIZE,
@@ -374,7 +380,9 @@ SDL_Window *create_window(const char *window_name, int width, int height)
     }
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendEquation(GL_FUNC_ADD);
+    /*glBlendEquation(GL_FUNC_ADD);*/
+    glEnable(GL_DEPTH_TEST);
+    /*glDepthFunc(GL_LESS);*/
 
     init_renderers();
     bg_init();
@@ -432,6 +440,9 @@ int main(int argc, char **argv) {
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+
 
     if (run_file(L, "lua/init.lua")) {
         error(L, "error loading init.lua:\n%s", lua_tostring(L, -1));

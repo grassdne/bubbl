@@ -12,6 +12,27 @@
 #include "raymath.h"
 #include "renderer_defs.h"
 
+typedef struct  {
+    Color color;
+} Test3D;
+
+typedef struct {
+    Color color;
+} Particle;
+
+typedef struct {
+    Color color;
+} Box;
+
+typedef enum {
+    ENTITY_BUBBLE,
+    ENTITY_POP,
+    ENTITY_TRANS_BUBBLE,
+    ENTITY_TEST3D,
+    ENTITY_BOX,
+    COUNT_ENTITY_TYPES,
+} EntityType;
+
 static EntityRenderer renderers[COUNT_ENTITY_TYPES] = { 0 };
 static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
     [ENTITY_POP] = {
@@ -22,6 +43,7 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         .attributes = {
             { .id=2, GL_FLOAT, .count=4, offsetof(Particle, color) },
         },
+        .is_transparent = true,
     },
 
     [ENTITY_BUBBLE] = {
@@ -33,7 +55,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
             { .id=1, GL_FLOAT, .count=2, offsetof(Bubble, pos) },
             { .id=2, GL_FLOAT, .count=1, offsetof(Bubble, rad) },
             { .id=3, GL_FLOAT, .count=4, offsetof(Bubble, color) },
-        }
+        },
+        .is_transparent = true,
     },
 
     [ENTITY_TEST3D] = {
@@ -43,11 +66,20 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
         .frag = "shaders/test3d.frag",
         .attributes = {
             { .id=1, GL_FLOAT, .count=4, offsetof(Test3D, color) },
-            /*{ .id=9, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 0 },*/
-            /*{ .id=10, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 1 },*/
-            /*{ .id=11, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 2 },*/
-            /*{ .id=12, GL_FLOAT, .count=4, offsetof(Test3D, transform) + sizeof(Vector4) * 3 },*/
-        }
+        },
+        .is_transparent = true,
+
+    },
+
+    [ENTITY_BOX] = {
+        .particle_size = sizeof(Box),
+        .geometry = &CUBE_GEOMETRY,
+        .vert = "shaders/box.vert",
+        .frag = "shaders/box.frag",
+        .attributes = {
+            { .id=1, GL_FLOAT, .count=4, offsetof(Box, color) },
+        },
+        .is_transparent = false,
     },
 
     [ENTITY_TRANS_BUBBLE] = {
@@ -62,7 +94,8 @@ static EntityRendererData renderer_datas[COUNT_ENTITY_TYPES] = {
             { .id=4, GL_FLOAT, .count=4, offsetof(TransBubble, color_b) },
             { .id=5, GL_FLOAT, .count=2, offsetof(TransBubble, trans_angle) },
             { .id=6, GL_FLOAT, .count=1, offsetof(TransBubble, trans_percent) },
-        }
+        },
+        .is_transparent = true,
     },
 
 };
@@ -73,7 +106,7 @@ Vector3 normalized(Vector3 position) {
     return (Vector3) {
         .x = position.x / (float)drawing_width * 2.0f * aspect - aspect,
         .y = position.y / (float)drawing_height * 2.0f - 1.0f,
-        .z = 0.0f,
+        .z = position.z / (float)drawing_height,
     };
 }
 
@@ -85,7 +118,7 @@ Matrix gen_model(Vector3 position, float radius) {
     position = normalized(position);
 
     Matrix model = MatrixIdentity();
-    model = MatrixMultiply(model, MatrixScale(radius, radius, radius));
+    model = MatrixMultiply(model, MatrixScale(radius, radius, 1.0f));
     /*Vector3 axis = (Vector3) { 1.0f, 0.0f, 0.0f};*/
     /*model = MatrixMultiply(model, MatrixRotate(axis, PI * get_time()));*/
     model = MatrixMultiply(model, MatrixTranslate(position.x, position.y, position.z));
@@ -93,26 +126,47 @@ Matrix gen_model(Vector3 position, float radius) {
 }
 
 // API helper functions
-void render_pop(Vector2 position, Color color, float radius) {
+void render_pop(Vector3 position, Color color, float radius)
+{
     Particle particle = {
         .color = color,
     };
-    Vector3 world = { position.x, position.y, 0.0f };
-    render_entity(&renderers[ENTITY_POP], &particle, gen_model(world, radius));
+    render_entity(&renderers[ENTITY_POP], &particle, gen_model(position, radius));
 }
+
 void render_bubble(Bubble bubble) {
     render_entity(&renderers[ENTITY_BUBBLE], &bubble, MatrixIdentity());
 }
-void render_test3d(Vector2 position, Color color, float radius) {
-    Vector3 pos = (Vector3){ position.x, position.y, 0.0f };
 
+void render_test3d(Vector3 position, Color color, float radius)
+{
     Test3D bubble = {
         .color = color,
     };
-    render_entity(&renderers[ENTITY_TEST3D], &bubble, gen_model(pos, radius));
+    render_entity(&renderers[ENTITY_TEST3D], &bubble, gen_model(position, radius));
 }
+
 void render_trans_bubble(TransBubble bubble) {
     render_entity(&renderers[ENTITY_TRANS_BUBBLE], &bubble, MatrixIdentity());
+}
+
+void render_box(Vector3 position, Color color, float size)
+{
+    /*glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );*/
+    Box box = {
+        .color = color,
+    };
+
+    position = normalized(position);
+    size = size * 2.0f / (float)drawing_height;
+
+    Matrix model = MatrixIdentity();
+    model = MatrixMultiply(model, MatrixScale(size, size, size));
+    Vector3 axis = (Vector3) { 1.0f, 1.0f, 0.0f};
+    model = MatrixMultiply(model, MatrixRotate(axis, 0.25 * PI * get_time()));
+    model = MatrixMultiply(model, MatrixTranslate(position.x, position.y, position.z));
+
+    render_entity(&renderers[ENTITY_BOX], &box, model);
 }
 
 void flush_renderer(EntityType type) {

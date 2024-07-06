@@ -15,6 +15,10 @@
 
 #define MATRIX_ATTR_LOCATION 9
 
+typedef struct {
+    Matrix transform;
+} Entity;
+
 void entity_init(EntityRenderer *r, const EntityRendererData data)
 {
     shader_program_from_files(&r->shader, data.vert, data.frag);
@@ -23,38 +27,38 @@ void entity_init(EntityRenderer *r, const EntityRendererData data)
     r->uniforms.time = glGetUniformLocation(r->shader.program, "time");
 
     r->num_entities = 0;
-    r->entity_size = data.particle_size;
+    r->entity_size = sizeof(Entity) + data.particle_size;
+    r->depth_mask = data.is_transparent ? GL_FALSE : GL_TRUE;
 
     // Create vertex buffer object
 
-    r->buffer_size = ENTITIY_BUFFER_SIZE / data.particle_size;
+    r->buffer_size = ENTITIY_BUFFER_SIZE / r->entity_size;
     glBindVertexArray(r->shader.vao);
     glGenBuffers(1, &r->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
     glBufferData(GL_ARRAY_BUFFER, ENTITIY_BUFFER_SIZE, r->buffer, GL_DYNAMIC_DRAW);
 
-    // Initialize attributes
-    for (const Attribute *attr = data.attributes; attr->count > 0; attr++) {
-        glEnableVertexAttribArray(attr->id);
-        glVertexAttribPointer(attr->id, attr->count, attr->type, GL_FALSE, data.particle_size, (void*)attr->offset);
-        glVertexAttribDivisor(attr->id, 1);
-    }
-
     // Matrix attributes (takes up 4 locations)
     for (int i = 0; i < 4; i++) {
         int location = MATRIX_ATTR_LOCATION + i;
         glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, data.particle_size, (void*)(i * sizeof(Vector4)));
+        glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, r->entity_size,
+                              (void*)(i * sizeof(Vector4)));
         glVertexAttribDivisor(location, 1);
     }
 
+    // Entity-specific attributes
+    for (const Attribute *attr = data.attributes; attr->count > 0; attr++) {
+        glEnableVertexAttribArray(attr->id);
+        glVertexAttribPointer(attr->id, attr->count, attr->type, GL_FALSE, r->entity_size,
+                              sizeof(Entity) + (void*)attr->offset);
+        glVertexAttribDivisor(attr->id, 1);
+    }
 }
 
 void flush_entities(EntityRenderer *r)
 {
-    SDL_Window *window = SDL_GL_GetCurrentWindow();
-    int w, h;
-    SDL_GL_GetDrawableSize(window, &w, &h);
+    glDepthMask(r->depth_mask); // Should we write to depth buffer
 
     /* Update vertex attributes for `vbo` */
     glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
@@ -62,7 +66,7 @@ void flush_entities(EntityRenderer *r)
 
     /* Update uniforms for program */
     glUseProgram(r->shader.program);
-    glUniform2f(r->uniforms.resolution, w, h);
+    glUniform2f(r->uniforms.resolution, drawing_width, drawing_height);
     glUniform1f(r->uniforms.time, get_time());
 
     run_shader_program(&r->shader, r->num_entities);
@@ -95,15 +99,18 @@ Matrix entity_transform(Matrix model) {
 
 void render_entity(EntityRenderer *restrict r, const void *restrict entity, Matrix model)
 {
-    Entity *_entity = (Entity*)entity;
-    _entity->transform = entity_transform(model);
     // The size of the entity varies by the renderer
     // So we classically accept a void pointer and copy bytes
 
     if (r->num_entities >= r->buffer_size) {
         flush_entities(r);
     }
+
+    Entity _entity = {
+        .transform = entity_transform(model),
+    };
     void *top = &r->buffer[r->num_entities * r->entity_size];
-    memcpy(top, entity, r->entity_size);
+    memcpy(top, &_entity, sizeof(Entity));
+    memcpy(top + sizeof(Entity), entity, r->entity_size - sizeof(Entity));
     r->num_entities += 1;
 }

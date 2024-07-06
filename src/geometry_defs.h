@@ -12,5 +12,6 @@ typedef struct {
 } Geometry;
 
 extern const Geometry QUAD_GEOMETRY;
+extern const Geometry CUBE_GEOMETRY;
 
 #endif // !GEOMETRY_DEFS_H

@@ -104,14 +104,53 @@ TableKeys = function (t)
 end
 
 ----------------------------
---------- Vector2 ----------
+--------- Vector3 ----------
 ----------------------------
 
 --- Simple 2d vector
 --- You shouldn't need to know that this is an ffi struct
 --- rather than a Lua table. It's mostly just to make returning and passing
 --- vectors from C simpler.
----@class Vector2
+---@class Vector3
+Vector3 = ffi.metatype("Vector3", Parent {
+    __add = function (a, b)
+        return Vector3(a.x + b.x, a.y + b.y, a.z + b.z)
+    end,
+    __sub = function (a, b)
+        return Vector3(a.x - b.x, a.y - b.y, a.z - b.z)
+    end,
+    __mul = function (a, b)
+        return Vector3(a.x * b, a.y * b, a.z * b )
+    end,
+    __div = function (a, b)
+        return Vector3(a.x / b, a.y / b, a.z / b)
+    end,
+    __unm = function (v) return Vector3(-v.x, -v.y) end,
+
+    __tostring = function (v)
+        return string.format("Vector3(%.2f, %.2f, %.2f)", v.x, v.y, v.z)
+    end,
+
+    Dot = function (a, b)
+        return a.x * b.x + a.y * b.y + a.z * b.z
+    end,
+    Scale = function (a, b)
+        return Vector3(a.x * b.x, a.y * b.y, a.z * b.z)
+    end,
+    LengthSq = function (v)
+        return v.x*v.x + v.y*v.y + v.z*v.z
+    end,
+    Length = function (v) return math.sqrt(v:LengthSq()) end,
+    DistSq = function (a, b) return (a - b):LengthSq() end,
+    Dist = function (a, b) return math.sqrt(a:DistSq(b)) end,
+    Normalize = function (v) return v / v:Length() end,
+    DeltaX = function (v, dx) v.x = v.x + dx end,
+    DeltaY = function (v, dy) v.y = v.y + dy end,
+    Unpack = function(v) return tonumber(v.x), tonumber(v.y), tonumber(v.z) end,
+    Lerp = Lerp,
+})
+
+---@class Vector3
 Vector2 = ffi.metatype("Vector2", Parent {
     __add = function (a, b) return Vector2(a.x + b.x, a.y + b.y) end,
     __sub = function (a, b) return Vector2(a.x - b.x, a.y - b.y) end,
@@ -133,8 +172,9 @@ Vector2 = ffi.metatype("Vector2", Parent {
     DeltaX = function (v, dx) v.x = v.x + dx end,
     DeltaY = function (v, dy) v.y = v.y + dy end,
     Unpack = function(v) return tonumber(v.x), tonumber(v.y) end,
-    Angle = function (theta) return Vector2(math.cos(theta), math.sin(theta)) end,
     Lerp = Lerp,
+    Angle = function (theta) return Vector2(math.cos(theta), math.sin(theta)) end,
+    Vector3 = function (v) return Vector3(v.x, v.y, 0) end
 })
 
 ----------------------------
@@ -361,7 +401,7 @@ end
 --- 
 ---@param id string used to cache program/uniforms and error messages
 ---@param frag_shader string|function either file path or function that returns string
----@param data table<string, number|Vector2|Color|table> uniform variables
+---@param data table<string, number|Vector3|Color|table> uniform variables
 RunBgShader = function(id, frag_shader, data)
     if not shaders[id] then
         local program = ffi.new("Shader")
@@ -391,6 +431,9 @@ RunBgShader = function(id, frag_shader, data)
         elseif ffi.istype(Vector2, arg) then
             C.glUniform2f(uniforms[name], arg:Unpack())
 
+        elseif ffi.istype(Vector3, arg) then
+            C.glUniform3f(uniforms[name], arg:Unpack())
+
         elseif type(arg) == "number" then
             C.glUniform1f(uniforms[name], arg)
 
@@ -400,6 +443,8 @@ RunBgShader = function(id, frag_shader, data)
                 C.glUniform4fv(uniforms[name], #arg, ffi.new("Color[?]", #arg, arg))
             elseif ffi.istype(Vector2, arg[1]) then
                 C.glUniform2fv(uniforms[name], #arg, ffi.new("Vector2[?]", #arg, arg))
+            elseif ffi.istype(Vector3, arg[1]) then
+                C.glUniform3fv(uniforms[name], #arg, ffi.new("Vector3[?]", #arg, arg))
             else
                 assert(false, "unknown uniform type")
             end

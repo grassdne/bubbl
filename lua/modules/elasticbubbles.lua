@@ -35,7 +35,7 @@ local RandomVelocity = function()
     local Dimension = function()
         return random.sign() * random.vary(BUBBLE_SPEED_BASE, BUBBLE_SPEED_VARY)
     end
-    return Vector2(Dimension(), Dimension())
+    return Vector3(Dimension(), Dimension(), 0.0)
 end
 
 local RandomRadius = function()
@@ -43,7 +43,7 @@ local RandomRadius = function()
 end
 
 local RandomPosition = function()
-    return Vector2(math.random(), math.random()):Scale(resolution)
+    return Vector3(math.random() * resolution.x, math.random() * resolution.y, 0.0)
 end
 
 local BgShaderLoader = function()
@@ -63,10 +63,10 @@ local Particle = Parent {
 local Bubble = Parent {
     New = function (Self, position, velocity, radius)
         local p = setmetatable({}, Self)
-        p.position = position
+        p.position = Vector3(position)
         p.radius = radius
         p.hue = math.random()
-        p.velocity = velocity
+        p.velocity = Vector3(velocity)
         return p
     end,
     Color = function (bubble)
@@ -79,6 +79,7 @@ local Bubble = Parent {
         return bubble.radius * VAR.BUBBLE_SIZE_FACTOR
     end,
     Render = function (bubble)
+        assert(require'ffi'.istype(Vector3, bubble.position))
         RenderBubble(bubble.position, bubble:Color(), bubble:Radius())
     end,
 }
@@ -88,10 +89,12 @@ local SpawnBubble = function ()
 end
 
 local ParticleVelocity = function (bubble_velocity)
-    return Vector2.Angle(math.random()*2*math.pi) * POP_PARTICLE_SPEED + bubble_velocity
+    return Vector2.Angle(math.random()*2*math.pi):Vector3() * POP_PARTICLE_SPEED + bubble_velocity
 end
 
 local CreatePopEffect = function (center, color, size, bubble_velocity)
+    center = Vector3(center.x, center.y, -10.0)
+
     local pop = {
         pt_radius = POP_PT_RADIUS,
         color = color,
@@ -113,7 +116,7 @@ local CreatePopEffect = function (center, color, size, bubble_velocity)
             --local velocity = dir * (POP_EXPAND_MULT * distance / POP_LIFETIME)
             -- instead make it random
             local velocity = ParticleVelocity(bubble_velocity)
-            table.insert(pop, Particle:New(dir * distance + center, velocity))
+            table.insert(pop, Particle:New((dir * distance + center):Vector3(), velocity))
         end
     end
     pop.start_time = Seconds()
@@ -131,7 +134,7 @@ end
 
 local IsCollision = function (a, b)
     local mindist = a:Radius() + b:Radius()
-    return a ~= b and Vector2.DistSq(a.position, b.position) < mindist*mindist
+    return a ~= b and Vector3.DistSq(a.position, b.position) < mindist*mindist
 end
 
 local SwapVelocities = function (a, b)
@@ -140,7 +143,7 @@ end
 
 local SeparateBubbles = function (a, b)
     -- Push back bubble a so it is no longer colliding with b
-    local dir_b_to_a = Vector2.Normalize(a.position - b.position)
+    local dir_b_to_a = Vector3.Normalize(a.position - b.position)
     local mindist = a:Radius() + b:Radius()
     a.position = b.position + dir_b_to_a * mindist
 end
@@ -188,7 +191,7 @@ local Press = function ()
     if i then
         PopBubble(i)
     else
-        cursor_bubble = Bubble:New(MousePosition(), RandomVelocity(), BUBBLE_RAD_BASE)
+        cursor_bubble = Bubble:New(MousePosition():Vector3(), RandomVelocity(), BUBBLE_RAD_BASE)
     end
 end
 
@@ -218,7 +221,7 @@ return {
     OnMouseUp = function(x, y) Release() end,
 
     OnMouseMove = function(x, y)
-        if cursor_bubble then cursor_bubble.position = Vector2(x, y) end
+        if cursor_bubble then cursor_bubble.position = Vector3(x, y, 0.0) end
     end,
 
     OnKey = function(key, down)
@@ -281,27 +284,6 @@ return {
 
         local all_bubbles = CollectAllBubbles()
 
-        --- Render bubbles ---
-        for i, bubble in ipairs(all_bubbles) do bubble:Render() end
-
-        --- Update pop effect particles ---
-        for _, pop in ipairs(pop_effects) do
-            pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
-            local age = time - pop.start_time
-            pop.color.a = 1 - age / POP_LIFETIME
-            for _, pt in ipairs(pop) do
-                pt.pos = pt.pos + pt.velocity * dt
-                RenderPop(pt.pos, pop.color, pop.pt_radius)
-            end
-        end
-        -- Pop effects are hopefully in chronological order
-        for i = #pop_effects, 1, -1 do
-            if time - pop_effects[i].start_time < POP_LIFETIME then
-                break
-            end
-            pop_effects[i] = nil
-        end
-
         --- Draw background ---
         if #all_bubbles > 0 then
             table.sort(all_bubbles, function(a, b) return a:Radius() > b:Radius() end)
@@ -317,6 +299,28 @@ return {
                 colors = colors,
                 positions = positions,
             })
+        end
+        --- Render bubbles ---
+        for i, bubble in ipairs(all_bubbles) do bubble:Render() end
+
+        FlushRenderers()
+        --- Update pop effect particles ---
+        for _, pop in ipairs(pop_effects) do
+            pop.pt_radius = pop.pt_radius + POP_PT_RADIUS_DELTA * dt
+            local age = time - pop.start_time
+            pop.color.a = 1 - age / POP_LIFETIME
+            for _, pt in ipairs(pop) do
+                pt.pos = pt.pos + pt.velocity * dt
+                pt.pos.z = 10.0
+                RenderPop(pt.pos, pop.color, pop.pt_radius)
+            end
+        end
+        -- Pop effects are hopefully in chronological order
+        for i = #pop_effects, 1, -1 do
+            if time - pop_effects[i].start_time < POP_LIFETIME then
+                break
+            end
+            pop_effects[i] = nil
         end
     end,
 }

@@ -16,6 +16,7 @@
 #define UNI_GETS(NAME) (sh)->uniforms.NAME = glGetUniformLocation((sh)->shader.program, #NAME);
 
 #define CHECK_GL_ERROR() check_gl_error(__FILE__, __LINE__)
+void check_gl_error(const char *file, const int line);
 
 typedef struct {
     GLuint program;

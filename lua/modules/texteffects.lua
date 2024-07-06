@@ -153,7 +153,7 @@ Effect.Update = function (effect)
         local radius = Lerp(initial.radius, final.radius, t)
         local color = Lerp(initial.color, final.color, t)
         local position = Lerp(initial.position, final.position, t)
-        RenderPop(position, color, radius)
+        RenderPop(position:Vector3(), color, radius)
     end
     if not effect.finished and finished_count == #effect.initial and effect.initial == effect.stages[1] then
         effect.finished = true

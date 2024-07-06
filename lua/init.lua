@@ -57,4 +57,4 @@ end
 
 Global "TheServer"
 Global "window"
-window = CreateWindow("bubbl", resolution:Unpack())
+window = CreateWindow("bubbl", resolution.x, resolution.y)

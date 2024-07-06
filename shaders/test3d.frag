@@ -36,5 +36,6 @@ void main() {
         outcolor = vec4(color_a.rgb, color_a.a * a);
     } else {
         //outcolor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        discard;
     }
 }

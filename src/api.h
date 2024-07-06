@@ -13,6 +13,10 @@ typedef struct {
     float x, y;
 } Vector2;
 
+typedef struct {
+    float x, y, z;
+} Vector3;
+
 typedef struct Matrix {
     float m0, m4, m8, m12;
     float m1, m5, m9, m13;
@@ -27,13 +31,13 @@ typedef struct {
 typedef char GLbyte;
 
 typedef struct  {
-    Vector2 pos;
+    Vector3 pos;
     float rad;
     Color color;
 } Bubble;
 
 typedef struct  {
-    Vector2 pos;
+    Vector3 pos;
     float rad;
     Color color_a;
     Color color_b;
@@ -96,9 +100,10 @@ void flush_bubbles(void);
 void flush_pops(void);
 
 void render_bubble(Bubble bubble);
-void render_test3d(Vector2 position, Color color, float radius);
-void render_pop(Vector2 position, Color color, float radius);
+void render_test3d(Vector3 position, Color color, float radius);
+void render_pop(Vector3 position, Color color, float radius);
 void render_trans_bubble(TransBubble bubble);
+void render_box(Vector3 position, Color color, float size);
 
 double get_time(void);
 bool screenshot(Window *window, const char *file_name);
@@ -125,8 +130,10 @@ void shader_quad(Shader *sh);
 int glGetUniformLocation(unsigned int program, const char *name);
 void glUniform4f(int uni, float r, float g, float b, float a);
 void glUniform2f(int uni, float x, float y);
+void glUniform2f(int uni, float x, float y);
 void glUniform1f(int uni, float f);
 void glUniform4fv(int uni, int count, Color *values);
+void glUniform3fv(int uni, int count, Vector3 *values);
 void glUniform2fv(int uni, int count, Vector2 *values);
 int bg_create_texture(void *data, int width, int height);
 

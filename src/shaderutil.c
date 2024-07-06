@@ -105,7 +105,7 @@ void shader_vertices(Shader *sh, const Geometry *geometry)
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        glBufferData(GL_ARRAY_BUFFER, geometry->count * sizeof(float) * VERTEX_SIZE, geometry->vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, geometry->vertices_size, geometry->vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(VERT_POS_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glEnableVertexAttribArray(VERT_POS_ATTRIB_INDEX);
 
